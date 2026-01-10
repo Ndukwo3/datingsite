@@ -30,7 +30,7 @@ import { parse, isValid as isValidDate } from 'date-fns';
 
 
 const step1Schema = z.object({
-  fullName: z.string().min(2, { message: "Please enter your real name" }).regex(/^[a-zA-Z\s'-]+$/, { message: "Name can only contain letters and spaces." }),
+  fullName: z.string().min(2, { message: "Please enter your real name" }),
   dob: z.string().refine(val => {
     if (val.length !== 10) return false;
     const parsedDate = parse(val, 'MM/dd/yyyy', new Date());
@@ -235,11 +235,11 @@ export function OnboardingForm() {
                 </div>
                 <div className="space-y-6">
                   <div>
-                    <Label htmlFor="fullName" className="mb-2 block">What's your name?</Label>
+                    <Label htmlFor="fullName" className="mb-2 block">What should we call you?</Label>
                     <Controller
                         name="fullName"
                         control={control}
-                        render={({ field }) => <Input id="fullName" placeholder="Enter your full name" {...field} />}
+                        render={({ field }) => <Input id="fullName" placeholder="e.g., Baddo 🌶️" {...field} />}
                     />
                     {errors.fullName && <p className="text-sm text-destructive mt-1">{errors.fullName.message}</p>}
                   </div>
@@ -462,3 +462,5 @@ export function OnboardingForm() {
     </FormProvider>
   );
 }
+
+    
