@@ -58,7 +58,7 @@ export function AuthPage({ defaultTab }: AuthPageProps) {
     };
 
     return (
-        <div className="relative flex min-h-screen items-center justify-center overflow-hidden bg-gradient-to-br from-pink-100 via-red-50 to-yellow-50 p-6 dark:from-pink-900 dark:via-red-800/80 dark:to-purple-900 md:p-8 font-body">
+        <div className="relative flex min-h-screen items-center justify-center overflow-hidden bg-gradient-to-br from-pink-100 via-red-50 to-yellow-50 p-6 dark:from-pink-900/80 dark:via-red-800/70 dark:to-purple-900/80 md:p-8 font-body">
             <div className="absolute inset-0 z-0">
                 <motion.div 
                     className="absolute top-[10%] left-[10%] h-48 w-48 rounded-full bg-white/10 dark:bg-white/5"
@@ -171,12 +171,21 @@ const LoginForm = ({ onSubmit }: { onSubmit: (e: React.FormEvent) => void }) => 
 
 const SignUpForm = ({ onSubmit }: { onSubmit: (e: React.FormEvent) => void }) => (
     <form onSubmit={onSubmit} className="space-y-6">
-         <div>
+         <div className="grid grid-cols-2 gap-4">
             <div className="relative">
                 <User className="absolute left-3 top-1/2 -translate-y-1/2 h-5 w-5 text-gray-400" />
                 <Input
                     type="text"
-                    placeholder="Full Name"
+                    placeholder="First Name"
+                    required
+                    className="pl-10 placeholder:text-muted-foreground focus:placeholder:text-transparent"
+                />
+            </div>
+             <div className="relative">
+                <User className="absolute left-3 top-1/2 -translate-y-1/2 h-5 w-5 text-gray-400" />
+                <Input
+                    type="text"
+                    placeholder="Last Name"
                     required
                     className="pl-10 placeholder:text-muted-foreground focus:placeholder:text-transparent"
                 />
@@ -218,5 +227,7 @@ const SignUpForm = ({ onSubmit }: { onSubmit: (e: React.FormEvent) => void }) =>
         </Button>
     </form>
 );
+
+    
 
     
