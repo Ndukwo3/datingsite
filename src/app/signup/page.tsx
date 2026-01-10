@@ -25,7 +25,7 @@ export default function SignupPage() {
           src={bgImage.imageUrl}
           alt={bgImage.description}
           fill
-          className="object-cover opacity-50"
+          className="object-cover opacity-20"
           data-ai-hint={bgImage.imageHint}
         />
       )}
