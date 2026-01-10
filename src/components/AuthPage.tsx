@@ -126,12 +126,12 @@ export function AuthPage({ defaultTab }: { defaultTab: AuthStep }) {
                         {isOtpStep ? "Check your messages" : "LinkUp9ja"}
                     </h1>
                     <p className="mt-2 text-gray-600 dark:text-gray-200">
-                         {isOtpStep ? `We've sent a 6-digit code to ${userData?.phone}` : "Find your perfect match in Nigeria"}
+                         {isOtpStep ? `We've sent a 6-digit code to your WhatsApp at ${userData?.phone}` : "Find your perfect match in Nigeria"}
                     </p>
                 </div>
 
                 {!isOtpStep && (
-                    <div className="relative flex rounded-lg bg-gray-100/70 p-1">
+                    <div className="relative mt-4 flex rounded-lg bg-gray-100/70 p-1">
                         <motion.div 
                             className="absolute inset-0.5 w-1/2 rounded-md bg-white shadow"
                             animate={{ x: authStep === 'login' ? '0%' : '100%' }}
@@ -341,7 +341,7 @@ const OTPForm = ({ onSubmit, identifier, onBack }: { onSubmit: (e: React.FormEve
             </Button>
             <div className="text-center text-sm">
                 <p className="text-gray-600 dark:text-gray-300">
-                    Didn't receive code?{" "}
+                    Didn't receive the code on WhatsApp?{" "}
                     <button type="button" className="font-medium text-pink-600 hover:text-pink-500 dark:text-gray-200 dark:hover:text-white">
                         Resend
                     </button>
@@ -353,5 +353,7 @@ const OTPForm = ({ onSubmit, identifier, onBack }: { onSubmit: (e: React.FormEve
         </form>
     );
 };
+
+    
 
     
