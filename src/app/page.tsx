@@ -54,7 +54,7 @@ export default function LandingPage() {
               </p>
               <div>
                 <Button asChild size="lg" className="bg-primary hover:bg-primary/90 text-primary-foreground font-bold transition-transform duration-300 hover:scale-105">
-                  <Link href="/signup">Get Started</Link>
+                  <Link href="/signup?fromNav=true">Get Started</Link>
                 </Button>
               </div>
             </motion.div>
@@ -74,4 +74,3 @@ export default function LandingPage() {
     </div>
   );
 }
-
