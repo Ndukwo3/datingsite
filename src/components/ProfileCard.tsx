@@ -32,7 +32,7 @@ export function ProfileCard({ user }: ProfileCardProps) {
         <p className="mt-1 flex items-center gap-1.5 text-sm text-primary-foreground/80">
           <MapPin className="h-4 w-4" /> {user.location}
         </p>
-        <p className="mt-4 text-sm leading-relaxed">{user.bio}</p>
+        <p className="mt-4 text-sm leading-relaxed text-left">{user.bio}</p>
         <div className="mt-4 flex flex-wrap gap-2">
           {user.interests.slice(0, 4).map((interest) => (
             <Badge key={interest} variant="secondary" className="bg-primary-foreground/20 text-primary-foreground backdrop-blur-sm">
