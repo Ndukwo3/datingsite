@@ -7,6 +7,12 @@
       "imageHint": "happy couple"
     },
     {
+      "id": "signup-hero",
+      "description": "A stylish woman smiling in an urban setting",
+      "imageUrl": "https://images.unsplash.com/photo-1573496359142-b8d87734a5a2?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&ixid=M3w3NDE5ODJ8MHwxfHNlYXJjaHw0fHxzdHlsaXNoJTIwd29tYW4lMjBzbWlsaW5nfGVufDB8fHx8MTc2ODI4MjE3MXww&ixlib=rb-4.1.0&q=80&w=1080",
+      "imageHint": "stylish woman"
+    },
+    {
       "id": "about-mission",
       "description": "A happy Nigerian couple outdoors",
       "imageUrl": "https://images.unsplash.com/photo-1589199051916-92cd36b97ffa?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&ixid=M3w3NDE5ODJ8MHwxfHNlYXJjaHw5fHxIYXBweSUyMG5pZ2VyaWElMjBjb3VwbGUlMjBsYW5kc2NhcGV8ZW58MHx8fHwxNzY4MDU1MDYyfDA&ixlib=rb-4.1.0&q=80&w=1080",

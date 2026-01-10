@@ -15,7 +15,7 @@ import { ThemeToggle } from "@/components/ThemeToggle";
 import { PlaceHolderImages } from "@/lib/placeholder-images";
 
 export default function SignupPage() {
-  const signupImage = PlaceHolderImages.find(p => p.id === 'hero-1');
+  const signupImage = PlaceHolderImages.find(p => p.id === 'signup-hero');
 
   return (
     <div className="w-full lg:grid lg:min-h-screen lg:grid-cols-2">
@@ -78,3 +78,5 @@ export default function SignupPage() {
     </div>
   );
 }
+
+    
