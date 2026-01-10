@@ -41,7 +41,7 @@ export default function LandingPage() {
     visible: {
       opacity: 1,
       transition: {
-        duration: 0.2,
+        duration: 0.1,
         ease: "easeIn",
       },
     },
@@ -113,4 +113,3 @@ export default function LandingPage() {
     </div>
   );
 }
-
