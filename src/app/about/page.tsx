@@ -2,8 +2,13 @@
 import { LandingHeader } from "@/components/LandingHeader";
 import { LandingFooter } from "@/components/LandingFooter";
 import { Users, Heart, Shield } from "lucide-react";
+import Image from "next/image";
+import { PlaceHolderImages } from "@/lib/placeholder-images";
 
 export default function AboutPage() {
+  const missionImage = PlaceHolderImages.find(p => p.id === 'about-mission');
+  const storyImage = PlaceHolderImages.find(p => p.id === 'about-story');
+
   return (
     <div className="flex min-h-screen flex-col bg-background text-foreground">
       <LandingHeader theme="light" />
@@ -18,19 +23,37 @@ export default function AboutPage() {
             </p>
           </section>
 
-          <section className="mt-16 space-y-12">
-            <div className="mx-auto max-w-4xl">
-              <h2 className="mb-4 font-headline text-3xl font-bold text-center">Our Mission</h2>
-              <p className="text-center text-muted-foreground">
-                In a world of fleeting digital interactions, our mission is to build a trusted and vibrant online community where Nigerians can form deep, meaningful, and lasting relationships. We believe in celebrating our unique culture and creating a space where genuine connections can flourish, whether you're looking for a life partner, a cherished friend, or a beautiful new beginning.
-              </p>
+          <section className="mt-16 space-y-16">
+            <div className="mx-auto max-w-5xl">
+              <div className="flex flex-col md:flex-row items-center gap-12">
+                <div className="md:w-1/2">
+                  <h2 className="mb-4 font-headline text-3xl font-bold">Our Mission</h2>
+                  <p className="text-muted-foreground">
+                    In a world of fleeting digital interactions, our mission is to build a trusted and vibrant online community where Nigerians can form deep, meaningful, and lasting relationships. We believe in celebrating our unique culture and creating a space where genuine connections can flourish, whether you're looking for a life partner, a cherished friend, or a beautiful new beginning.
+                  </p>
+                </div>
+                {missionImage && (
+                  <div className="md:w-1/2 relative aspect-video">
+                    <Image src={missionImage.imageUrl} alt={missionImage.description} fill className="rounded-lg object-cover shadow-md" data-ai-hint={missionImage.imageHint} />
+                  </div>
+                )}
+              </div>
             </div>
 
-            <div className="mx-auto max-w-4xl">
-                <h2 className="mb-4 font-headline text-3xl font-bold text-center">Our Story</h2>
-                <p className="text-center text-muted-foreground">
-                LinkUp9ja was born from a simple idea: dating should be easier and more authentic for Nigerians. Our founders, a group of friends who navigated the challenges of modern dating themselves, saw a need for a platform that understood the nuances of Nigerian culture, values, and aspirations. We set out to create more than just an app—we wanted to build a community founded on respect, authenticity, and the shared goal of finding happiness. Today, LinkUp9ja is a testament to that vision, helping thousands of people connect every single day.
-                </p>
+            <div className="mx-auto max-w-5xl">
+               <div className="flex flex-col md:flex-row items-center gap-12">
+                {storyImage && (
+                    <div className="md:w-1/2 relative aspect-video order-first md:order-last">
+                      <Image src={storyImage.imageUrl} alt={storyImage.description} fill className="rounded-lg object-cover shadow-md" data-ai-hint={storyImage.imageHint} />
+                    </div>
+                  )}
+                <div className="md:w-1/2">
+                  <h2 className="mb-4 font-headline text-3xl font-bold">Our Story</h2>
+                  <p className="text-muted-foreground">
+                  LinkUp9ja was born from a simple idea: dating should be easier and more authentic for Nigerians. Our founders, a group of friends who navigated the challenges of modern dating themselves, saw a need for a platform that understood the nuances of Nigerian culture, values, and aspirations. We set out to create more than just an app—we wanted to build a community founded on respect, authenticity, and the shared goal of finding happiness. Today, LinkUp9ja is a testament to that vision, helping thousands of people connect every single day.
+                  </p>
+                </div>
+              </div>
             </div>
             
             <div className="mx-auto max-w-5xl">

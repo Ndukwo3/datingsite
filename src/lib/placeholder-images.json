@@ -7,6 +7,18 @@
       "imageHint": "happy couple"
     },
     {
+      "id": "about-mission",
+      "description": "A couple laughing together over coffee",
+      "imageUrl": "https://images.unsplash.com/photo-1517551466362-e6a43cb7ee4d?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&ixid=M3w3NDE5ODJ8MHwxfHNlYXJjaHw1fHxibGFjayUyMGNvdXBsZSUyMGNvZmZlZXxlbnwwfHx8fDE3NjgyNDUwNDF8MA&ixlib=rb-4.1.0&q=80&w=1080",
+      "imageHint": "couple coffee"
+    },
+    {
+      "id": "about-story",
+      "description": "A group of diverse friends collaborating and smiling",
+      "imageUrl": "https://images.unsplash.com/photo-1522202176988-66273c2fd55f?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&ixid=M3w3NDE5ODJ8MHwxfHNlYXJjaHwxfHxkaXZlcnNlJTIwZnJpZW5kcyUyMGNvbGxhYm9yYXRpbmd8ZW58MHx8fHwxNzY4MjQ1MTQyfDA&ixlib=rb-4.1.0&q=80&w=1080",
+      "imageHint": "friends collaborating"
+    },
+    {
       "id": "user-1",
       "description": "Profile picture of a smiling woman",
       "imageUrl": "https://images.unsplash.com/photo-1535295972055-1c762f4483e5?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&ixid=M3w3NDE5ODJ8MHwxfHNlYXJjaHw5fHxzbWlsaW5nJTIwd29tYW58ZW58MHx8fHwxNzY3OTc3NzA5fDA&ixlib=rb-4.1.0&q=80&w=1080",
