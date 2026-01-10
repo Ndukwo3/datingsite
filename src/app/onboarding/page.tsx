@@ -1,10 +1,11 @@
 import { OnboardingForm } from './OnboardingForm';
 import { Logo } from '@/components/Logo';
+import Link from 'next/link';
 
 export default function OnboardingPage() {
   return (
-    <div className="container mx-auto flex min-h-screen max-w-3xl flex-col items-center p-4">
-      <header className="w-full py-6">
+    <div className="container mx-auto flex min-h-screen max-w-lg flex-col items-center p-4">
+      <header className="w-full py-4">
         <Link href="/" className="text-2xl font-bold font-headline">
             <Logo />
         </Link>
@@ -15,5 +16,3 @@ export default function OnboardingPage() {
     </div>
   );
 }
-
-    

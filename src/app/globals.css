@@ -88,4 +88,7 @@ body {
     -webkit-font-smoothing: antialiased;
     -moz-osx-font-smoothing: grayscale;
   }
+  .bg-primary-gradient {
+      background-image: linear-gradient(to right, hsl(var(--primary)), hsl(var(--accent)));
+  }
 }

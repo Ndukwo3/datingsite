@@ -5,7 +5,9 @@ import { useForm, FormProvider } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import * as z from 'zod';
 import { motion, AnimatePresence } from 'framer-motion';
-import { Loader2, Sparkles, Upload } from 'lucide-react';
+import { Loader2, Sparkles, Upload, Camera, ArrowLeft, Info, ChevronDown, Check, Star, X } from 'lucide-react';
+import { format } from 'date-fns';
+import { cn } from "@/lib/utils";
 
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -14,39 +16,86 @@ import { Textarea } from '@/components/ui/textarea';
 import { Progress } from '@/components/ui/progress';
 import { Badge } from '@/components/ui/badge';
 import { useToast } from '@/hooks/use-toast';
-import { suggestPreferences } from '@/ai/flows/suggested-preferences';
-import { Card, CardContent } from '@/components/ui/card';
+import { Calendar } from "@/components/ui/calendar";
+import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
+import { Calendar as CalendarIcon } from "lucide-react";
+import { GenderSelector } from '@/components/GenderSelector';
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
+import { nigerianStates } from '@/lib/data';
+import { Accordion, AccordionContent, AccordionItem, AccordionTrigger } from '@/components/ui/accordion';
+import { Slider } from '@/components/ui/slider';
 import Link from 'next/link';
 
-const formSchema = z.object({
-  name: z.string().min(2, 'Name must be at least 2 characters.'),
-  age: z.coerce.number().min(18, 'You must be at least 18.').max(99),
-  location: z.string().min(2, 'Location is required.'),
-  bio: z.string().min(20, 'Bio must be at least 20 characters.').max(300),
-  interests: z.array(z.string()).min(1, 'Please select at least one interest.'),
+const step1Schema = z.object({
+  fullName: z.string().min(2, { message: "Please enter your real name" }).regex(/^[a-zA-Z\s'-]+$/, { message: "Name can only contain letters and spaces." }),
+  dob: z.date({ required_error: "Please select your date of birth." }).refine(date => {
+    const age = new Date().getFullYear() - new Date(date).getFullYear();
+    return age >= 18;
+  }, { message: "You must be 18 or older to use LinkUp9ja" }),
+  gender: z.enum(['male', 'female', 'other'], { required_error: "Please select a gender." }),
 });
 
-type FormData = z.infer<typeof formSchema>;
+const step2Schema = z.object({
+  state: z.string({ required_error: "Please select your state." }),
+  city: z.string().min(2, "Please enter your city."),
+});
+
+const step3Schema = z.object({
+  photos: z.array(z.instanceof(File)).min(3, "Please upload at least 3 photos.").max(6),
+});
+
+const step4Schema = z.object({
+  bio: z.string().min(20, "Bio must be at least 20 characters.").max(500, "Bio cannot exceed 500 characters."),
+  interests: z.array(z.string()).min(3, "Please select at least 3 interests.").max(10),
+});
+
+const step5Schema = z.object({
+    interestedIn: z.enum(['men', 'women', 'everyone']),
+    ageRange: z.tuple([z.number(), z.number()]),
+    maxDistance: z.number(),
+});
+
+const fullSchema = step1Schema.merge(step2Schema).merge(step3Schema).merge(step4Schema).merge(step5Schema);
+
+type FormData = z.infer<typeof fullSchema>;
 
 const steps = [
-  { id: 1, title: 'Basic Info', fields: ['name', 'age', 'location'] },
-  { id: 2, title: 'About You', fields: ['bio', 'interests'] },
-  { id: 3, title: 'Photos', fields: [] },
-  { id: 4, title: 'Complete', fields: [] },
+  { id: 1, title: 'Basic Information', schema: step1Schema, fields: ['fullName', 'dob', 'gender'] },
+  { id: 2, title: 'Location', schema: step2Schema, fields: ['state', 'city'] },
+  { id: 3, title: 'Upload Photos', schema: step3Schema, fields: ['photos'] },
+  { id: 4, title: 'Bio & Interests', schema: step4Schema, fields: ['bio', 'interests'] },
+  { id: 5, title: 'Dating Preferences', schema: step5Schema, fields: ['interestedIn', 'ageRange', 'maxDistance'] },
+  { id: 6, title: 'Complete', schema: z.object({}), fields: [] },
 ];
+
+const interestOptions = [ "🎵 Afrobeats", "⚽ Football", "🍛 Jollof Rice", "🎬 Nollywood", "💃 Dancing", "🎉 Owambe", "✈️ Travel", "📸 Photography", "🎭 Comedy", "📚 Reading", "💪 Fitness", "🎨 Art", "👗 Fashion", "💻 Tech", "🍳 Cooking", "🎮 Gaming", "⛪ Church", "🏀 Basketball", "🎸 Music", "📱 Social Media", "🌍 Volunteering", "💼 Business", "🎤 Karaoke", "🏖️ Beach Life", "🚗 Road Trips", "🍕 Food Explorer", "📺 Netflix", "🏋️ Gym", "🧘 Yoga", "🎪 Events" ];
+
+const getAge = (dob: Date | undefined) => {
+    if(!dob) return null;
+    const today = new Date();
+    let age = today.getFullYear() - dob.getFullYear();
+    const m = today.getMonth() - dob.getMonth();
+    if (m < 0 || (m === 0 && today.getDate() < dob.getDate())) {
+        age--;
+    }
+    return age;
+}
 
 export function OnboardingForm() {
   const [currentStep, setCurrentStep] = useState(0);
-  const [suggested, setSuggested] = useState<string[]>([]);
-  const [isLoadingSuggestions, setIsLoadingSuggestions] = useState(false);
+  const [direction, setDirection] = useState(1);
   const { toast } = useToast();
 
   const methods = useForm<FormData>({
-    resolver: zodResolver(formSchema),
-    defaultValues: {
-      interests: [],
-    },
+    resolver: zodResolver(steps[currentStep].schema),
     mode: "onChange",
+     defaultValues: {
+        photos: [],
+        interests: [],
+        interestedIn: 'everyone',
+        ageRange: [18, 35],
+        maxDistance: 50,
+    }
   });
 
   const {
@@ -54,10 +103,16 @@ export function OnboardingForm() {
     getValues,
     setValue,
     watch,
-    formState: { errors },
+    formState: { errors, isValid },
+    register,
   } = methods;
 
-  const selectedPrefs = watch('interests', []);
+  const dob = watch('dob');
+  const photos = watch('photos', []);
+  const bio = watch('bio', '');
+  const interests = watch('interests', []);
+  const ageRange = watch('ageRange');
+  const maxDistance = watch('maxDistance');
 
   const handleNext = async () => {
     const fields = steps[currentStep].fields;
@@ -66,197 +121,313 @@ export function OnboardingForm() {
     if (!output) return;
 
     if (currentStep < steps.length - 1) {
+      setDirection(1);
       setCurrentStep(step => step + 1);
     }
   };
 
   const handlePrev = () => {
     if (currentStep > 0) {
+      setDirection(-1);
       setCurrentStep(step => step - 1);
     }
   };
   
-  const handleGetSuggestions = async () => {
-    const { bio, age, location } = getValues();
-    const interestsString = selectedPrefs.join(', ');
+  const toggleInterest = (interest: string) => {
+    const currentInterests = getValues('interests') || [];
+    const isSelected = currentInterests.includes(interest);
+    let newInterests;
+    if (isSelected) {
+      newInterests = currentInterests.filter(i => i !== interest);
+    } else {
+        if(currentInterests.length >= 10) {
+            toast({ title: 'You can select up to 10 interests.', variant: 'destructive' });
+            return;
+        }
+      newInterests = [...currentInterests, interest];
+    }
+    setValue('interests', newInterests, { shouldValidate: true });
+  };
 
-    if(!bio || !age || !location) {
-        toast({
-            title: "Please complete your profile basics first.",
-            description: "We need your bio, age, and location to give good suggestions.",
-            variant: "destructive",
-        });
-        const fields = steps[0].fields.concat(steps[1].fields);
-        const output = await trigger(fields as (keyof FormData)[]);
+  const handlePhotoUpload = (e: React.ChangeEvent<HTMLInputElement>) => {
+    if (e.target.files) {
+      const files = Array.from(e.target.files);
+      const currentPhotos = getValues('photos');
+      if (currentPhotos.length + files.length > 6) {
+        toast({ title: "You can upload a maximum of 6 photos.", variant: 'destructive' });
         return;
+      }
+      // TODO: Add compression and progress bar logic
+      setValue('photos', [...currentPhotos, ...files], { shouldValidate: true });
     }
+  };
 
-    setIsLoadingSuggestions(true);
-    try {
-      const result = await suggestPreferences({ bio, interests: interestsString, age, location });
-       const newSuggestions = result.suggestedPreferences.filter(p => !selectedPrefs.find(sp => sp.toLowerCase() === p.toLowerCase()));
-      setSuggested(newSuggestions);
-    } catch (error) {
-      console.error(error);
-      toast({
-        title: "Couldn't get suggestions",
-        description: "There was an issue with our AI. Please try again.",
-        variant: "destructive",
-      });
-    } finally {
-      setIsLoadingSuggestions(false);
-    }
+  const removePhoto = (index: number) => {
+    const currentPhotos = getValues('photos');
+    const newPhotos = currentPhotos.filter((_, i) => i !== index);
+    setValue('photos', newPhotos, { shouldValidate: true });
   };
   
-  const togglePreference = (pref: string) => {
-    const currentPrefs = getValues('interests') || [];
-    const isSelected = currentPrefs.includes(pref);
-
-    if(isSelected) {
-      setValue('interests', currentPrefs.filter(p => p !== pref), { shouldValidate: true });
-    } else {
-      setValue('interests', [...currentPrefs, pref], { shouldValidate: true });
-    }
+  const progress = ((currentStep + 1) / (steps.length - 1)) * 100;
+  const slideVariants = {
+    hidden: (direction: number) => ({ opacity: 0, x: direction > 0 ? '100%' : '-100%' }),
+    visible: { opacity: 1, x: 0 },
+    exit: (direction: number) => ({ opacity: 0, x: direction > 0 ? '-100%' : '100%' }),
   };
-
-  const progress = ((currentStep + 1) / steps.length) * 100;
 
   return (
     <FormProvider {...methods}>
-      <div className="w-full space-y-8">
-        <Progress value={progress} className="h-2" />
+      <div className="w-full space-y-6">
+        <div className="flex items-center gap-4">
+            <Progress value={progress} className="h-1 flex-1" />
+            <span className="text-sm font-medium text-muted-foreground">Step {currentStep + 1} of {steps.length - 1}</span>
+        </div>
         
-        <AnimatePresence mode="wait">
+        <AnimatePresence mode="wait" custom={direction}>
           <motion.div
             key={currentStep}
-            initial={{ opacity: 0, x: 50 }}
-            animate={{ opacity: 1, x: 0 }}
-            exit={{ opacity: 0, x: -50 }}
-            transition={{ duration: 0.3 }}
+            custom={direction}
+            variants={slideVariants}
+            initial="hidden"
+            animate="visible"
+            exit="exit"
+            transition={{ duration: 0.4, ease: "easeInOut" }}
+            className="min-h-[500px]"
           >
+            {currentStep > 0 && currentStep < steps.length - 1 && (
+                <Button onClick={handlePrev} variant="ghost" className="absolute top-24 left-4 text-muted-foreground">
+                <ArrowLeft className="mr-2 h-4 w-4"/> Back
+              </Button>
+            )}
+
             {currentStep === 0 && (
-              <div className="space-y-6">
-                <h2 className="text-2xl font-headline font-bold">Welcome! Let's start with the basics.</h2>
-                <div className="space-y-4">
+              <div className="space-y-8">
+                <div className='text-center'>
+                    <h2 className="text-2xl font-headline font-bold">Let's get to know you</h2>
+                    <p className="text-muted-foreground">Tell us about yourself</p>
+                </div>
+                <div className="space-y-6">
                   <div>
-                    <Label htmlFor="name">Full Name</Label>
-                    <Input id="name" {...methods.register('name')} />
-                    {errors.name && <p className="text-sm text-destructive">{errors.name.message}</p>}
+                    <Label htmlFor="fullName">What's your name?</Label>
+                    <Input id="fullName" placeholder="Enter your full name" {...register('fullName')} />
+                    {errors.fullName && <p className="text-sm text-destructive mt-1">{errors.fullName.message}</p>}
                   </div>
-                  <div className="grid grid-cols-2 gap-4">
-                    <div>
-                      <Label htmlFor="age">Age</Label>
-                      <Input id="age" type="number" {...methods.register('age')} />
-                      {errors.age && <p className="text-sm text-destructive">{errors.age.message}</p>}
-                    </div>
-                    <div>
-                      <Label htmlFor="location">Location</Label>
-                      <Input id="location" placeholder="e.g., Lagos, Nigeria" {...methods.register('location')} />
-                      {errors.location && <p className="text-sm text-destructive">{errors.location.message}</p>}
-                    </div>
+                   <div>
+                    <Label htmlFor="dob">When's your birthday?</Label>
+                    <Popover>
+                        <PopoverTrigger asChild>
+                        <Button
+                            variant={"outline"}
+                            className={cn(
+                            "w-full justify-start text-left font-normal",
+                            !dob && "text-muted-foreground"
+                            )}
+                        >
+                            <CalendarIcon className="mr-2 h-4 w-4" />
+                            {dob ? format(dob, "PPP") : <span>Pick a date</span>}
+                        </Button>
+                        </PopoverTrigger>
+                        <PopoverContent className="w-auto p-0">
+                        <Calendar
+                            mode="single"
+                            selected={dob}
+                            onSelect={(date) => setValue('dob', date!, { shouldValidate: true })}
+                            initialFocus
+                            captionLayout="dropdown-buttons"
+                            fromYear={1950}
+                            toYear={new Date().getFullYear() - 18}
+                        />
+                        </PopoverContent>
+                    </Popover>
+                    {errors.dob ? <p className="text-sm text-destructive mt-1">{errors.dob.message}</p> : (dob && <p className="text-sm text-muted-foreground mt-1">You are {getAge(dob)} years old</p>)}
+                   </div>
+                  <div>
+                    <Label>I am a</Label>
+                    <GenderSelector value={watch('gender')} onChange={(value) => setValue('gender', value, { shouldValidate: true })} />
+                    {errors.gender && <p className="text-sm text-destructive mt-1">{errors.gender.message}</p>}
                   </div>
                 </div>
               </div>
             )}
             
             {currentStep === 1 && (
-              <div className="space-y-6">
-                <h2 className="text-2xl font-headline font-bold">Tell us a bit about yourself.</h2>
-                <div className="space-y-4">
-                  <div>
-                    <Label htmlFor="bio">Your Bio</Label>
-                    <Textarea id="bio" placeholder="I love exploring new places, trying new food..." {...methods.register('bio')} />
-                    {errors.bio && <p className="text-sm text-destructive">{errors.bio.message}</p>}
-                  </div>
-                  <div>
-                    <Label htmlFor="interests">Interests</Label>
-                     <div className="flex flex-wrap gap-2 mt-2 min-h-[40px] rounded-md border border-input p-2">
-                        {selectedPrefs.map((pref) => (
-                            <Badge
-                            key={pref}
-                            variant={"secondary"}
-                            onClick={() => togglePreference(pref)}
-                            className="cursor-pointer transition-colors"
-                            >
-                            {pref} &times;
-                            </Badge>
-                        ))}
-                         {selectedPrefs.length === 0 && <span className="text-sm text-muted-foreground">Select some interests below...</span>}
-                    </div>
-                     {errors.interests && <p className="text-sm text-destructive">{errors.interests.message}</p>}
-                  </div>
+              <div className="space-y-8">
+                 <div className='text-center'>
+                    <h2 className="text-2xl font-headline font-bold">Where are you located?</h2>
+                    <p className="text-muted-foreground">This helps us show you matches nearby</p>
                 </div>
-                <Card>
-                  <CardContent className="pt-6">
-                    <div className="flex flex-col md:flex-row items-center gap-4">
-                      <div className="flex-1">
-                        <h3 className="font-semibold flex items-center gap-2"><Sparkles className="text-accent w-5 h-5"/> AI-Powered Suggestions</h3>
-                        <p className="text-sm text-muted-foreground">Get personalized preference suggestions based on your profile.</p>
-                      </div>
-                      <Button onClick={handleGetSuggestions} disabled={isLoadingSuggestions} variant="outline">
-                        {isLoadingSuggestions ? <Loader2 className="mr-2 h-4 w-4 animate-spin" /> : <Sparkles className="mr-2 h-4 w-4" />}
-                        Suggest Interests
-                      </Button>
+                 <div className="space-y-6">
+                    <div>
+                        <Label htmlFor="state">Your State</Label>
+                        <Select onValueChange={(value) => setValue('state', value, { shouldValidate: true })} defaultValue={watch('state')}>
+                            <SelectTrigger>
+                                <SelectValue placeholder="Select your state" />
+                            </SelectTrigger>
+                            <SelectContent>
+                                {nigerianStates.map(state => (
+                                    <SelectItem key={state} value={state}>{state}</SelectItem>
+                                ))}
+                            </SelectContent>
+                        </Select>
+                        {errors.state && <p className="text-sm text-destructive mt-1">{errors.state.message}</p>}
                     </div>
-                    {suggested.length > 0 && (
-                      <div className="mt-4 space-y-2">
-                         <p className="text-sm font-medium">Click to add suggestions:</p>
-                        <div className="flex flex-wrap gap-2">
-                          {suggested.map((pref) => (
-                            <Badge
-                              key={pref}
-                              variant={"outline"}
-                              onClick={() => togglePreference(pref)}
-                              className="cursor-pointer transition-colors"
-                            >
-                              + {pref}
-                            </Badge>
-                          ))}
-                        </div>
-                      </div>
-                    )}
-                  </CardContent>
-                </Card>
+                     <div>
+                        <Label htmlFor="city">Your City</Label>
+                        <Input id="city" placeholder="e.g., Ikeja, Victoria Island" {...register('city')} />
+                        {errors.city && <p className="text-sm text-destructive mt-1">{errors.city.message}</p>}
+                    </div>
+                     <div className="rounded-lg bg-blue-500/10 p-3 text-blue-800 dark:bg-blue-300/10 dark:text-blue-200 border border-blue-500/20 flex items-start gap-3">
+                        <Info className="h-5 w-5 mt-0.5 shrink-0"/>
+                        <p className="text-sm">Your exact location is private. We only show your city and approximate distance to potential matches.</p>
+                    </div>
+                 </div>
               </div>
             )}
 
             {currentStep === 2 && (
-              <div className="space-y-6 text-center">
-                 <h2 className="text-2xl font-headline font-bold">Upload your best photos.</h2>
-                 <p className="text-muted-foreground">First impressions matter! Add at least one photo to continue.</p>
+              <div className="space-y-6">
+                 <div className='text-center'>
+                    <h2 className="text-2xl font-headline font-bold">Show your best self</h2>
+                    <p className="text-muted-foreground">Add at least 3 photos. The first will be your main photo.</p>
+                 </div>
                  <div className="grid grid-cols-2 md:grid-cols-3 gap-4">
-                    {[...Array(6)].map((_, i) => (
-                        <div key={i} className="aspect-square rounded-lg border-2 border-dashed border-muted-foreground/50 flex flex-col items-center justify-center text-muted-foreground hover:bg-muted transition-colors cursor-pointer">
-                            <Upload className="w-8 h-8"/>
-                            <span className="text-sm mt-2">Upload Photo</span>
+                    {Array.from({ length: 6 }).map((_, i) => (
+                        <div key={i} className="aspect-square rounded-xl border-dashed border-2 flex items-center justify-center relative bg-muted/50">
+                        {photos[i] ? (
+                            <>
+                                <img src={URL.createObjectURL(photos[i])} alt={`upload-preview-${i}`} className="w-full h-full object-cover rounded-xl" />
+                                {i === 0 && <Badge className='absolute top-2 left-2 bg-primary text-primary-foreground'><Star className='w-3 h-3 mr-1'/> Main</Badge>}
+                                <Button size="icon" variant="destructive" className="absolute top-2 right-2 h-6 w-6 rounded-full" onClick={() => removePhoto(i)}><X className="h-4 w-4"/></Button>
+                            </>
+                        ) : (
+                            <Label htmlFor="photo-upload" className="w-full h-full cursor-pointer flex flex-col items-center justify-center text-muted-foreground">
+                                <Camera className="w-8 h-8 mb-2"/>
+                                <span className='text-sm'>Add Photo</span>
+                            </Label>
+                        )}
                         </div>
                     ))}
+                    <Input id="photo-upload" type="file" accept="image/*" multiple onChange={handlePhotoUpload} className="hidden" />
+                 </div>
+                 {errors.photos && <p className="text-sm text-destructive text-center">{errors.photos.message}</p>}
+                 <div className='space-y-2 text-sm'>
+                    <div className={cn('flex items-center gap-2', photos.length >= 3 ? 'text-green-600' : 'text-muted-foreground')}><Check className='w-4 h-4'/> At least 3 photos (required)</div>
+                    <div className='flex items-center gap-2 text-muted-foreground'><Star className='w-4 h-4'/> First photo is your main profile picture</div>
+                    <div className='flex items-center gap-2 text-muted-foreground'><Camera className='w-4 h-4'/> Clear face photos work best</div>
                  </div>
               </div>
             )}
             
             {currentStep === 3 && (
-              <div className="space-y-6 text-center">
-                 <Sparkles className="w-16 h-16 text-accent mx-auto animate-pulse" />
-                 <h2 className="text-3xl font-headline font-bold">You're all set!</h2>
-                 <p className="text-muted-foreground max-w-md mx-auto">Your profile is complete. Get ready to start connecting with amazing people on LinkUp9ja.</p>
-                 <Button size="lg" className="bg-primary hover:bg-primary/90 text-primary-foreground font-bold" asChild>
-                    <Link href="/">Start Swiping</Link>
+                <div className="space-y-8">
+                    <div className='text-center'>
+                        <h2 className="text-2xl font-headline font-bold">Tell your story</h2>
+                        <p className="text-muted-foreground">Help others get to know the real you</p>
+                    </div>
+                    <div className="space-y-6">
+                        <div>
+                            <Label htmlFor="bio">About Me</Label>
+                            <Textarea 
+                                id="bio" 
+                                placeholder="Share a bit about yourself... What do you love doing? What makes you unique?" 
+                                className="min-h-[120px] bg-muted/50"
+                                value={bio}
+                                onChange={(e) => setValue('bio', e.target.value, { shouldValidate: true })}
+                                maxLength={500}
+                            />
+                            <div className="flex justify-between items-center mt-1">
+                                {errors.bio ? <p className="text-sm text-destructive">{errors.bio.message}</p> : <div/>}
+                                <p className="text-sm text-muted-foreground">{bio.length}/500</p>
+                            </div>
+                        </div>
+                        <div>
+                            <Label>What are you into?</Label>
+                            <p className="text-sm text-muted-foreground">Select at least 3 interests ({interests.length}/10 selected)</p>
+                             <div className="flex flex-wrap gap-2 mt-2 min-h-[40px] rounded-md border border-input p-2">
+                                {interestOptions.map(interest => (
+                                    <Badge
+                                        key={interest}
+                                        variant={interests.includes(interest) ? 'default' : 'secondary'}
+                                        onClick={() => toggleInterest(interest)}
+                                        className="cursor-pointer transition-colors"
+                                    >
+                                        {interest}
+                                    </Badge>
+                                ))}
+                            </div>
+                            {errors.interests && <p className="text-sm text-destructive mt-1">{errors.interests.message as string}</p>}
+                        </div>
+                    </div>
+                </div>
+            )}
+
+             {currentStep === 4 && (
+                <div className="space-y-8">
+                    <div className='text-center'>
+                        <h2 className="text-2xl font-headline font-bold">Who are you looking for?</h2>
+                        <p className="text-muted-foreground">Set your match preferences (you can change these later)</p>
+                    </div>
+                    <div className="space-y-6">
+                        <div>
+                            <Label>Show me</Label>
+                            <GenderSelector value={watch('interestedIn')} onChange={(value) => setValue('interestedIn', value, { shouldValidate: true })} options={[{value: 'men', label: "Men"}, {value: 'women', label: "Women"}, {value: 'everyone', label: "Everyone"}]} />
+                        </div>
+                        <div>
+                            <Label>Age Range</Label>
+                            <p className="text-sm text-muted-foreground">{ageRange[0]} - {ageRange[1]} years old</p>
+                            <Slider
+                                defaultValue={ageRange}
+                                onValueChange={(value) => setValue('ageRange', value as [number, number])}
+                                min={18}
+                                max={65}
+                                step={1}
+                                className="mt-2"
+                            />
+                        </div>
+                         <div>
+                            <Label>Maximum Distance</Label>
+                            <p className="text-sm text-muted-foreground">Within {maxDistance} km</p>
+                            <Slider
+                                defaultValue={[maxDistance]}
+                                onValueChange={(value) => setValue('maxDistance', value[0])}
+                                min={10}
+                                max={100}
+                                step={5}
+                                className="mt-2"
+                            />
+                        </div>
+                    </div>
+                </div>
+             )}
+
+            {currentStep === 5 && (
+              <div className="space-y-6 text-center flex flex-col items-center justify-center h-[500px]">
+                 <motion.div initial={{scale: 0}} animate={{scale: 1}} transition={{delay: 0.2, type: 'spring'}}>
+                    <Check className="w-24 h-24 text-green-500 bg-green-100 rounded-full p-4"/>
+                 </motion.div>
+                 <h2 className="text-3xl font-headline font-bold">You're all set, {getValues('fullName').split(' ')[0]}!</h2>
+                 <p className="text-muted-foreground max-w-md mx-auto">Welcome to LinkUp9ja! Get ready to start connecting with amazing people.</p>
+                 <Button size="lg" className="w-full bg-primary-gradient text-primary-foreground font-bold text-lg py-6" asChild>
+                    <Link href="/">Start Swiping 🔥</Link>
                  </Button>
               </div>
             )}
           </motion.div>
         </AnimatePresence>
 
-        {currentStep < 3 && (
-          <div className="flex justify-between">
-            <Button onClick={handlePrev} disabled={currentStep === 0} variant="outline">
-              Previous
-            </Button>
-            <Button onClick={handleNext} className="bg-primary hover:bg-primary/90 text-primary-foreground">
-              {currentStep === steps.length - 2 ? 'Finish' : 'Next'}
+        {currentStep < steps.length - 2 && (
+          <div className="flex justify-end pt-4">
+            <Button onClick={handleNext} disabled={!isValid} size="lg" className="w-full bg-primary-gradient text-primary-foreground font-semibold">
+              Next Step &rarr;
             </Button>
           </div>
+        )}
+        {currentStep === steps.length - 2 && (
+             <div className="flex justify-end pt-4">
+                <Button onClick={handleNext} disabled={!isValid} size="lg" className="w-full bg-primary-gradient text-primary-foreground font-semibold">
+                    Complete Profile
+                </Button>
+            </div>
         )}
       </div>
     </FormProvider>
