@@ -1,4 +1,5 @@
 
+
 "use client";
 
 import * as React from "react";
@@ -62,9 +63,9 @@ export function AuthPage({ defaultTab }: { defaultTab: "login" | "signup" }) {
     const renderForm = () => {
         switch (authStep) {
             case 'login':
-                return <LoginForm onSubmit={handleLoginSubmit} isLoading={isLoading} />;
+                return <LoginForm onSubmit={handleLoginSubmit} isLoading={isLoading} onSwitch={() => setAuthStep('signup')} />;
             case 'signup':
-                return <SignUpForm onSubmit={handleSignupSubmit} isLoading={isLoading} />;
+                return <SignUpForm onSubmit={handleSignupSubmit} isLoading={isLoading} onSwitch={() => setAuthStep('login')} />;
             default:
                 return null;
         }
@@ -119,7 +120,7 @@ export function AuthPage({ defaultTab }: { defaultTab: "login" | "signup" }) {
                     </button>
                 </div>
 
-                <div className="relative mt-6 h-[340px] overflow-hidden">
+                <div className="relative mt-6 h-[400px] overflow-hidden">
                     <AnimatePresence mode="wait">
                         <motion.div
                             key={authStep}
@@ -138,7 +139,7 @@ export function AuthPage({ defaultTab }: { defaultTab: "login" | "signup" }) {
     );
 }
 
-const LoginForm = ({ onSubmit, isLoading }: { onSubmit: () => void; isLoading: boolean; }) => {
+const LoginForm = ({ onSubmit, isLoading, onSwitch }: { onSubmit: () => void; isLoading: boolean; onSwitch: () => void; }) => {
     const handleSubmit = (e: React.FormEvent<HTMLFormElement>) => {
         e.preventDefault();
         onSubmit();
@@ -182,11 +183,17 @@ const LoginForm = ({ onSubmit, isLoading }: { onSubmit: () => void; isLoading: b
                  {isLoading && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
                 Log In
             </Button>
+            <p className="text-center text-sm text-gray-600 dark:text-gray-300">
+                Don't have an account?{' '}
+                <button type="button" onClick={onSwitch} className="font-medium text-pink-600 hover:text-pink-500 dark:text-white dark:hover:text-gray-300">
+                    Sign up
+                </button>
+            </p>
         </form>
     );
 };
 
-const SignUpForm = ({ onSubmit, isLoading }: { onSubmit: (data: UserData) => void; isLoading: boolean; }) => {
+const SignUpForm = ({ onSubmit, isLoading, onSwitch }: { onSubmit: (data: UserData) => void; isLoading: boolean; onSwitch: () => void; }) => {
     const { toast } = useToast();
     
     const handleNameInputChange = (e: React.ChangeEvent<HTMLInputElement>) => {
@@ -273,8 +280,16 @@ const SignUpForm = ({ onSubmit, isLoading }: { onSubmit: (data: UserData) => voi
                  {isLoading && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
                 Sign Up
             </Button>
+            <p className="text-center text-sm text-gray-600 dark:text-gray-300">
+                Already have an account?{' '}
+                <button type="button" onClick={onSwitch} className="font-medium text-pink-600 hover:text-pink-500 dark:text-white dark:hover:text-gray-300">
+                    Log in
+                </button>
+            </p>
         </form>
     );
 };
+
+    
 
     
