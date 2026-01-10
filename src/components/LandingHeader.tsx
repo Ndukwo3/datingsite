@@ -4,7 +4,7 @@ import { Logo } from '@/components/Logo';
 
 export function LandingHeader() {
   return (
-    <header className="absolute top-0 left-0 right-0 z-10 p-4">
+    <header className="absolute top-0 left-0 right-0 z-10 p-4 bg-transparent">
       <div className="container mx-auto flex items-center justify-between">
         <Logo className="text-white" />
         <nav className="hidden md:flex absolute left-1/2 -translate-x-1/2 items-center gap-6 text-sm font-medium text-white">
