@@ -14,6 +14,9 @@ import { Checkbox } from "./ui/checkbox";
 import Link from "next/link";
 import { SplashScreen } from "./SplashScreen";
 import { ThemeToggle } from "./ThemeToggle";
+import { sendOtp } from "@/ai/flows/send-otp-flow";
+import { useToast } from "@/hooks/use-toast";
+import { Loader2 } from "lucide-react";
 
 const GoogleIcon = (props: React.SVGProps<SVGSVGElement>) => (
     <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 48 48" width="24px" height="24px" {...props}>
@@ -36,12 +39,14 @@ type UserData = {
 
 export function AuthPage({ defaultTab }: { defaultTab: AuthStep }) {
     const [authStep, setAuthStep] = useState<AuthStep>(defaultTab);
-    const [userData, setUserData] = useState<UserData | null>(null);
+    const [userData, setUserData] = useState<Partial<UserData> | null>(null);
     const [originStep, setOriginStep] = useState<AuthStep>(defaultTab);
     const router = useRouter();
     const searchParams = useSearchParams();
     const fromNav = searchParams.get('fromNav');
     const [showSplash, setShowSplash] = useState(!!fromNav);
+    const { toast } = useToast();
+    const [isLoading, setIsLoading] = useState(false);
 
     React.useEffect(() => {
         if (showSplash) {
@@ -54,36 +59,56 @@ export function AuthPage({ defaultTab }: { defaultTab: AuthStep }) {
         return <SplashScreen />;
     }
 
-    const handleLoginSubmit = (e: React.FormEvent) => {
-        e.preventDefault();
-        router.push('/');
-    };
+    const generateOtp = () => (Math.floor(100000 + Math.random() * 900000)).toString();
     
+    const handleOtpRequest = async (identifier: string) => {
+        setIsLoading(true);
+        const otp = generateOtp();
+        setUserData(prev => ({...prev, otp, identifier})); // Use a generic identifier
+        
+        try {
+            const result = await sendOtp({ identifier, otp });
+            if(result.success) {
+                toast({
+                    title: "OTP Sent",
+                    description: result.message
+                });
+                setAuthStep('otp');
+            } else {
+                throw new Error(result.message);
+            }
+        } catch (error: any) {
+            toast({
+                title: "Error",
+                description: error.message || "Could not send OTP. Please try again.",
+                variant: "destructive",
+            });
+        } finally {
+            setIsLoading(false);
+        }
+    }
+
+
     const handleSignupSubmit = (data: UserData) => {
         setUserData(data);
-        setAuthStep('otp');
+        handleOtpRequest(data.phone);
     };
     
     const handleEmailContinue = (email: string) => {
-        setUserData(prev => ({ ...prev!, email: email, phone: email })); // using email as identifier
-        setAuthStep('otp');
-    };
-
-    const handleContinueWithEmail = () => {
-        setOriginStep(authStep);
-        setAuthStep('email');
+        handleOtpRequest(email);
     };
 
     const handleOtpSubmit = (e: React.FormEvent) => {
         e.preventDefault();
+        // Here you would verify the OTP. We'll simulate success.
         router.push('/onboarding');
     };
 
     const handleBack = () => {
-        if (authStep === 'otp' && userData?.email) {
+        if (authStep === 'otp' && (userData as any)?.identifier.includes('@')) {
             setAuthStep('email');
         } else if (authStep === 'otp') {
-            setAuthStep('signup');
+            setAuthStep(originStep); // Go back to signup or login
         } else if (authStep === 'email') {
             setAuthStep(originStep);
         }
@@ -93,13 +118,15 @@ export function AuthPage({ defaultTab }: { defaultTab: AuthStep }) {
     const renderForm = () => {
         switch (authStep) {
             case 'login':
-                return <LoginForm onSubmit={handleLoginSubmit} onContinueWithEmail={handleContinueWithEmail} />;
+                return <LoginForm onSubmit={handleOtpRequest} onContinueWithEmail={() => { setOriginStep('login'); setAuthStep('email'); }} isLoading={isLoading} />;
             case 'signup':
-                return <SignUpForm onSubmit={handleSignupSubmit} onContinueWithEmail={handleContinueWithEmail} />;
+                return <SignUpForm onSubmit={handleSignupSubmit} onContinueWithEmail={() => { setOriginStep('signup'); setAuthStep('email'); }} isLoading={isLoading} />;
             case 'otp':
-                return <OTPForm onSubmit={handleOtpSubmit} identifier={userData?.phone || ''} onBack={handleBack} />;
+                const identifier = (userData as any)?.identifier || '';
+                const displayIdentifier = identifier.includes('@') ? identifier : `your WhatsApp at ${identifier}`;
+                return <OTPForm onSubmit={handleOtpSubmit} identifier={displayIdentifier} onBack={handleBack} />;
             case 'email':
-                return <EmailForm onSubmit={handleEmailContinue} onBack={handleBack} />;
+                return <EmailForm onSubmit={handleEmailContinue} onBack={handleBack} isLoading={isLoading} />;
             default:
                 return null;
         }
@@ -138,7 +165,7 @@ export function AuthPage({ defaultTab }: { defaultTab: AuthStep }) {
                         {authStep === 'otp' ? "Check your messages" : authStep === 'email' ? "Continue with Email" : "LinkUp9ja"}
                     </h1>
                     <p className="mt-2 text-gray-600 dark:text-gray-200">
-                         {authStep === 'otp' ? `We've sent a 6-digit code to your ${userData?.email ? 'email' : 'WhatsApp at ' + userData?.phone}` : authStep === 'email' ? "Please enter your email address." : "Find your perfect match in Nigeria"}
+                         {authStep === 'otp' ? `We've sent a 6-digit code to ${(userData as any)?.identifier.includes('@') ? (userData as any)?.identifier : 'your WhatsApp'}` : authStep === 'email' ? "Please enter your email address." : "Find your perfect match in Nigeria"}
                     </p>
                 </div>
 
@@ -178,55 +205,66 @@ export function AuthPage({ defaultTab }: { defaultTab: AuthStep }) {
     );
 }
 
-const LoginForm = ({ onSubmit, onContinueWithEmail }: { onSubmit: (e: React.FormEvent) => void; onContinueWithEmail: () => void; }) => (
-    <form onSubmit={onSubmit} className="space-y-6">
-        <div>
-            <div className="relative">
-                <Phone className="absolute left-3 top-1/2 -translate-y-1/2 h-5 w-5 text-gray-400" />
-                <Input
-                    type="tel"
-                    placeholder="Phone Number"
-                    required
-                    className="pl-10 placeholder:text-muted-foreground focus:placeholder:text-transparent"
-                />
-            </div>
-        </div>
-        <div>
-            <div className="relative">
-                <KeyRound className="absolute left-3 top-1/2 -translate-y-1/2 h-5 w-5 text-gray-400" />
-                <Input
-                    type="password"
-                    placeholder="Password"
-                    required
-                    className="pl-10 placeholder:text-muted-foreground focus:placeholder:text-transparent"
-                />
-            </div>
-        </div>
-        <div className="flex items-center justify-between text-sm">
-            <label className="flex items-center gap-2 text-gray-600 dark:text-gray-300">
-                <Checkbox id="remember-me" />
-                Remember me
-            </label>
-            <Link href="#" className="font-medium text-pink-600 hover:text-pink-500 dark:text-white dark:hover:text-gray-300">
-                Forgot Password?
-            </Link>
-        </div>
-        <Button type="submit" className="w-full bg-gradient-to-r from-pink-500 to-orange-500 py-3 text-white font-semibold shadow-lg hover:scale-105 transition-transform">
-            Log In
-        </Button>
-        <div className="my-6 flex items-center gap-4">
-            <div className="h-px flex-grow bg-gray-300" />
-            <span className="text-sm font-medium text-gray-400">OR</span>
-            <div className="h-px flex-grow bg-gray-300" />
-        </div>
-        <Button variant="outline" className="w-full" onClick={onContinueWithEmail}>
-            <Mail className="mr-2 h-5 w-5" />
-            Continue with Email
-        </Button>
-    </form>
-);
+const LoginForm = ({ onSubmit, onContinueWithEmail, isLoading }: { onSubmit: (phone: string) => void; onContinueWithEmail: () => void; isLoading: boolean; }) => {
+    const handleSubmit = (e: React.FormEvent<HTMLFormElement>) => {
+        e.preventDefault();
+        const formData = new FormData(e.currentTarget);
+        const phone = formData.get('phone') as string;
+        onSubmit(phone);
+    };
 
-const SignUpForm = ({ onSubmit, onContinueWithEmail }: { onSubmit: (data: UserData) => void; onContinueWithEmail: () => void; }) => {
+    return (
+        <form onSubmit={handleSubmit} className="space-y-6">
+            <div>
+                <div className="relative">
+                    <Phone className="absolute left-3 top-1/2 -translate-y-1/2 h-5 w-5 text-gray-400" />
+                    <Input
+                        name="phone"
+                        type="tel"
+                        placeholder="Phone Number"
+                        required
+                        className="pl-10 placeholder:text-muted-foreground focus:placeholder:text-transparent"
+                    />
+                </div>
+            </div>
+            <div>
+                <div className="relative">
+                    <KeyRound className="absolute left-3 top-1/2 -translate-y-1/2 h-5 w-5 text-gray-400" />
+                    <Input
+                        type="password"
+                        placeholder="Password"
+                        required
+                        className="pl-10 placeholder:text-muted-foreground focus:placeholder:text-transparent"
+                    />
+                </div>
+            </div>
+            <div className="flex items-center justify-between text-sm">
+                <label className="flex items-center gap-2 text-gray-600 dark:text-gray-300">
+                    <Checkbox id="remember-me" />
+                    Remember me
+                </label>
+                <Link href="#" className="font-medium text-pink-600 hover:text-pink-500 dark:text-white dark:hover:text-gray-300">
+                    Forgot Password?
+                </Link>
+            </div>
+            <Button type="submit" className="w-full bg-gradient-to-r from-pink-500 to-orange-500 py-3 text-white font-semibold shadow-lg hover:scale-105 transition-transform" disabled={isLoading}>
+                 {isLoading && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
+                Log In
+            </Button>
+            <div className="my-6 flex items-center gap-4">
+                <div className="h-px flex-grow bg-gray-300" />
+                <span className="text-sm font-medium text-gray-400">OR</span>
+                <div className="h-px flex-grow bg-gray-300" />
+            </div>
+            <Button variant="outline" className="w-full" onClick={onContinueWithEmail} type="button">
+                <Mail className="mr-2 h-5 w-5" />
+                Continue with Email
+            </Button>
+        </form>
+    );
+};
+
+const SignUpForm = ({ onSubmit, onContinueWithEmail, isLoading }: { onSubmit: (data: UserData) => void; onContinueWithEmail: () => void; isLoading: boolean; }) => {
     const handleNameInputChange = (e: React.ChangeEvent<HTMLInputElement>) => {
         e.target.value = e.target.value.replace(/[^a-zA-Z]/g, '');
     };
@@ -292,7 +330,8 @@ const SignUpForm = ({ onSubmit, onContinueWithEmail }: { onSubmit: (data: UserDa
                     />
                 </div>
             </div>
-            <Button type="submit" className="w-full bg-gradient-to-r from-pink-500 to-orange-500 py-3 text-white font-semibold shadow-lg hover:scale-105 transition-transform">
+            <Button type="submit" className="w-full bg-gradient-to-r from-pink-500 to-orange-500 py-3 text-white font-semibold shadow-lg hover:scale-105 transition-transform" disabled={isLoading}>
+                 {isLoading && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
                 Sign Up
             </Button>
             <div className="my-6 flex items-center gap-4">
@@ -300,7 +339,7 @@ const SignUpForm = ({ onSubmit, onContinueWithEmail }: { onSubmit: (data: UserDa
                 <span className="text-sm font-medium text-gray-400">OR</span>
                 <div className="h-px flex-grow bg-gray-300" />
             </div>
-            <Button variant="outline" className="w-full" onClick={onContinueWithEmail}>
+            <Button variant="outline" className="w-full" onClick={onContinueWithEmail} type="button">
                 <Mail className="mr-2 h-5 w-5" />
                 Continue with Email
             </Button>
@@ -308,7 +347,7 @@ const SignUpForm = ({ onSubmit, onContinueWithEmail }: { onSubmit: (data: UserDa
     );
 };
 
-const EmailForm = ({ onSubmit, onBack }: { onSubmit: (email: string) => void; onBack: () => void; }) => {
+const EmailForm = ({ onSubmit, onBack, isLoading }: { onSubmit: (email: string) => void; onBack: () => void; isLoading: boolean; }) => {
     const handleSubmit = (e: React.FormEvent<HTMLFormElement>) => {
         e.preventDefault();
         const formData = new FormData(e.currentTarget);
@@ -330,7 +369,8 @@ const EmailForm = ({ onSubmit, onBack }: { onSubmit: (email: string) => void; on
                     />
                 </div>
             </div>
-            <Button type="submit" className="w-full bg-gradient-to-r from-pink-500 to-orange-500 py-3 text-white font-semibold shadow-lg hover:scale-105 transition-transform">
+            <Button type="submit" className="w-full bg-gradient-to-r from-pink-500 to-orange-500 py-3 text-white font-semibold shadow-lg hover:scale-105 transition-transform" disabled={isLoading}>
+                 {isLoading && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
                 Get OTP
             </Button>
             <div className="text-center">
