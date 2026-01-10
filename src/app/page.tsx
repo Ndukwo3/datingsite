@@ -37,7 +37,7 @@ export default function LandingPage() {
             </div>
           </div>
         </section>
-        <section className="bg-pink-50/50 py-16 text-center">
+        <section className="bg-pink-100/50 py-16 text-center">
           <div className="container mx-auto px-4">
             <h2 className="mb-4 font-headline text-3xl font-bold">Why LinkUp9ja?</h2>
             <p className="mx-auto mb-12 max-w-3xl text-muted-foreground md:text-lg">
