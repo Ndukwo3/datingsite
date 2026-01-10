@@ -5,7 +5,7 @@ import * as React from "react";
 import { useState } from "react";
 import { useRouter, useSearchParams } from "next/navigation";
 import { motion, AnimatePresence } from "framer-motion";
-import { Heart, Mail, KeyRound, User, Phone, Check, Shield } from "lucide-react";
+import { Heart, Mail, KeyRound, User, Phone } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { Button } from "./ui/button";
 import { Input } from "./ui/input";
@@ -15,9 +15,8 @@ import { SplashScreen } from "./SplashScreen";
 import { ThemeToggle } from "./ThemeToggle";
 import { useToast } from "@/hooks/use-toast";
 import { Loader2 } from "lucide-react";
-import Image from "next/image";
 
-type AuthStep = "login" | "signup" | "captcha";
+type AuthStep = "login" | "signup";
 type UserData = {
     name: string;
     phone: string;
@@ -32,25 +31,9 @@ const GoogleIcon = (props: React.SVGProps<SVGSVGElement>) => (
         <path fill="#1565C0" d="M43.611,20.083H42V20H24v8h11.303c-0.792,2.237-2.231,4.166-4.087,5.571l6.19,5.238C43.021,36.25,44,30.413,44,24C44,22.659,43.862,21.35,43.611,20.083z" />
     </svg>
 );
-
-
-const captchaImages = [
-    { src: "https://picsum.photos/seed/car1/200/200", type: "car" },
-    { src: "https://picsum.photos/seed/bike1/200/200", type: "bike" },
-    { src: "https://picsum.photos/seed/car2/200/200", type: "car" },
-    { src: "https://picsum.photos/seed/tree1/200/200", type: "tree" },
-    { src: "https://picsum.photos/seed/car3/200/200", type: "car" },
-    { src: "https://picsum.photos/seed/house1/200/200", type: "house" },
-    { src: "https://picsum.photos/seed/car4/200/200", type: "car" },
-    { src: "https://picsum.photos/seed/flower1/200/200", type: "flower" },
-    { src: "https://picsum.photos/seed/boat1/200/200", type: "boat" },
-  ];
-  
-const captchaCorrectType = "car";
   
 export function AuthPage({ defaultTab }: { defaultTab: "login" | "signup" }) {
     const [authStep, setAuthStep] = useState<AuthStep>(defaultTab);
-    const [userData, setUserData] = useState<UserData | null>(null);
     const router = useRouter();
     const searchParams = useSearchParams();
     const fromNav = searchParams.get('fromNav');
@@ -70,20 +53,11 @@ export function AuthPage({ defaultTab }: { defaultTab: "login" | "signup" }) {
 
     const handleSignupSubmit = (data: UserData) => {
         setIsLoading(true);
-        setUserData(data);
-        setTimeout(() => {
-            setIsLoading(false);
-            setAuthStep("captcha");
-        }, 500);
-    };
-
-    const handleCaptchaSuccess = () => {
-        setIsLoading(true);
         setTimeout(() => {
             setIsLoading(false);
             router.push('/onboarding');
         }, 1000);
-    }
+    };
     
     const handleLoginSubmit = () => {
         setIsLoading(true);
@@ -100,8 +74,6 @@ export function AuthPage({ defaultTab }: { defaultTab: "login" | "signup" }) {
                 return <LoginForm onSubmit={handleLoginSubmit} isLoading={isLoading} />;
             case 'signup':
                 return <SignUpForm onSubmit={handleSignupSubmit} isLoading={isLoading} />;
-            case 'captcha':
-                return <ImageCaptcha onSuccess={handleCaptchaSuccess} isLoading={isLoading} />;
             default:
                 return null;
         }
@@ -130,48 +102,31 @@ export function AuthPage({ defaultTab }: { defaultTab: "login" | "signup" }) {
                 animate={{ opacity: 1, scale: 1 }}
                 transition={{ duration: 0.5, ease: "easeOut" }}
             >
-                {authStep !== 'captcha' ? (
-                <>
-                    <div className="mb-8 flex flex-col items-center text-center">
-                        <div className="mb-4 flex h-16 w-16 items-center justify-center rounded-2xl bg-gradient-to-br from-pink-500 to-orange-400">
-                            <Heart className="h-8 w-8 text-white" />
-                        </div>
-                        <h1 className="font-headline text-3xl font-bold text-gray-800 dark:text-white">
-                            LinkUp9ja
-                        </h1>
-                        <p className="mt-2 text-gray-600 dark:text-gray-200">
-                            Find your perfect match in Nigeria
-                        </p>
+                <div className="mb-8 flex flex-col items-center text-center">
+                    <div className="mb-4 flex h-16 w-16 items-center justify-center rounded-2xl bg-gradient-to-br from-pink-500 to-orange-400">
+                        <Heart className="h-8 w-8 text-white" />
                     </div>
+                    <h1 className="font-headline text-3xl font-bold text-gray-800 dark:text-white">
+                        LinkUp9ja
+                    </h1>
+                    <p className="mt-2 text-gray-600 dark:text-gray-200">
+                        Find your perfect match in Nigeria
+                    </p>
+                </div>
 
-                    <div className="relative mt-4 flex rounded-lg bg-gray-100/70 p-1">
-                        <motion.div 
-                            className="absolute inset-0.5 w-1/2 rounded-md bg-white shadow"
-                            animate={{ x: authStep === 'login' ? '0%' : '100%' }}
-                            transition={{ type: 'spring', stiffness: 300, damping: 30 }}
-                        />
-                        <button onClick={() => setAuthStep('login')} className={cn("relative z-10 w-1/2 py-2 text-sm font-medium transition-colors", authStep === 'login' ? 'text-pink-600' : 'text-gray-500')}>
-                            Login
-                        </button>
-                        <button onClick={() => setAuthStep('signup')} className={cn("relative z-10 w-1/2 py-2 text-sm font-medium transition-colors", authStep === 'signup' ? 'text-pink-600' : 'text-gray-500')}>
-                            Sign Up
-                        </button>
-                    </div>
-                </>
-                ) : (
-                    <div className="mb-8 flex flex-col items-center text-center">
-                         <div className="mb-4 flex h-16 w-16 items-center justify-center rounded-2xl bg-gradient-to-br from-blue-500 to-green-400">
-                            <Shield className="h-8 w-8 text-white" />
-                        </div>
-                        <h1 className="font-headline text-3xl font-bold text-gray-800 dark:text-white">
-                           Security Check
-                        </h1>
-                        <p className="mt-2 text-gray-600 dark:text-gray-200">
-                            Please verify you're human.
-                        </p>
-                    </div>
-                )}
-
+                <div className="relative mt-4 flex rounded-lg bg-gray-100/70 p-1">
+                    <motion.div 
+                        className="absolute inset-0.5 w-1/2 rounded-md bg-white shadow"
+                        animate={{ x: authStep === 'login' ? '0%' : '100%' }}
+                        transition={{ type: 'spring', stiffness: 300, damping: 30 }}
+                    />
+                    <button onClick={() => setAuthStep('login')} className={cn("relative z-10 w-1/2 py-2 text-sm font-medium transition-colors", authStep === 'login' ? 'text-pink-600' : 'text-gray-500')}>
+                        Login
+                    </button>
+                    <button onClick={() => setAuthStep('signup')} className={cn("relative z-10 w-1/2 py-2 text-sm font-medium transition-colors", authStep === 'signup' ? 'text-pink-600' : 'text-gray-500')}>
+                        Sign Up
+                    </button>
+                </div>
 
                 <div className="relative mt-6 h-[420px] overflow-hidden">
                     <AnimatePresence mode="wait">
@@ -191,67 +146,6 @@ export function AuthPage({ defaultTab }: { defaultTab: "login" | "signup" }) {
         </div>
     );
 }
-
-const ImageCaptcha = ({ onSuccess, isLoading }: { onSuccess: () => void; isLoading: boolean; }) => {
-    const [selected, setSelected] = useState<string[]>([]);
-    const { toast } = useToast();
-  
-    const toggleSelect = (src: string) => {
-      setSelected(prev =>
-        prev.includes(src) ? prev.filter(s => s !== src) : [...prev, src]
-      );
-    };
-  
-    const handleSubmit = () => {
-      const correctSelections = selected.filter(src => {
-        const image = captchaImages.find(img => img.src === src);
-        return image?.type === captchaCorrectType;
-      });
-  
-      const totalCorrect = captchaImages.filter(img => img.type === captchaCorrectType).length;
-      
-      if (correctSelections.length === totalCorrect && selected.length === totalCorrect) {
-        onSuccess();
-      } else {
-        toast({
-          title: "Verification Failed",
-          description: "Please try again.",
-          variant: "destructive",
-        });
-        setSelected([]);
-      }
-    };
-  
-    return (
-        <div className="space-y-4 text-center">
-            <p className="text-sm font-medium text-gray-700 dark:text-gray-200">Select all images with a <span className="font-bold">{captchaCorrectType}</span>.</p>
-            <div className="grid grid-cols-3 gap-2">
-            {captchaImages.map((image, index) => (
-                <div
-                key={index}
-                className={cn(
-                    "relative aspect-square cursor-pointer rounded-md overflow-hidden transition-all duration-200",
-                    selected.includes(image.src) ? 'ring-2 ring-blue-500 ring-offset-2' : ''
-                )}
-                onClick={() => toggleSelect(image.src)}
-                >
-                <Image src={image.src} alt={`captcha image ${index + 1}`} fill className="object-cover" />
-                {selected.includes(image.src) && (
-                    <div className="absolute inset-0 bg-blue-500/50 flex items-center justify-center">
-                        <Check className="w-8 h-8 text-white" />
-                    </div>
-                )}
-                </div>
-            ))}
-            </div>
-            <Button onClick={handleSubmit} className="w-full bg-gradient-to-r from-blue-500 to-green-500 py-3 text-white font-semibold shadow-lg hover:scale-105 transition-transform" disabled={isLoading}>
-                {isLoading && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
-                Verify
-            </Button>
-        </div>
-    );
-};
-
 
 const LoginForm = ({ onSubmit, isLoading }: { onSubmit: () => void; isLoading: boolean; }) => {
     const handleSubmit = (e: React.FormEvent<HTMLFormElement>) => {
@@ -416,3 +310,4 @@ const SignUpForm = ({ onSubmit, isLoading }: { onSubmit: (data: UserData) => voi
     );
 };
 
+    
