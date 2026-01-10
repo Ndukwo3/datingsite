@@ -13,7 +13,7 @@ export function ProfileCard({ user }: ProfileCardProps) {
   const userImage = PlaceHolderImages.find(p => p.id === user.photos[0]);
 
   return (
-    <Card className="relative aspect-[3/4.5] w-full max-w-sm overflow-hidden rounded-2xl shadow-lg">
+    <Card className="relative aspect-[3/4.5] w-full max-w-xs overflow-hidden rounded-2xl shadow-lg">
       {userImage && (
         <Image
           src={userImage.imageUrl}
