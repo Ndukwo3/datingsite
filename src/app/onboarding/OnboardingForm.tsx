@@ -414,7 +414,7 @@ export function OnboardingForm() {
                             <Label className="mb-2 block">Age Range</Label>
                             <p className="text-sm text-muted-foreground">{ageRange[0]} - {ageRange[1]} years old</p>
                             <Slider
-                                defaultValue={ageRange}
+                                value={ageRange}
                                 onValueChange={(value) => setValue('ageRange', value as [number, number])}
                                 min={18}
                                 max={65}
@@ -426,7 +426,7 @@ export function OnboardingForm() {
                             <Label className="mb-2 block">Maximum Distance</Label>
                             <p className="text-sm text-muted-foreground">Within {maxDistance} km</p>
                             <Slider
-                                defaultValue={[maxDistance]}
+                                value={[maxDistance]}
                                 onValueChange={(value) => setValue('maxDistance', value[0])}
                                 min={10}
                                 max={100}
