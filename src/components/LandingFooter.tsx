@@ -1,9 +1,11 @@
+
 import Link from 'next/link';
 import { Instagram, Twitter, Youtube } from 'lucide-react';
 import { Logo } from './Logo';
 
 const footerLinks = {
   legal: [
+    { href: '/about', text: 'About Us' },
     { href: '/privacy', text: 'Privacy' },
     { href: '/terms', text: 'Terms' },
     { href: '/cookies', text: 'Cookie Policy' },
@@ -14,11 +16,11 @@ const footerLinks = {
     { href: '/tech-blog', text: 'Tech Blog' },
   ],
   social: [
-    { href: '#', icon: Instagram },
-    { href: '#', icon: TikTokIcon },
-    { href: '#', icon: Youtube },
-    { href: '#', icon: Twitter },
-    { href: '#', icon: FacebookIcon },
+    { href: '/#', icon: Instagram },
+    { href: '/#', icon: TikTokIcon },
+    { href: '/#', icon: Youtube },
+    { href: '/#', icon: Twitter },
+    { href: '/#', icon: FacebookIcon },
   ],
   faq: [
     { href: '/destinations', text: 'Destinations' },
