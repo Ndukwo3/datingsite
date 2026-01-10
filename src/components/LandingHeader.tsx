@@ -25,7 +25,7 @@ export function LandingHeader({ theme = 'dark' }: LandingHeaderProps) {
     return () => window.removeEventListener('scroll', handleScroll);
   }, []);
 
-  const isLight = theme === 'light';
+  const isLight = theme === 'light' || (isScrolled && theme === 'dark');
 
   const linkClasses = (href: string) => cn(
     "relative text-sm font-medium after:absolute after:left-0 after:-bottom-1 after:h-[2px] after:w-full after:origin-center after:scale-x-0 after:bg-primary after:transition-transform after:duration-300 after:ease-out after:content-[''] hover:after:scale-x-100",
