@@ -17,7 +17,7 @@ const tutorialSlides = [
   {
     icon: <Heart className="w-12 h-12 text-primary" />,
     title: "Swipe Right to Like",
-    description: "If you're interested in someone, swipe their card to the right or tap the heart button.",
+    description: "If you're interested in someone, swipe their card to the right.",
     animation: {
       action: "right",
       icon: <Heart className="w-24 h-24 text-green-400 fill-green-400" />,
@@ -26,7 +26,7 @@ const tutorialSlides = [
   {
     icon: <X className="w-12 h-12 text-red-500" />,
     title: "Swipe Left to Pass",
-    description: "Not interested? Swipe left or tap the X button to see the next profile.",
+    description: "Not interested? Swipe left to see the next profile.",
     animation: {
       action: "left",
       icon: <X className="w-24 h-24 text-red-500" />,
@@ -35,7 +35,7 @@ const tutorialSlides = [
   {
     icon: <Star className="w-12 h-12 text-blue-500" />,
     title: "Super Like Someone Special",
-    description: "Really like someone? Swipe up or tap the star to send a Super Like and stand out.",
+    description: "Really like someone? Swipe up to send a Super Like and stand out.",
     note: "You get 1 free Super Like per day",
     animation: {
         action: "up",
@@ -189,4 +189,5 @@ export function TutorialOverlay() {
     </div>
   );
 }
+
 
