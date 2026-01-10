@@ -1,3 +1,4 @@
+
 "use client";
 
 import Link from 'next/link';
@@ -5,6 +6,7 @@ import { usePathname } from 'next/navigation';
 import { Button } from '@/components/ui/button';
 import { Logo } from '@/components/Logo';
 import { cn } from '@/lib/utils';
+import { useEffect, useState } from 'react';
 
 type LandingHeaderProps = {
   theme?: 'light' | 'dark';
@@ -12,6 +14,16 @@ type LandingHeaderProps = {
 
 export function LandingHeader({ theme = 'dark' }: LandingHeaderProps) {
   const pathname = usePathname();
+  const [isScrolled, setIsScrolled] = useState(false);
+
+  useEffect(() => {
+    const handleScroll = () => {
+      setIsScrolled(window.scrollY > 10);
+    };
+    window.addEventListener('scroll', handleScroll);
+    return () => window.removeEventListener('scroll', handleScroll);
+  }, []);
+
   const isLight = theme === 'light';
 
   const linkClasses = (href: string) => cn(
@@ -21,8 +33,11 @@ export function LandingHeader({ theme = 'dark' }: LandingHeaderProps) {
 
   return (
     <header className={cn(
-      "p-4",
-      isLight ? "relative bg-background" : "absolute top-0 left-0 right-0 z-10 bg-transparent"
+      "fixed top-0 left-0 right-0 z-50 p-4 transition-all duration-300",
+      isLight 
+        ? "bg-background/80 backdrop-blur-lg border-b" 
+        : "bg-transparent",
+      isScrolled && !isLight && "bg-black/50 backdrop-blur-lg"
     )}>
       <div className="container mx-auto flex items-center justify-between">
         <Logo className={cn(isLight ? "text-foreground" : "text-white")} />
