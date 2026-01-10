@@ -1,7 +1,7 @@
 
 'use server';
 /**
- * @fileOverview A flow for sending a one-time password (OTP) to a user's email.
+ * @fileOverview A flow for sending a one-time password (OTP) to a user's email or WhatsApp.
  *
  * - sendOtp - A function that handles sending the OTP.
  */
@@ -21,27 +21,41 @@ const sendOtpFlow = ai.defineFlow(
     outputSchema: SendOtpOutputSchema,
   },
   async ({ identifier, otp }) => {
-    console.log(`Simulating OTP send to ${identifier}. Code: ${otp}`);
+    const isEmail = identifier.includes('@');
+    const service = isEmail ? 'email' : 'WhatsApp';
+
+    console.log(`Simulating OTP send to ${service} at ${identifier}. Code: ${otp}`);
 
     // !! IMPORTANT !!
-    // In a real application, you would integrate an email or SMS service here.
-    // For example, using a service like SendGrid, Twilio, or AWS SES.
+    // In a real application, you would integrate an email or SMS/WhatsApp service here.
     //
-    // Example with a hypothetical email service:
+    // For WhatsApp, using a service like Twilio:
+    //
+    // 1. Install the Twilio helper library: `npm install twilio`
+    // 2. Make sure you have your Account SID, Auth Token, and a Twilio phone number.
+    //
+    // Example with Twilio for WhatsApp:
+    //
+    // import twilio from 'twilio';
+    //
+    // const client = twilio(process.env.TWILIO_ACCOUNT_SID, process.env.TWILIO_AUTH_TOKEN);
     //
     // try {
-    //   await emailService.send({
-    //     to: identifier,
-    //     subject: 'Your LinkUp9ja Verification Code',
-    //     body: `Your code is ${otp}`,
-    //   });
-    //   return { success: true, message: 'OTP sent successfully.' };
+    //   if (!isEmail) {
+    //      await client.messages.create({
+    //        body: `Your LinkUp9ja verification code is ${otp}`,
+    //        from: `whatsapp:${process.env.TWILIO_PHONE_NUMBER}`,
+    //        to: `whatsapp:${identifier}` // Make sure identifier is a full phone number with country code
+    //      });
+    //   } else {
+    //      // Add your email sending logic here (e.g., SendGrid, AWS SES)
+    //   }
+    //   return { success: true, message: `OTP has been sent to your ${service}.` };
     // } catch (error) {
-    //   console.error('Failed to send OTP:', error);
-    //   return { success: false, message: 'Failed to send OTP.' };
+    //   console.error(`Failed to send OTP via ${service}:`, error);
+    //   return { success: false, message: `Failed to send OTP via ${service}.` };
     // }
 
-    // For now, we'll just simulate a successful response.
-    return { success: true, message: 'OTP has been sent to your email.' };
+    return { success: true, message: `OTP has been sent to your ${service}.` };
   }
 );

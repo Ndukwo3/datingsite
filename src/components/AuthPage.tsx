@@ -123,7 +123,8 @@ export function AuthPage({ defaultTab }: { defaultTab: AuthStep }) {
                 return <SignUpForm onSubmit={handleSignupSubmit} onContinueWithEmail={() => { setOriginStep('signup'); setAuthStep('email'); }} isLoading={isLoading} />;
             case 'otp':
                 const identifier = (userData as any)?.identifier || '';
-                const displayIdentifier = identifier.includes('@') ? identifier : `your WhatsApp at ${identifier}`;
+                const isEmail = identifier.includes('@');
+                const displayIdentifier = isEmail ? identifier : `your WhatsApp at ${identifier}`;
                 return <OTPForm onSubmit={handleOtpSubmit} identifier={displayIdentifier} onBack={handleBack} />;
             case 'email':
                 return <EmailForm onSubmit={handleEmailContinue} onBack={handleBack} isLoading={isLoading} />;
@@ -165,7 +166,7 @@ export function AuthPage({ defaultTab }: { defaultTab: AuthStep }) {
                         {authStep === 'otp' ? "Check your messages" : authStep === 'email' ? "Continue with Email" : "LinkUp9ja"}
                     </h1>
                     <p className="mt-2 text-gray-600 dark:text-gray-200">
-                         {authStep === 'otp' ? `We've sent a 4-digit code to ${(userData as any)?.identifier.includes('@') ? (userData as any)?.identifier : 'your WhatsApp'}` : authStep === 'email' ? "Please enter your email address." : "Find your perfect match in Nigeria"}
+                         {authStep === 'otp' ? `We've sent a 4-digit code to ${(userData as any)?.identifier.includes('@') ? (userData as any)?.identifier : `your WhatsApp`}` : authStep === 'email' ? "Please enter your email address." : "Find your perfect match in Nigeria"}
                     </p>
                 </div>
 
