@@ -150,7 +150,7 @@ const LoginForm = ({ onSubmit }: { onSubmit: (e: React.FormEvent) => void }) => 
                 <Checkbox id="remember-me" />
                 Remember me
             </label>
-            <Link href="#" className="font-medium text-pink-600 hover:text-pink-500">
+            <Link href="#" className="font-medium text-pink-600 hover:text-pink-500 dark:text-gray-200 dark:hover:text-white">
                 Forgot Password?
             </Link>
         </div>
