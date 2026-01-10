@@ -1,5 +1,4 @@
 
-
 "use client";
 
 import * as React from "react";
@@ -14,7 +13,6 @@ import { Checkbox } from "./ui/checkbox";
 import Link from "next/link";
 import { SplashScreen } from "./SplashScreen";
 import { ThemeToggle } from "./ThemeToggle";
-import { sendOtp } from "@/ai/flows/send-otp-flow";
 import { useToast } from "@/hooks/use-toast";
 import { Loader2 } from "lucide-react";
 
@@ -28,24 +26,20 @@ const GoogleIcon = (props: React.SVGProps<SVGSVGElement>) => (
 );
 
 
-type AuthStep = "login" | "signup" | "otp" | "email";
+type AuthStep = "login" | "signup";
 type UserData = {
     firstName: string;
     lastName: string;
     phone: string;
-    email?: string;
 };
 
 
-export function AuthPage({ defaultTab }: { defaultTab: AuthStep }) {
+export function AuthPage({ defaultTab }: { defaultTab: "login" | "signup" }) {
     const [authStep, setAuthStep] = useState<AuthStep>(defaultTab);
-    const [userData, setUserData] = useState<Partial<UserData> | null>(null);
-    const [originStep, setOriginStep] = useState<AuthStep>(defaultTab);
     const router = useRouter();
     const searchParams = useSearchParams();
     const fromNav = searchParams.get('fromNav');
     const [showSplash, setShowSplash] = useState(!!fromNav);
-    const { toast } = useToast();
     const [isLoading, setIsLoading] = useState(false);
 
     React.useEffect(() => {
@@ -59,82 +53,35 @@ export function AuthPage({ defaultTab }: { defaultTab: AuthStep }) {
         return <SplashScreen />;
     }
 
-    const generateOtp = () => (Math.floor(1000 + Math.random() * 9000)).toString();
-    
-    const handleOtpRequest = async (identifier: string) => {
-        setIsLoading(true);
-        const otp = generateOtp();
-        setUserData(prev => ({...prev, otp, identifier})); // Use a generic identifier
-        
-        try {
-            const result = await sendOtp({ identifier, otp });
-            if(result.success) {
-                toast({
-                    title: "OTP Sent",
-                    description: result.message
-                });
-                setAuthStep('otp');
-            } else {
-                throw new Error(result.message);
-            }
-        } catch (error: any) {
-            toast({
-                title: "Error",
-                description: error.message || "Could not send OTP. Please try again.",
-                variant: "destructive",
-            });
-        } finally {
-            setIsLoading(false);
-        }
-    }
-
-
     const handleSignupSubmit = (data: UserData) => {
-        setUserData(data);
-        handleOtpRequest(data.phone);
+        setIsLoading(true);
+        // Simulate a network request
+        setTimeout(() => {
+            setIsLoading(false);
+            router.push('/onboarding');
+        }, 1000);
     };
     
-    const handleEmailContinue = (email: string) => {
-        handleOtpRequest(email);
+    const handleLoginSubmit = () => {
+        setIsLoading(true);
+        // Simulate a network request
+        setTimeout(() => {
+            setIsLoading(false);
+            router.push('/');
+        }, 1000);
     };
-
-    const handleOtpSubmit = (e: React.FormEvent) => {
-        e.preventDefault();
-        // Here you would verify the OTP. We'll simulate success.
-        router.push('/onboarding');
-    };
-
-    const handleBack = () => {
-        if (authStep === 'otp' && (userData as any)?.identifier.includes('@')) {
-            setAuthStep('email');
-        } else if (authStep === 'otp') {
-            setAuthStep(originStep); // Go back to signup or login
-        } else if (authStep === 'email') {
-            setAuthStep(originStep);
-        }
-    }
-
 
     const renderForm = () => {
         switch (authStep) {
             case 'login':
-                return <LoginForm onSubmit={handleOtpRequest} onContinueWithEmail={() => { setOriginStep('login'); setAuthStep('email'); }} isLoading={isLoading} />;
+                return <LoginForm onSubmit={handleLoginSubmit} isLoading={isLoading} />;
             case 'signup':
-                return <SignUpForm onSubmit={handleSignupSubmit} onContinueWithEmail={() => { setOriginStep('signup'); setAuthStep('email'); }} isLoading={isLoading} />;
-            case 'otp':
-                const identifier = (userData as any)?.identifier || '';
-                const isEmail = identifier.includes('@');
-                const displayIdentifier = isEmail ? identifier : `your WhatsApp at ${identifier}`;
-                return <OTPForm onSubmit={handleOtpSubmit} identifier={displayIdentifier} onBack={handleBack} />;
-            case 'email':
-                return <EmailForm onSubmit={handleEmailContinue} onBack={handleBack} isLoading={isLoading} />;
+                return <SignUpForm onSubmit={handleSignupSubmit} isLoading={isLoading} />;
             default:
                 return null;
         }
     }
     
-    const isSpecialStep = authStep === 'otp' || authStep === 'email';
-
     return (
         <div className="relative flex min-h-screen items-center justify-center overflow-hidden bg-gradient-to-br from-pink-100 via-red-50 to-yellow-50 p-6 dark:from-pink-900/80 dark:via-red-800/70 dark:to-purple-900/80 md:p-8 font-body">
             <div className="absolute inset-0 z-0">
@@ -163,28 +110,26 @@ export function AuthPage({ defaultTab }: { defaultTab: AuthStep }) {
                         <Heart className="h-8 w-8 text-white" />
                     </div>
                     <h1 className="font-headline text-3xl font-bold text-gray-800 dark:text-white">
-                        {authStep === 'otp' ? "Check your messages" : authStep === 'email' ? "Continue with Email" : "LinkUp9ja"}
+                        LinkUp9ja
                     </h1>
                     <p className="mt-2 text-gray-600 dark:text-gray-200">
-                         {authStep === 'otp' ? `We've sent a 4-digit code to ${(userData as any)?.identifier.includes('@') ? (userData as any)?.identifier : `your WhatsApp`}` : authStep === 'email' ? "Please enter your email address." : "Find your perfect match in Nigeria"}
+                        Find your perfect match in Nigeria
                     </p>
                 </div>
 
-                {!isSpecialStep && (
-                    <div className="relative mt-4 flex rounded-lg bg-gray-100/70 p-1">
-                        <motion.div 
-                            className="absolute inset-0.5 w-1/2 rounded-md bg-white shadow"
-                            animate={{ x: authStep === 'login' ? '0%' : '100%' }}
-                            transition={{ type: 'spring', stiffness: 300, damping: 30 }}
-                        />
-                        <button onClick={() => setAuthStep('login')} className={cn("relative z-10 w-1/2 py-2 text-sm font-medium transition-colors", authStep === 'login' ? 'text-pink-600' : 'text-gray-500')}>
-                            Login
-                        </button>
-                        <button onClick={() => setAuthStep('signup')} className={cn("relative z-10 w-1/2 py-2 text-sm font-medium transition-colors", authStep === 'signup' ? 'text-pink-600' : 'text-gray-500')}>
-                            Sign Up
-                        </button>
-                    </div>
-                )}
+                <div className="relative mt-4 flex rounded-lg bg-gray-100/70 p-1">
+                    <motion.div 
+                        className="absolute inset-0.5 w-1/2 rounded-md bg-white shadow"
+                        animate={{ x: authStep === 'login' ? '0%' : '100%' }}
+                        transition={{ type: 'spring', stiffness: 300, damping: 30 }}
+                    />
+                    <button onClick={() => setAuthStep('login')} className={cn("relative z-10 w-1/2 py-2 text-sm font-medium transition-colors", authStep === 'login' ? 'text-pink-600' : 'text-gray-500')}>
+                        Login
+                    </button>
+                    <button onClick={() => setAuthStep('signup')} className={cn("relative z-10 w-1/2 py-2 text-sm font-medium transition-colors", authStep === 'signup' ? 'text-pink-600' : 'text-gray-500')}>
+                        Sign Up
+                    </button>
+                </div>
 
 
                 <div className="relative mt-6 h-[360px] overflow-hidden">
@@ -206,12 +151,10 @@ export function AuthPage({ defaultTab }: { defaultTab: AuthStep }) {
     );
 }
 
-const LoginForm = ({ onSubmit, onContinueWithEmail, isLoading }: { onSubmit: (phone: string) => void; onContinueWithEmail: () => void; isLoading: boolean; }) => {
+const LoginForm = ({ onSubmit, isLoading }: { onSubmit: () => void; isLoading: boolean; }) => {
     const handleSubmit = (e: React.FormEvent<HTMLFormElement>) => {
         e.preventDefault();
-        const formData = new FormData(e.currentTarget);
-        const phone = formData.get('phone') as string;
-        onSubmit(phone);
+        onSubmit();
     };
 
     return (
@@ -257,15 +200,15 @@ const LoginForm = ({ onSubmit, onContinueWithEmail, isLoading }: { onSubmit: (ph
                 <span className="text-sm font-medium text-gray-400">OR</span>
                 <div className="h-px flex-grow bg-gray-300" />
             </div>
-            <Button variant="outline" className="w-full" onClick={onContinueWithEmail} type="button">
-                <Mail className="mr-2 h-5 w-5" />
-                Continue with Email
+            <Button variant="outline" className="w-full" type="button">
+                <GoogleIcon className="mr-2 h-5 w-5" />
+                Continue with Google
             </Button>
         </form>
     );
 };
 
-const SignUpForm = ({ onSubmit, onContinueWithEmail, isLoading }: { onSubmit: (data: UserData) => void; onContinueWithEmail: () => void; isLoading: boolean; }) => {
+const SignUpForm = ({ onSubmit, isLoading }: { onSubmit: (data: UserData) => void; isLoading: boolean; }) => {
     const handleNameInputChange = (e: React.ChangeEvent<HTMLInputElement>) => {
         e.target.value = e.target.value.replace(/[^a-zA-Z]/g, '');
     };
@@ -340,108 +283,10 @@ const SignUpForm = ({ onSubmit, onContinueWithEmail, isLoading }: { onSubmit: (d
                 <span className="text-sm font-medium text-gray-400">OR</span>
                 <div className="h-px flex-grow bg-gray-300" />
             </div>
-            <Button variant="outline" className="w-full" onClick={onContinueWithEmail} type="button">
-                <Mail className="mr-2 h-5 w-5" />
-                Continue with Email
+            <Button variant="outline" className="w-full" type="button">
+                <GoogleIcon className="mr-2 h-5 w-5" />
+                Continue with Google
             </Button>
         </form>
     );
 };
-
-const EmailForm = ({ onSubmit, onBack, isLoading }: { onSubmit: (email: string) => void; onBack: () => void; isLoading: boolean; }) => {
-    const handleSubmit = (e: React.FormEvent<HTMLFormElement>) => {
-        e.preventDefault();
-        const formData = new FormData(e.currentTarget);
-        const email = formData.get('email') as string;
-        onSubmit(email);
-    };
-
-    return (
-        <form onSubmit={handleSubmit} className="space-y-6">
-            <div>
-                <div className="relative">
-                    <Mail className="absolute left-3 top-1/2 -translate-y-1/2 h-5 w-5 text-gray-400" />
-                    <Input
-                        name="email"
-                        type="email"
-                        placeholder="Email Address"
-                        required
-                        className="pl-10 placeholder:text-muted-foreground focus:placeholder:text-transparent"
-                    />
-                </div>
-            </div>
-            <Button type="submit" className="w-full bg-gradient-to-r from-pink-500 to-orange-500 py-3 text-white font-semibold shadow-lg hover:scale-105 transition-transform" disabled={isLoading}>
-                 {isLoading && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
-                Get OTP
-            </Button>
-            <div className="text-center">
-                 <button type="button" onClick={onBack} className="mt-4 font-medium text-gray-500 hover:text-gray-700 dark:text-gray-400 dark:hover:text-white flex items-center gap-2 mx-auto">
-                    <ArrowLeft className="h-4 w-4" />
-                    Back
-                </button>
-            </div>
-        </form>
-    );
-};
-
-
-const OTPForm = ({ onSubmit, identifier, onBack }: { onSubmit: (e: React.FormEvent) => void; identifier: string, onBack: () => void; }) => {
-    const [otp, setOtp] = useState(new Array(4).fill(""));
-
-    const handleChange = (element: HTMLInputElement, index: number) => {
-        if (isNaN(Number(element.value))) return;
-
-        setOtp([...otp.map((d, idx) => (idx === index ? element.value : d))]);
-
-        // Focus next input
-        if (element.nextSibling && element.value) {
-            (element.nextSibling as HTMLInputElement).focus();
-        }
-    };
-    
-    const handleKeyDown = (e: React.KeyboardEvent<HTMLInputElement>, index: number) => {
-        const target = e.target as HTMLInputElement;
-        // Focus previous input on backspace
-        if (e.key === "Backspace" && !target.value && target.previousSibling) {
-            (target.previousSibling as HTMLInputElement).focus();
-        }
-    };
-
-    return (
-        <form onSubmit={onSubmit} className="space-y-6">
-            <div className="flex justify-center gap-2">
-                {otp.map((data, index) => {
-                    return (
-                        <Input
-                            key={index}
-                            type="text"
-                            value={data}
-                            maxLength={1}
-                            className="w-12 h-14 text-center text-2xl font-bold"
-                            onChange={(e) => handleChange(e.target, index)}
-                            onKeyDown={(e) => handleKeyDown(e, index)}
-                            onFocus={e => e.target.select()}
-                        />
-                    );
-                })}
-            </div>
-            <Button type="submit" className="w-full bg-gradient-to-r from-pink-500 to-orange-500 py-3 text-white font-semibold shadow-lg hover:scale-105 transition-transform">
-                Verify Account
-            </Button>
-            <div className="text-center text-sm">
-                <p className="text-gray-600 dark:text-gray-300">
-                    Didn't receive the code?{" "}
-                    <button type="button" className="font-medium text-pink-600 hover:text-pink-500 dark:text-gray-200 dark:hover:text-white">
-                        Resend
-                    </button>
-                </p>
-                <button type="button" onClick={onBack} className="mt-4 font-medium text-gray-500 hover:text-gray-700 dark:text-gray-400 dark:hover:text-white flex items-center gap-2 mx-auto">
-                    <ArrowLeft className="h-4 w-4" />
-                    Back
-                </button>
-            </div>
-        </form>
-    );
-};
-
-    
