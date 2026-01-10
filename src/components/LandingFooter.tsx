@@ -40,24 +40,25 @@ export function LandingFooter() {
   return (
     <footer className="bg-gray-900 text-white">
       <div className="container mx-auto px-6 py-12">
-        <div className="mb-12">
-            <Logo className="text-white" />
-        </div>
-        <div className="grid grid-cols-2 md:grid-cols-4 lg:grid-cols-6 gap-8 mb-12">
-          
-          <FooterLinkColumn title="Legal" links={footerLinks.legal} />
-          <FooterLinkColumn title="Careers" links={footerLinks.careers} />
-          <div>
-            <h3 className="text-lg font-bold mb-4">Social</h3>
-            <div className="flex items-center gap-4">
-              {footerLinks.social.map((link, index) => (
-                <Link href={link.href} key={index} className="text-gray-400 hover:text-white transition-colors">
-                  <link.icon className="h-6 w-6" />
-                </Link>
-              ))}
+        <div className="flex flex-col md:flex-row justify-between gap-8 mb-12">
+            <div className="mb-8 md:mb-0">
+                <Logo className="text-white" />
             </div>
-          </div>
-          <FooterLinkColumn title="FAQ" links={footerLinks.faq} />
+            <div className="grid grid-cols-2 md:grid-cols-4 gap-8">
+              <FooterLinkColumn title="Legal" links={footerLinks.legal} />
+              <FooterLinkColumn title="Careers" links={footerLinks.careers} />
+              <div>
+                <h3 className="text-lg font-bold mb-4">Social</h3>
+                <div className="flex items-center gap-4">
+                  {footerLinks.social.map((link, index) => (
+                    <Link href={link.href} key={index} className="text-gray-400 hover:text-white transition-colors">
+                      <link.icon className="h-6 w-6" />
+                    </Link>
+                  ))}
+                </div>
+              </div>
+              <FooterLinkColumn title="FAQ" links={footerLinks.faq} />
+            </div>
         </div>
         
         <hr className="border-gray-700 my-8" />
