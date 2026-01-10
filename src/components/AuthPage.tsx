@@ -60,6 +60,18 @@ export function AuthPage({ defaultTab }: { defaultTab: AuthStep }) {
         setUserData(data);
         setAuthStep('otp');
     };
+
+    const handleGoogleSignIn = (e: React.MouseEvent) => {
+        e.preventDefault();
+        // Simulate getting user data from Google
+        const fakeGoogleUserData = {
+            email: 'user@google.com',
+            firstName: 'Google',
+            lastName: 'User'
+        };
+        setUserData(fakeGoogleUserData);
+        setAuthStep('otp');
+    };
     
     const handleOtpSubmit = (e: React.FormEvent) => {
         e.preventDefault();
@@ -71,9 +83,9 @@ export function AuthPage({ defaultTab }: { defaultTab: AuthStep }) {
     const renderForm = () => {
         switch (authStep) {
             case 'login':
-                return <LoginForm onSubmit={handleLoginSubmit} />;
+                return <LoginForm onSubmit={handleLoginSubmit} onGoogleSignIn={handleGoogleSignIn} />;
             case 'signup':
-                return <SignUpForm onSubmit={handleSignupSubmit} />;
+                return <SignUpForm onSubmit={handleSignupSubmit} onGoogleSignIn={handleGoogleSignIn} />;
             case 'otp':
                 return <OTPForm onSubmit={handleOtpSubmit} email={userData?.email || ''} onBack={() => setAuthStep('signup')} />;
             default:
@@ -154,7 +166,7 @@ export function AuthPage({ defaultTab }: { defaultTab: AuthStep }) {
     );
 }
 
-const LoginForm = ({ onSubmit }: { onSubmit: (e: React.FormEvent) => void }) => (
+const LoginForm = ({ onSubmit, onGoogleSignIn }: { onSubmit: (e: React.FormEvent) => void; onGoogleSignIn: (e: React.MouseEvent) => void; }) => (
     <form onSubmit={onSubmit} className="space-y-6">
         <div>
             <div className="relative">
@@ -195,14 +207,14 @@ const LoginForm = ({ onSubmit }: { onSubmit: (e: React.FormEvent) => void }) => 
             <span className="text-sm font-medium text-gray-400">OR</span>
             <div className="h-px flex-grow bg-gray-300" />
         </div>
-        <Button variant="outline" className="w-full">
+        <Button variant="outline" className="w-full" onClick={onGoogleSignIn}>
             <GoogleIcon className="mr-2 h-5 w-5" />
             Continue with Google
         </Button>
     </form>
 );
 
-const SignUpForm = ({ onSubmit }: { onSubmit: (data: UserData) => void }) => {
+const SignUpForm = ({ onSubmit, onGoogleSignIn }: { onSubmit: (data: UserData) => void; onGoogleSignIn: (e: React.MouseEvent) => void; }) => {
     const handleNameInputChange = (e: React.ChangeEvent<HTMLInputElement>) => {
         e.target.value = e.target.value.replace(/[^a-zA-Z]/g, '');
     };
@@ -276,7 +288,7 @@ const SignUpForm = ({ onSubmit }: { onSubmit: (data: UserData) => void }) => {
                 <span className="text-sm font-medium text-gray-400">OR</span>
                 <div className="h-px flex-grow bg-gray-300" />
             </div>
-            <Button variant="outline" className="w-full">
+            <Button variant="outline" className="w-full" onClick={onGoogleSignIn}>
                 <GoogleIcon className="mr-2 h-5 w-5" />
                 Continue with Google
             </Button>
@@ -341,3 +353,5 @@ const OTPForm = ({ onSubmit, email, onBack }: { onSubmit: (e: React.FormEvent) =
         </form>
     );
 };
+
+    
