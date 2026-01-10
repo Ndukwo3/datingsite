@@ -4,6 +4,7 @@ import { Button } from '@/components/ui/button';
 import { PlaceHolderImages } from '@/lib/placeholder-images';
 import { LandingHeader } from '@/components/LandingHeader';
 import { AnimatedFeatures } from '@/components/AnimatedFeatures';
+import { LandingFooter } from '@/components/LandingFooter';
 
 export default function LandingPage() {
   const heroImage = PlaceHolderImages.find(p => p.id === 'hero-1');
@@ -47,9 +48,7 @@ export default function LandingPage() {
           </div>
         </section>
       </main>
-      <footer className="container mx-auto border-t px-4 py-6 text-center text-muted-foreground">
-        <p>&copy; {new Date().getFullYear()} LinkUp9ja. All rights reserved.</p>
-      </footer>
+      <LandingFooter />
     </div>
   );
 }
