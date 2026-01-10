@@ -90,10 +90,9 @@ export function AuthPage({ defaultTab }: AuthPageProps) {
 
                 <div className="relative flex rounded-lg bg-gray-100/70 p-1">
                     <motion.div 
-                        className="absolute h-[calc(100%-8px)] w-[calc(50%-4px)] rounded-md bg-white shadow"
+                        className="absolute inset-0.5 w-1/2 rounded-md bg-white shadow"
                         animate={{ x: activeTab === 'login' ? '0%' : '100%' }}
-                        transition={{ duration: 0.3, ease: "easeInOut" }}
-                        style={{ margin: '4px' }}
+                        transition={{ type: 'spring', stiffness: 300, damping: 30 }}
                     />
                     <button onClick={() => handleSwitchTab('login')} className={cn("relative z-10 w-1/2 py-2 text-sm font-medium transition-colors", activeTab === 'login' ? 'text-pink-600' : 'text-gray-500')}>
                         Login
