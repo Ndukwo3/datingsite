@@ -58,7 +58,7 @@ export function AuthPage({ defaultTab }: AuthPageProps) {
     };
 
     return (
-        <div className="relative flex min-h-screen items-center justify-center overflow-hidden bg-gradient-to-br from-pink-500 via-red-500 to-yellow-500 p-6 md:p-8 font-body">
+        <div className="relative flex min-h-screen items-center justify-center overflow-hidden bg-gradient-to-br from-pink-100 via-red-50 to-yellow-50 p-6 dark:from-pink-500 dark:via-red-500 dark:to-yellow-500 md:p-8 font-body">
             <div className="absolute inset-0 z-0">
                 <motion.div 
                     className="absolute top-[10%] left-[10%] h-48 w-48 rounded-full bg-white/10"
@@ -72,7 +72,7 @@ export function AuthPage({ defaultTab }: AuthPageProps) {
                 />
             </div>
 
-            <ThemeToggle className="absolute top-6 right-6 text-white bg-black/10 hover:bg-black/20 hover:text-white" />
+            <ThemeToggle className="absolute top-6 right-6 text-foreground bg-black/10 hover:bg-black/20 hover:text-white" />
             
             <motion.div 
                 className="relative z-10 w-full max-w-sm rounded-2xl bg-white/20 p-8 shadow-2xl backdrop-blur-lg"
@@ -84,8 +84,8 @@ export function AuthPage({ defaultTab }: AuthPageProps) {
                     <div className="mb-4 flex h-16 w-16 items-center justify-center rounded-2xl bg-gradient-to-br from-pink-500 to-orange-400">
                         <Heart className="h-8 w-8 text-white" />
                     </div>
-                    <h1 className="font-headline text-3xl font-bold text-gray-800">LinkUp9ja</h1>
-                    <p className="mt-2 text-gray-600">Find your perfect match in Nigeria</p>
+                    <h1 className="font-headline text-3xl font-bold text-gray-800 dark:text-white">LinkUp9ja</h1>
+                    <p className="mt-2 text-gray-600 dark:text-gray-200">Find your perfect match in Nigeria</p>
                 </div>
 
                 <div className="relative flex rounded-lg bg-gray-100/70 p-1">
@@ -126,17 +126,27 @@ const LoginForm = ({ onSubmit }: { onSubmit: (e: React.FormEvent) => void }) => 
         <div>
             <div className="relative">
                 <Mail className="absolute left-3 top-1/2 -translate-y-1/2 h-5 w-5 text-gray-400" />
-                <Input type="email" placeholder="Email Address" required className="pl-10" />
+                <Input
+                    type="email"
+                    placeholder="Email Address"
+                    required
+                    className="pl-10 placeholder:text-muted-foreground focus:placeholder:text-transparent"
+                />
             </div>
         </div>
         <div>
             <div className="relative">
                 <KeyRound className="absolute left-3 top-1/2 -translate-y-1/2 h-5 w-5 text-gray-400" />
-                <Input type="password" placeholder="Password" required className="pl-10" />
+                <Input
+                    type="password"
+                    placeholder="Password"
+                    required
+                    className="pl-10 placeholder:text-muted-foreground focus:placeholder:text-transparent"
+                />
             </div>
         </div>
         <div className="flex items-center justify-between text-sm">
-            <label className="flex items-center gap-2">
+            <label className="flex items-center gap-2 text-gray-600 dark:text-gray-300">
                 <Checkbox id="remember-me" />
                 Remember me
             </label>
@@ -164,19 +174,34 @@ const SignUpForm = ({ onSubmit }: { onSubmit: (e: React.FormEvent) => void }) =>
          <div>
             <div className="relative">
                 <User className="absolute left-3 top-1/2 -translate-y-1/2 h-5 w-5 text-gray-400" />
-                <Input type="text" placeholder="Full Name" required className="pl-10" />
+                <Input
+                    type="text"
+                    placeholder="Full Name"
+                    required
+                    className="pl-10 placeholder:text-muted-foreground focus:placeholder:text-transparent"
+                />
             </div>
         </div>
         <div>
             <div className="relative">
                 <Mail className="absolute left-3 top-1/2 -translate-y-1/2 h-5 w-5 text-gray-400" />
-                <Input type="email" placeholder="Email Address" required className="pl-10" />
+                <Input
+                    type="email"
+                    placeholder="Email Address"
+                    required
+                    className="pl-10 placeholder:text-muted-foreground focus:placeholder:text-transparent"
+                />
             </div>
         </div>
         <div>
             <div className="relative">
                 <KeyRound className="absolute left-3 top-1/2 -translate-y-1/2 h-5 w-5 text-gray-400" />
-                <Input type="password" placeholder="Password" required className="pl-10" />
+                <Input
+                    type="password"
+                    placeholder="Password"
+                    required
+                    className="pl-10 placeholder:text-muted-foreground focus:placeholder:text-transparent"
+                />
             </div>
         </div>
         <Button type="submit" className="w-full bg-gradient-to-r from-pink-500 to-orange-500 py-3 text-white font-semibold shadow-lg hover:scale-105 transition-transform">
