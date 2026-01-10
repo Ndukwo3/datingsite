@@ -23,8 +23,7 @@ const formSchema = z.object({
   age: z.coerce.number().min(18, 'You must be at least 18.').max(99),
   location: z.string().min(2, 'Location is required.'),
   bio: z.string().min(20, 'Bio must be at least 20 characters.').max(300),
-  interests: z.string().min(3, 'Please enter at least one interest.'),
-  preferences: z.array(z.string()).optional(),
+  interests: z.array(z.string()).min(1, 'Please select at least one interest.'),
 });
 
 type FormData = z.infer<typeof formSchema>;
@@ -39,23 +38,26 @@ const steps = [
 export function OnboardingForm() {
   const [currentStep, setCurrentStep] = useState(0);
   const [suggested, setSuggested] = useState<string[]>([]);
-  const [selectedPrefs, setSelectedPrefs] = useState<string[]>([]);
   const [isLoadingSuggestions, setIsLoadingSuggestions] = useState(false);
   const { toast } = useToast();
 
   const methods = useForm<FormData>({
     resolver: zodResolver(formSchema),
     defaultValues: {
-      preferences: [],
+      interests: [],
     },
+    mode: "onChange",
   });
 
   const {
-    handleSubmit,
     trigger,
     getValues,
+    setValue,
+    watch,
     formState: { errors },
   } = methods;
+
+  const selectedPrefs = watch('interests', []);
 
   const handleNext = async () => {
     const fields = steps[currentStep].fields;
@@ -75,19 +77,25 @@ export function OnboardingForm() {
   };
   
   const handleGetSuggestions = async () => {
-    const { bio, interests, age } = getValues();
-    if(!bio || !interests || !age) {
+    const { bio, age, location } = getValues();
+    const interestsString = selectedPrefs.join(', ');
+
+    if(!bio || !age || !location) {
         toast({
-            title: "Please fill out your bio, interests, and age.",
+            title: "Please complete your profile basics first.",
+            description: "We need your bio, age, and location to give good suggestions.",
             variant: "destructive",
         });
+        const fields = steps[0].fields.concat(steps[1].fields);
+        const output = await trigger(fields as (keyof FormData)[]);
         return;
     }
 
     setIsLoadingSuggestions(true);
     try {
-      const result = await suggestPreferences({ bio, interests, age, location: getValues('location') });
-      setSuggested(result.suggestedPreferences);
+      const result = await suggestPreferences({ bio, interests: interestsString, age, location });
+       const newSuggestions = result.suggestedPreferences.filter(p => !selectedPrefs.find(sp => sp.toLowerCase() === p.toLowerCase()));
+      setSuggested(newSuggestions);
     } catch (error) {
       console.error(error);
       toast({
@@ -101,9 +109,14 @@ export function OnboardingForm() {
   };
   
   const togglePreference = (pref: string) => {
-    setSelectedPrefs(prev => 
-      prev.includes(pref) ? prev.filter(p => p !== pref) : [...prev, pref]
-    );
+    const currentPrefs = getValues('interests') || [];
+    const isSelected = currentPrefs.includes(pref);
+
+    if(isSelected) {
+      setValue('interests', currentPrefs.filter(p => p !== pref), { shouldValidate: true });
+    } else {
+      setValue('interests', [...currentPrefs, pref], { shouldValidate: true });
+    }
   };
 
   const progress = ((currentStep + 1) / steps.length) * 100;
@@ -157,9 +170,20 @@ export function OnboardingForm() {
                   </div>
                   <div>
                     <Label htmlFor="interests">Interests</Label>
-                    <Input id="interests" placeholder="e.g., Music, Travel, Food" {...methods.register('interests')} />
-                    <p className="text-sm text-muted-foreground">Separate interests with commas.</p>
-                    {errors.interests && <p className="text-sm text-destructive">{errors.interests.message}</p>}
+                     <div className="flex flex-wrap gap-2 mt-2 min-h-[40px] rounded-md border border-input p-2">
+                        {selectedPrefs.map((pref) => (
+                            <Badge
+                            key={pref}
+                            variant={"secondary"}
+                            onClick={() => togglePreference(pref)}
+                            className="cursor-pointer transition-colors"
+                            >
+                            {pref} &times;
+                            </Badge>
+                        ))}
+                         {selectedPrefs.length === 0 && <span className="text-sm text-muted-foreground">Select some interests below...</span>}
+                    </div>
+                     {errors.interests && <p className="text-sm text-destructive">{errors.interests.message}</p>}
                   </div>
                 </div>
                 <Card>
@@ -171,21 +195,21 @@ export function OnboardingForm() {
                       </div>
                       <Button onClick={handleGetSuggestions} disabled={isLoadingSuggestions} variant="outline">
                         {isLoadingSuggestions ? <Loader2 className="mr-2 h-4 w-4 animate-spin" /> : <Sparkles className="mr-2 h-4 w-4" />}
-                        Suggest Preferences
+                        Suggest Interests
                       </Button>
                     </div>
                     {suggested.length > 0 && (
                       <div className="mt-4 space-y-2">
-                         <p className="text-sm font-medium">Click to select your preferences:</p>
+                         <p className="text-sm font-medium">Click to add suggestions:</p>
                         <div className="flex flex-wrap gap-2">
                           {suggested.map((pref) => (
                             <Badge
                               key={pref}
-                              variant={selectedPrefs.includes(pref) ? "default" : "secondary"}
+                              variant={"outline"}
                               onClick={() => togglePreference(pref)}
                               className="cursor-pointer transition-colors"
                             >
-                              {pref}
+                              + {pref}
                             </Badge>
                           ))}
                         </div>
