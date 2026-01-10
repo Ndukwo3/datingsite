@@ -10,7 +10,7 @@ import { z } from 'genkit';
 
 export const SendOtpInputSchema = z.object({
   identifier: z.string().describe('The email or phone number to send the OTP to.'),
-  otp: z.string().length(6).describe('The 6-digit one-time password.'),
+  otp: z.string().length(4).describe('The 4-digit one-time password.'),
 });
 export type SendOtpInput = z.infer<typeof SendOtpInputSchema>;
 
@@ -19,3 +19,5 @@ export const SendOtpOutputSchema = z.object({
   message: z.string(),
 });
 export type SendOtpOutput = z.infer<typeof SendOtpOutputSchema>;
+
+    

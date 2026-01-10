@@ -59,7 +59,7 @@ export function AuthPage({ defaultTab }: { defaultTab: AuthStep }) {
         return <SplashScreen />;
     }
 
-    const generateOtp = () => (Math.floor(100000 + Math.random() * 900000)).toString();
+    const generateOtp = () => (Math.floor(1000 + Math.random() * 9000)).toString();
     
     const handleOtpRequest = async (identifier: string) => {
         setIsLoading(true);
@@ -165,7 +165,7 @@ export function AuthPage({ defaultTab }: { defaultTab: AuthStep }) {
                         {authStep === 'otp' ? "Check your messages" : authStep === 'email' ? "Continue with Email" : "LinkUp9ja"}
                     </h1>
                     <p className="mt-2 text-gray-600 dark:text-gray-200">
-                         {authStep === 'otp' ? `We've sent a 6-digit code to ${(userData as any)?.identifier.includes('@') ? (userData as any)?.identifier : 'your WhatsApp'}` : authStep === 'email' ? "Please enter your email address." : "Find your perfect match in Nigeria"}
+                         {authStep === 'otp' ? `We've sent a 4-digit code to ${(userData as any)?.identifier.includes('@') ? (userData as any)?.identifier : 'your WhatsApp'}` : authStep === 'email' ? "Please enter your email address." : "Find your perfect match in Nigeria"}
                     </p>
                 </div>
 
@@ -385,7 +385,7 @@ const EmailForm = ({ onSubmit, onBack, isLoading }: { onSubmit: (email: string) 
 
 
 const OTPForm = ({ onSubmit, identifier, onBack }: { onSubmit: (e: React.FormEvent) => void; identifier: string, onBack: () => void; }) => {
-    const [otp, setOtp] = useState(new Array(6).fill(""));
+    const [otp, setOtp] = useState(new Array(4).fill(""));
 
     const handleChange = (element: HTMLInputElement, index: number) => {
         if (isNaN(Number(element.value))) return;
@@ -442,3 +442,5 @@ const OTPForm = ({ onSubmit, identifier, onBack }: { onSubmit: (e: React.FormEve
         </form>
     );
 };
+
+    
