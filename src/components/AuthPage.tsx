@@ -5,7 +5,7 @@ import * as React from "react";
 import { useState } from "react";
 import { useRouter, useSearchParams } from "next/navigation";
 import { motion, AnimatePresence } from "framer-motion";
-import { Heart, Mail, KeyRound, User } from "lucide-react";
+import { Heart, Mail, KeyRound, User, Phone } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { Button } from "./ui/button";
 import { Input } from "./ui/input";
@@ -28,7 +28,7 @@ type AuthStep = "login" | "signup" | "otp";
 type UserData = {
     firstName: string;
     lastName: string;
-    email: string;
+    phone: string;
 };
 
 
@@ -65,7 +65,7 @@ export function AuthPage({ defaultTab }: { defaultTab: AuthStep }) {
         e.preventDefault();
         // Simulate getting user data from Google
         const fakeGoogleUserData = {
-            email: 'user@google.com',
+            phone: 'user@google.com', // This should be a phone number but for simulation we keep it
             firstName: 'Google',
             lastName: 'User'
         };
@@ -87,7 +87,7 @@ export function AuthPage({ defaultTab }: { defaultTab: AuthStep }) {
             case 'signup':
                 return <SignUpForm onSubmit={handleSignupSubmit} onGoogleSignIn={handleGoogleSignIn} />;
             case 'otp':
-                return <OTPForm onSubmit={handleOtpSubmit} email={userData?.email || ''} onBack={() => setAuthStep('signup')} />;
+                return <OTPForm onSubmit={handleOtpSubmit} identifier={userData?.phone || ''} onBack={() => setAuthStep('signup')} />;
             default:
                 return null;
         }
@@ -123,10 +123,10 @@ export function AuthPage({ defaultTab }: { defaultTab: AuthStep }) {
                         <Heart className="h-8 w-8 text-white" />
                     </div>
                     <h1 className="font-headline text-3xl font-bold text-gray-800 dark:text-white">
-                        {isOtpStep ? "Check your email" : "LinkUp9ja"}
+                        {isOtpStep ? "Check your messages" : "LinkUp9ja"}
                     </h1>
                     <p className="mt-2 text-gray-600 dark:text-gray-200">
-                         {isOtpStep ? `We've sent a 6-digit code to ${userData?.email}` : "Find your perfect match in Nigeria"}
+                         {isOtpStep ? `We've sent a 6-digit code to ${userData?.phone}` : "Find your perfect match in Nigeria"}
                     </p>
                 </div>
 
@@ -170,10 +170,10 @@ const LoginForm = ({ onSubmit, onGoogleSignIn }: { onSubmit: (e: React.FormEvent
     <form onSubmit={onSubmit} className="space-y-6">
         <div>
             <div className="relative">
-                <Mail className="absolute left-3 top-1/2 -translate-y-1/2 h-5 w-5 text-gray-400" />
+                <Phone className="absolute left-3 top-1/2 -translate-y-1/2 h-5 w-5 text-gray-400" />
                 <Input
-                    type="email"
-                    placeholder="Email Address"
+                    type="tel"
+                    placeholder="Phone Number"
                     required
                     className="pl-10 placeholder:text-muted-foreground focus:placeholder:text-transparent"
                 />
@@ -195,7 +195,7 @@ const LoginForm = ({ onSubmit, onGoogleSignIn }: { onSubmit: (e: React.FormEvent
                 <Checkbox id="remember-me" />
                 Remember me
             </label>
-            <Link href="#" className="font-medium text-pink-600 hover:text-pink-500 dark:text-gray-200 dark:hover:text-white">
+            <Link href="#" className="font-medium text-pink-600 hover:text-pink-500 dark:text-white dark:hover:text-gray-300">
                 Forgot Password?
             </Link>
         </div>
@@ -225,7 +225,7 @@ const SignUpForm = ({ onSubmit, onGoogleSignIn }: { onSubmit: (data: UserData) =
         const data = {
             firstName: formData.get('firstName') as string,
             lastName: formData.get('lastName') as string,
-            email: formData.get('email') as string,
+            phone: formData.get('phone') as string,
         };
         onSubmit(data);
     };
@@ -258,11 +258,11 @@ const SignUpForm = ({ onSubmit, onGoogleSignIn }: { onSubmit: (data: UserData) =
             </div>
             <div>
                 <div className="relative">
-                    <Mail className="absolute left-3 top-1/2 -translate-y-1/2 h-5 w-5 text-gray-400" />
+                    <Phone className="absolute left-3 top-1/2 -translate-y-1/2 h-5 w-5 text-gray-400" />
                     <Input
-                        name="email"
-                        type="email"
-                        placeholder="Email Address"
+                        name="phone"
+                        type="tel"
+                        placeholder="Phone Number"
                         required
                         className="pl-10 placeholder:text-muted-foreground focus:placeholder:text-transparent"
                     />
@@ -296,7 +296,7 @@ const SignUpForm = ({ onSubmit, onGoogleSignIn }: { onSubmit: (data: UserData) =
     );
 };
 
-const OTPForm = ({ onSubmit, email, onBack }: { onSubmit: (e: React.FormEvent) => void; email: string, onBack: () => void; }) => {
+const OTPForm = ({ onSubmit, identifier, onBack }: { onSubmit: (e: React.FormEvent) => void; identifier: string, onBack: () => void; }) => {
     const [otp, setOtp] = useState(new Array(6).fill(""));
 
     const handleChange = (element: HTMLInputElement, index: number) => {
