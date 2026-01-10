@@ -4,14 +4,14 @@ import { Logo } from './Logo';
 
 const footerLinks = {
   legal: [
-    { href: '#', text: 'Privacy' },
-    { href: '#', text: 'Terms' },
-    { href: '#', text: 'Cookie Policy' },
-    { href: '#', text: 'Intellectual Property' },
+    { href: '/privacy', text: 'Privacy' },
+    { href: '/terms', text: 'Terms' },
+    { href: '/cookies', text: 'Cookie Policy' },
+    { href: '/ip', text: 'Intellectual Property' },
   ],
   careers: [
-    { href: '#', text: 'Careers Portal' },
-    { href: '#', text: 'Tech Blog' },
+    { href: '/careers', text: 'Careers Portal' },
+    { href: '/tech-blog', text: 'Tech Blog' },
   ],
   social: [
     { href: '#', icon: Instagram },
@@ -21,19 +21,19 @@ const footerLinks = {
     { href: '#', icon: FacebookIcon },
   ],
   faq: [
-    { href: '#', text: 'Destinations' },
-    { href: '#', text: 'Press Room' },
-    { href: '#', text: 'Contact' },
-    { href: '#', text: 'Promo Code' },
+    { href: '/destinations', text: 'Destinations' },
+    { href: '/press', text: 'Press Room' },
+    { href: '/contact', text: 'Contact' },
+    { href: '/promo', text: 'Promo Code' },
   ],
 };
 
 const bottomLinks = [
-    { href: '#', text: 'FAQ' },
-    { href: '#', text: 'Safety Tips' },
-    { href: '#', text: 'Terms' },
-    { href: '#', text: 'Cookie Policy' },
-    { href: '#', text: 'Privacy Settings' },
+    { href: '/faq', text: 'FAQ' },
+    { href: '/safety', text: 'Safety Tips' },
+    { href: '/terms', text: 'Terms' },
+    { href: '/cookies', text: 'Cookie Policy' },
+    { href: '/privacy-settings', text: 'Privacy Settings' },
 ]
 
 export function LandingFooter() {
