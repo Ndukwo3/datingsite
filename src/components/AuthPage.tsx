@@ -5,7 +5,7 @@ import * as React from "react";
 import { useState } from "react";
 import { useRouter, useSearchParams } from "next/navigation";
 import { motion, AnimatePresence } from "framer-motion";
-import { Heart, Mail, KeyRound, User, Phone, ArrowLeft } from "lucide-react";
+import { Heart, Mail, KeyRound, User, Phone } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { Button } from "./ui/button";
 import { Input } from "./ui/input";
@@ -28,9 +28,9 @@ const GoogleIcon = (props: React.SVGProps<SVGSVGElement>) => (
 
 type AuthStep = "login" | "signup";
 type UserData = {
-    firstName: string;
-    lastName: string;
+    name: string;
     phone: string;
+    email: string;
 };
 
 
@@ -41,6 +41,7 @@ export function AuthPage({ defaultTab }: { defaultTab: "login" | "signup" }) {
     const fromNav = searchParams.get('fromNav');
     const [showSplash, setShowSplash] = useState(!!fromNav);
     const [isLoading, setIsLoading] = useState(false);
+    const { toast } = useToast();
 
     React.useEffect(() => {
         if (showSplash) {
@@ -132,13 +133,13 @@ export function AuthPage({ defaultTab }: { defaultTab: "login" | "signup" }) {
                 </div>
 
 
-                <div className="relative mt-6 h-[360px] overflow-hidden">
+                <div className="relative mt-6 h-[420px] overflow-hidden">
                     <AnimatePresence mode="wait">
                         <motion.div
                             key={authStep}
-                            initial={{ opacity: 0, x: -50 }}
+                            initial={{ opacity: 0, x: authStep === 'login' ? 50 : -50 }}
                             animate={{ opacity: 1, x: 0 }}
-                            exit={{ opacity: 0, x: 50 }}
+                            exit={{ opacity: 0, x: authStep === 'login' ? -50 : 50 }}
                             transition={{ duration: 0.4, ease: "easeInOut" }}
                             className="absolute w-full"
                         >
@@ -161,11 +162,11 @@ const LoginForm = ({ onSubmit, isLoading }: { onSubmit: () => void; isLoading: b
         <form onSubmit={handleSubmit} className="space-y-6">
             <div>
                 <div className="relative">
-                    <Phone className="absolute left-3 top-1/2 -translate-y-1/2 h-5 w-5 text-gray-400" />
+                    <Mail className="absolute left-3 top-1/2 -translate-y-1/2 h-5 w-5 text-gray-400" />
                     <Input
-                        name="phone"
-                        type="tel"
-                        placeholder="Phone Number"
+                        name="email"
+                        type="email"
+                        placeholder="Email Address"
                         required
                         className="pl-10 placeholder:text-muted-foreground focus:placeholder:text-transparent"
                     />
@@ -209,76 +210,93 @@ const LoginForm = ({ onSubmit, isLoading }: { onSubmit: () => void; isLoading: b
 };
 
 const SignUpForm = ({ onSubmit, isLoading }: { onSubmit: (data: UserData) => void; isLoading: boolean; }) => {
+    const { toast } = useToast();
+    
     const handleNameInputChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-        e.target.value = e.target.value.replace(/[^a-zA-Z]/g, '');
+        e.target.value = e.target.value.replace(/[^a-zA-Z\s]/g, '');
     };
 
     const handleSubmit = (e: React.FormEvent<HTMLFormElement>) => {
         e.preventDefault();
         const formData = new FormData(e.currentTarget);
+        const password = formData.get('password') as string;
+        const confirmPassword = formData.get('confirmPassword') as string;
+
+        if (password !== confirmPassword) {
+            toast({
+                title: "Passwords do not match",
+                description: "Please check your passwords and try again.",
+                variant: "destructive",
+            });
+            return;
+        }
+
         const data = {
-            firstName: formData.get('firstName') as string,
-            lastName: formData.get('lastName') as string,
+            name: formData.get('name') as string,
             phone: formData.get('phone') as string,
+            email: formData.get('email') as string,
         };
         onSubmit(data);
     };
 
     return (
-        <form onSubmit={handleSubmit} className="space-y-6">
-            <div className="grid grid-cols-2 gap-4">
-                <div className="relative">
-                    <User className="absolute left-3 top-1/2 -translate-y-1/2 h-5 w-5 text-gray-400" />
-                    <Input
-                        name="firstName"
-                        type="text"
-                        placeholder="First Name"
-                        required
-                        className="pl-10 placeholder:text-muted-foreground focus:placeholder:text-transparent"
-                        onChange={handleNameInputChange}
-                    />
-                </div>
-                <div className="relative">
-                    <User className="absolute left-3 top-1/2 -translate-y-1/2 h-5 w-5 text-gray-400" />
-                    <Input
-                        name="lastName"
-                        type="text"
-                        placeholder="Last Name"
-                        required
-                        className="pl-10 placeholder:text-muted-foreground focus:placeholder:text-transparent"
-                        onChange={handleNameInputChange}
-                    />
-                </div>
+        <form onSubmit={handleSubmit} className="space-y-4">
+             <div className="relative">
+                <User className="absolute left-3 top-1/2 -translate-y-1/2 h-5 w-5 text-gray-400" />
+                <Input
+                    name="name"
+                    type="text"
+                    placeholder="Full Name"
+                    required
+                    className="pl-10 placeholder:text-muted-foreground focus:placeholder:text-transparent"
+                    onChange={handleNameInputChange}
+                />
             </div>
-            <div>
-                <div className="relative">
-                    <Phone className="absolute left-3 top-1/2 -translate-y-1/2 h-5 w-5 text-gray-400" />
-                    <Input
-                        name="phone"
-                        type="tel"
-                        placeholder="Phone Number"
-                        required
-                        className="pl-10 placeholder:text-muted-foreground focus:placeholder:text-transparent"
-                    />
-                </div>
+            <div className="relative">
+                <Phone className="absolute left-3 top-1/2 -translate-y-1/2 h-5 w-5 text-gray-400" />
+                <Input
+                    name="phone"
+                    type="tel"
+                    placeholder="Phone Number"
+                    required
+                    className="pl-10 placeholder:text-muted-foreground focus:placeholder:text-transparent"
+                />
             </div>
-            <div>
-                <div className="relative">
-                    <KeyRound className="absolute left-3 top-1/2 -translate-y-1/2 h-5 w-5 text-gray-400" />
-                    <Input
-                        name="password"
-                        type="password"
-                        placeholder="Password"
-                        required
-                        className="pl-10 placeholder:text-muted-foreground focus:placeholder:text-transparent"
-                    />
-                </div>
+            <div className="relative">
+                <Mail className="absolute left-3 top-1/2 -translate-y-1/2 h-5 w-5 text-gray-400" />
+                <Input
+                    name="email"
+                    type="email"
+                    placeholder="Email Address"
+                    required
+                    className="pl-10 placeholder:text-muted-foreground focus:placeholder:text-transparent"
+                />
+            </div>
+            <div className="relative">
+                <KeyRound className="absolute left-3 top-1/2 -translate-y-1/2 h-5 w-5 text-gray-400" />
+                <Input
+                    name="password"
+                    type="password"
+                    placeholder="Password"
+                    required
+                    className="pl-10 placeholder:text-muted-foreground focus:placeholder:text-transparent"
+                />
+            </div>
+             <div className="relative">
+                <KeyRound className="absolute left-3 top-1/2 -translate-y-1/2 h-5 w-5 text-gray-400" />
+                <Input
+                    name="confirmPassword"
+                    type="password"
+                    placeholder="Confirm Password"
+                    required
+                    className="pl-10 placeholder:text-muted-foreground focus:placeholder:text-transparent"
+                />
             </div>
             <Button type="submit" className="w-full bg-gradient-to-r from-pink-500 to-orange-500 py-3 text-white font-semibold shadow-lg hover:scale-105 transition-transform" disabled={isLoading}>
                  {isLoading && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
                 Sign Up
             </Button>
-            <div className="my-6 flex items-center gap-4">
+            <div className="my-4 flex items-center gap-4">
                 <div className="h-px flex-grow bg-gray-300" />
                 <span className="text-sm font-medium text-gray-400">OR</span>
                 <div className="h-px flex-grow bg-gray-300" />
@@ -290,3 +308,5 @@ const SignUpForm = ({ onSubmit, isLoading }: { onSubmit: (data: UserData) => voi
         </form>
     );
 };
+
+    
