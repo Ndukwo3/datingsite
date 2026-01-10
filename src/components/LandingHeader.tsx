@@ -1,4 +1,7 @@
+"use client";
+
 import Link from 'next/link';
+import { usePathname } from 'next/navigation';
 import { Button } from '@/components/ui/button';
 import { Logo } from '@/components/Logo';
 import { cn } from '@/lib/utils';
@@ -8,9 +11,13 @@ type LandingHeaderProps = {
 };
 
 export function LandingHeader({ theme = 'dark' }: LandingHeaderProps) {
+  const pathname = usePathname();
   const isLight = theme === 'light';
 
-  const linkClasses = "relative text-sm font-medium after:absolute after:left-0 after:-bottom-1 after:h-[2px] after:w-full after:origin-center after:scale-x-0 after:bg-primary after:transition-transform after:duration-300 after:ease-out after:content-[''] hover:after:scale-x-100";
+  const linkClasses = (href: string) => cn(
+    "relative text-sm font-medium after:absolute after:left-0 after:-bottom-1 after:h-[2px] after:w-full after:origin-center after:scale-x-0 after:bg-primary after:transition-transform after:duration-300 after:ease-out after:content-[''] hover:after:scale-x-100",
+    { "after:scale-x-100": pathname === href }
+  );
 
   return (
     <header className={cn(
@@ -23,9 +30,9 @@ export function LandingHeader({ theme = 'dark' }: LandingHeaderProps) {
           "hidden md:flex absolute left-1/2 -translate-x-1/2 items-center gap-6",
           isLight ? "text-foreground" : "text-white"
         )}>
-          <Link href="/about" className={linkClasses}>About</Link>
-          <Link href="/safety" className={linkClasses}>Safety</Link>
-          <Link href="/support" className={linkClasses}>Support</Link>
+          <Link href="/about" className={linkClasses('/about')}>About</Link>
+          <Link href="/safety" className={linkClasses('/safety')}>Safety</Link>
+          <Link href="/support" className={linkClasses('/support')}>Support</Link>
         </nav>
         <div className="flex items-center gap-2 sm:gap-4">
           <Button asChild variant="ghost" className={cn(
