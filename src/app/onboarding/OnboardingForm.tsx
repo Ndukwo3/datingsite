@@ -1,5 +1,4 @@
 
-
 "use client";
 
 import { useState } from 'react';
@@ -7,8 +6,8 @@ import { useForm, FormProvider, Controller } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import * as z from 'zod';
 import { motion, AnimatePresence } from 'framer-motion';
-import { Loader2, Sparkles, Upload, Camera, ArrowLeft, Info, ChevronDown, Check, Star, X } from 'lucide-react';
-import { format } from 'date-fns';
+import { Loader2, Sparkles, Upload, Camera, ArrowLeft, Info, ChevronDown, Check, Star, X, PartyPopper } from 'lucide-react';
+import { format }s from 'date-fns';
 import { cn } from "@/lib/utils";
 
 import { Button } from '@/components/ui/button';
@@ -30,7 +29,7 @@ import { parse, isValid as isValidDate } from 'date-fns';
 
 
 const step1Schema = z.object({
-  fullName: z.string().min(2, { message: "This name will be the one that will appear in the chat messaging" }),
+  fullName: z.string().min(2, { message: "This is the name everyone will see. It needs to be at least 2 characters." }),
   dob: z.string().refine(val => {
     if (val.length !== 10) return false;
     const parsedDate = parse(val, 'MM/dd/yyyy', new Date());
@@ -161,7 +160,7 @@ export function OnboardingForm() {
   const handlePrev = () => {
     if (currentStep > 0) {
       setDirection(-1);
-      setCurrentStep(step => step + 1);
+      setCurrentStep(step => step - 1);
     }
   };
   
@@ -481,11 +480,32 @@ export function OnboardingForm() {
             {currentStep === 5 && (
               <div className="space-y-6 text-center flex flex-col items-center justify-center h-[500px]">
                  <motion.div initial={{scale: 0}} animate={{scale: 1}} transition={{delay: 0.2, type: 'spring'}}>
-                    <Check className="w-24 h-24 text-green-500 bg-green-100 rounded-full p-4"/>
+                    <div className="relative inline-block">
+                        <Check className="w-24 h-24 text-green-500 bg-green-100 rounded-full p-4"/>
+                        {Array.from({length: 10}).map((_, i) => (
+                           <motion.div
+                             key={i}
+                             initial={{ opacity: 0, scale: 0.5 }}
+                             animate={{ opacity: [0, 1, 0], scale: 1 }}
+                             transition={{ duration: 1.5, delay: 0.5 + i * 0.1, repeat: Infinity, repeatDelay: 2 }}
+                             className="absolute top-0 left-0 w-full h-full"
+                             style={{
+                                transform: `rotate(${i * 36}deg) translateY(-80px) scale(0.5)`,
+                                background: `hsl(${i * 36}, 100%, 70%)`,
+                                borderRadius: '50%',
+                                width: '10px',
+                                height: '10px'
+                             }}
+                           />
+                        ))}
+                    </div>
                  </motion.div>
-                 <h2 className="text-3xl font-headline font-bold">You're all set, {getValues('fullName').split(' ')[0]}!</h2>
+                 <h2 className="text-3xl font-headline font-bold mt-8">You're all set, {getValues('fullName').split(' ')[0]}!</h2>
                  <p className="text-muted-foreground max-w-md mx-auto">Welcome to LinkUp9ja! Get ready to start connecting with amazing people.</p>
                  <Button size="lg" className="w-full bg-primary-gradient text-primary-foreground font-bold text-lg py-6" asChild>
+                    <Link href="/tutorial">Take a Quick Tour</Link>
+                 </Button>
+                  <Button size="lg" variant="ghost" className="w-full font-bold" asChild>
                     <Link href="/">Start Swiping 🔥</Link>
                  </Button>
               </div>
