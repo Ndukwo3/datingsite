@@ -29,7 +29,7 @@ export default function SignupPage() {
           data-ai-hint={bgImage.imageHint}
         />
       )}
-      <ThemeToggle className="absolute top-4 right-4 z-10 text-white" />
+      <ThemeToggle className="absolute top-4 right-4 z-10" />
       <div className="relative flex min-h-screen items-center justify-center p-4">
         <div className="w-full max-w-md">
           <div className="mb-8 flex justify-center">
