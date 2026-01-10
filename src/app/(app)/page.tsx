@@ -61,7 +61,7 @@ export default function SwipePage() {
 
   return (
     <div className="flex h-full flex-col items-center justify-center gap-8">
-      <div className="relative w-full max-w-sm h-[60vh] md:h-[70vh]">
+      <div className="relative w-full max-w-sm h-[60vh]">
         <AnimatePresence custom={swipeDirection}>
           {currentIndex < profiles.length ? (
             <motion.div
@@ -129,6 +129,3 @@ export default function SwipePage() {
     </div>
   );
 }
-
-
-
