@@ -169,65 +169,69 @@ const LoginForm = ({ onSubmit }: { onSubmit: (e: React.FormEvent) => void }) => 
     </form>
 );
 
-const SignUpForm = ({ onSubmit }: { onSubmit: (e: React.FormEvent) => void }) => (
-    <form onSubmit={onSubmit} className="space-y-6">
-         <div className="grid grid-cols-2 gap-4">
-            <div className="relative">
-                <User className="absolute left-3 top-1/2 -translate-y-1/2 h-5 w-5 text-gray-400" />
-                <Input
-                    type="text"
-                    placeholder="First Name"
-                    required
-                    className="pl-10 placeholder:text-muted-foreground focus:placeholder:text-transparent"
-                />
-            </div>
-             <div className="relative">
-                <User className="absolute left-3 top-1/2 -translate-y-1/2 h-5 w-5 text-gray-400" />
-                <Input
-                    type="text"
-                    placeholder="Last Name"
-                    required
-                    className="pl-10 placeholder:text-muted-foreground focus:placeholder:text-transparent"
-                />
-            </div>
-        </div>
-        <div>
-            <div className="relative">
-                <Mail className="absolute left-3 top-1/2 -translate-y-1/2 h-5 w-5 text-gray-400" />
-                <Input
-                    type="email"
-                    placeholder="Email Address"
-                    required
-                    className="pl-10 placeholder:text-muted-foreground focus:placeholder:text-transparent"
-                />
-            </div>
-        </div>
-        <div>
-            <div className="relative">
-                <KeyRound className="absolute left-3 top-1/2 -translate-y-1/2 h-5 w-5 text-gray-400" />
-                <Input
-                    type="password"
-                    placeholder="Password"
-                    required
-                    className="pl-10 placeholder:text-muted-foreground focus:placeholder:text-transparent"
-                />
-            </div>
-        </div>
-        <Button type="submit" className="w-full bg-gradient-to-r from-pink-500 to-orange-500 py-3 text-white font-semibold shadow-lg hover:scale-105 transition-transform">
-            Get Started
-        </Button>
-         <div className="my-6 flex items-center gap-4">
-            <div className="h-px flex-grow bg-gray-300" />
-            <span className="text-sm font-medium text-gray-400">OR</span>
-            <div className="h-px flex-grow bg-gray-300" />
-        </div>
-        <Button variant="outline" className="w-full">
-            <GoogleIcon className="mr-2 h-5 w-5" />
-            Continue with Google
-        </Button>
-    </form>
-);
+const SignUpForm = ({ onSubmit }: { onSubmit: (e: React.FormEvent) => void }) => {
+    const handleNameInputChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+        e.target.value = e.target.value.replace(/[^a-zA-Z]/g, '');
+    };
 
-    
-
-    
+    return (
+        <form onSubmit={onSubmit} className="space-y-6">
+            <div className="grid grid-cols-2 gap-4">
+                <div className="relative">
+                    <User className="absolute left-3 top-1/2 -translate-y-1/2 h-5 w-5 text-gray-400" />
+                    <Input
+                        type="text"
+                        placeholder="First Name"
+                        required
+                        className="pl-10 placeholder:text-muted-foreground focus:placeholder:text-transparent"
+                        onChange={handleNameInputChange}
+                    />
+                </div>
+                <div className="relative">
+                    <User className="absolute left-3 top-1/2 -translate-y-1/2 h-5 w-5 text-gray-400" />
+                    <Input
+                        type="text"
+                        placeholder="Last Name"
+                        required
+                        className="pl-10 placeholder:text-muted-foreground focus:placeholder:text-transparent"
+                        onChange={handleNameInputChange}
+                    />
+                </div>
+            </div>
+            <div>
+                <div className="relative">
+                    <Mail className="absolute left-3 top-1/2 -translate-y-1/2 h-5 w-5 text-gray-400" />
+                    <Input
+                        type="email"
+                        placeholder="Email Address"
+                        required
+                        className="pl-10 placeholder:text-muted-foreground focus:placeholder:text-transparent"
+                    />
+                </div>
+            </div>
+            <div>
+                <div className="relative">
+                    <KeyRound className="absolute left-3 top-1/2 -translate-y-1/2 h-5 w-5 text-gray-400" />
+                    <Input
+                        type="password"
+                        placeholder="Password"
+                        required
+                        className="pl-10 placeholder:text-muted-foreground focus:placeholder:text-transparent"
+                    />
+                </div>
+            </div>
+            <Button type="submit" className="w-full bg-gradient-to-r from-pink-500 to-orange-500 py-3 text-white font-semibold shadow-lg hover:scale-105 transition-transform">
+                Get Started
+            </Button>
+            <div className="my-6 flex items-center gap-4">
+                <div className="h-px flex-grow bg-gray-300" />
+                <span className="text-sm font-medium text-gray-400">OR</span>
+                <div className="h-px flex-grow bg-gray-300" />
+            </div>
+            <Button variant="outline" className="w-full">
+                <GoogleIcon className="mr-2 h-5 w-5" />
+                Continue with Google
+            </Button>
+        </form>
+    );
+};
