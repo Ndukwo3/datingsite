@@ -16,7 +16,7 @@ import { ThemeToggle } from "@/components/ThemeToggle";
 import { PlaceHolderImages } from "@/lib/placeholder-images";
 
 export default function SignupPage() {
-  const bgImage = PlaceHolderImages.find(p => p.id === 'signup-hero');
+  const bgImage = PlaceHolderImages.find(p => p.id === 'hero-1');
 
   return (
     <div className="relative min-h-screen w-full">
