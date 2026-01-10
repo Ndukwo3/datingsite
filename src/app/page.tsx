@@ -10,7 +10,7 @@ export default function LandingPage() {
   const heroImage = PlaceHolderImages.find(p => p.id === 'hero-1');
   return (
     <div className="flex min-h-screen flex-col bg-background text-foreground">
-      <LandingHeader />
+      <LandingHeader theme="dark" />
       <main className="flex-1">
         <section className="relative h-screen">
           {heroImage && (

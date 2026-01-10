@@ -4,7 +4,7 @@ import { LandingFooter } from "@/components/LandingFooter";
 export default function SupportPage() {
   return (
     <div className="flex min-h-screen flex-col bg-background text-foreground">
-      <LandingHeader />
+      <LandingHeader theme="light" />
       <main className="flex-1 py-24">
         <div className="container mx-auto px-4">
           <h1 className="text-4xl font-bold font-headline">Support</h1>
