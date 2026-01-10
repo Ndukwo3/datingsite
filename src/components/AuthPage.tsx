@@ -281,7 +281,7 @@ const SignUpForm = ({ onSubmit, onGoogleSignIn }: { onSubmit: (data: UserData) =
                 </div>
             </div>
             <Button type="submit" className="w-full bg-gradient-to-r from-pink-500 to-orange-500 py-3 text-white font-semibold shadow-lg hover:scale-105 transition-transform">
-                Get Started
+                Sign Up
             </Button>
             <div className="my-6 flex items-center gap-4">
                 <div className="h-px flex-grow bg-gray-300" />
@@ -353,6 +353,8 @@ const OTPForm = ({ onSubmit, identifier, onBack }: { onSubmit: (e: React.FormEve
         </form>
     );
 };
+
+    
 
     
 
