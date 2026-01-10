@@ -10,7 +10,7 @@ export function SplashScreen() {
         initial={{ scale: 0.9, opacity: 0.7 }}
         animate={{ scale: 1, opacity: 1 }}
         transition={{ 
-            duration: 1.5,
+            duration: 1,
             repeat: Infinity,
             repeatType: 'reverse',
             ease: "easeInOut" 

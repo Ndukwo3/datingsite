@@ -35,7 +35,7 @@ export default function LoginPage() {
         setLoading(false);
         // Clean up the URL
         router.replace('/login', { scroll: false });
-      }, 1500); 
+      }, 2500); 
       return () => clearTimeout(timer);
     } else {
       setLoading(false);

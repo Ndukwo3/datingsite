@@ -33,7 +33,7 @@ export default function SignupPage() {
       const timer = setTimeout(() => {
         setLoading(false);
         router.replace('/signup', { scroll: false });
-      }, 1500); 
+      }, 2500); 
       return () => clearTimeout(timer);
     } else {
       setLoading(false);
