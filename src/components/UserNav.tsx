@@ -51,7 +51,7 @@ export function UserNav() {
         </DropdownMenuGroup>
         <DropdownMenuSeparator />
         <DropdownMenuItem asChild>
-          <Link href="/login"><LogOut className="mr-2 h-4 w-4" />Log out</Link>
+          <Link href="/login?fromNav=true"><LogOut className="mr-2 h-4 w-4" />Log out</Link>
         </DropdownMenuItem>
       </DropdownMenuContent>
     </DropdownMenu>

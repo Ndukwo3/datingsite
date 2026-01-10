@@ -1,5 +1,9 @@
+
+"use client";
+
 import Link from "next/link";
 import Image from "next/image";
+import { useState, useEffect } from 'react';
 
 import { Button } from "@/components/ui/button";
 import {
@@ -14,9 +18,33 @@ import { Label } from "@/components/ui/label";
 import { Logo } from "@/components/Logo";
 import { ThemeToggle } from "@/components/ThemeToggle";
 import { PlaceHolderImages } from "@/lib/placeholder-images";
+import { SplashScreen } from "@/components/SplashScreen";
+import { useRouter, useSearchParams } from "next/navigation";
+
 
 export default function LoginPage() {
   const bgImage = PlaceHolderImages.find(p => p.id === 'hero-1');
+  const [loading, setLoading] = useState(true);
+  const router = useRouter();
+  const searchParams = useSearchParams();
+
+  useEffect(() => {
+    const fromNav = searchParams.get('fromNav');
+    if (fromNav) {
+      const timer = setTimeout(() => {
+        setLoading(false);
+        // Clean up the URL
+        router.replace('/login', { scroll: false });
+      }, 1500); 
+      return () => clearTimeout(timer);
+    } else {
+      setLoading(false);
+    }
+  }, [router, searchParams]);
+
+  if (loading) {
+    return <SplashScreen />;
+  }
 
   return (
     <div className="relative min-h-screen w-full">
@@ -60,12 +88,12 @@ export default function LoginPage() {
                 <Input id="password" type="password" required />
               </div>
               <Button type="submit" className="w-full bg-primary hover:bg-primary/90 text-primary-foreground font-bold" asChild>
-                  <Link href="/onboarding">Log in</Link>
+                  <Link href="/onboarding?fromNav=true">Log in</Link>
               </Button>
             </CardContent>
             <div className="mt-4 text-center text-sm p-6 pt-0">
               Don&apos;t have an account?{" "}
-              <Link href="/signup" className="underline">
+              <Link href="/signup?fromNav=true" className="underline">
                 Sign up
               </Link>
             </div>

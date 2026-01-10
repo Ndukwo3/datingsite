@@ -54,12 +54,12 @@ export function LandingHeader({ theme = 'dark' }: LandingHeaderProps) {
           <Button asChild variant="ghost" className={cn(
             isLight ? "text-foreground hover:bg-muted" : "text-white hover:bg-white/10 hover:text-white"
           )}>
-            <Link href="/login">Log In</Link>
+            <Link href="/login?fromNav=true">Log In</Link>
           </Button>
           <Button asChild className={cn(
             isLight ? "bg-primary text-primary-foreground hover:bg-primary/90" : "bg-white text-black hover:bg-white/90"
           )}>
-            <Link href="/signup">Sign Up</Link>
+            <Link href="/signup?fromNav=true">Sign Up</Link>
           </Button>
           <ThemeToggle className={cn(isLight ? "text-foreground" : "text-white")}/>
         </div>

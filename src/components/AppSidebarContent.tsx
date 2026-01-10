@@ -83,7 +83,7 @@ export function AppSidebarContent() {
             </SidebarMenuItem>
             <SidebarMenuItem>
                 <SidebarMenuButton asChild tooltip={{children: 'Logout'}}>
-                    <Link href="/login">
+                    <Link href="/login?fromNav=true">
                         <LogOut className="h-5 w-5" />
                         <span>Logout</span>
                     </Link>
