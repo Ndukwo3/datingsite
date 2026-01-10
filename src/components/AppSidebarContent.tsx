@@ -12,8 +12,9 @@ import {
 } from "@/components/ui/sidebar";
 import { Logo } from "@/components/Logo";
 import { Button } from "./ui/button";
-import { Flame, MessageSquareText, Users, CircleUser, Crown, LogOut } from "lucide-react";
+import { Flame, MessageSquareText, Users, CircleUser, Crown, LogOut, Settings } from "lucide-react";
 import { cn } from "@/lib/utils";
+import { ThemeToggle } from "./ThemeToggle";
 
 const menuItems = [
   { href: "/", label: "Swipe", icon: Flame },
@@ -67,7 +68,19 @@ export function AppSidebarContent() {
         </SidebarMenu>
       </SidebarContent>
       <SidebarFooter>
+        <div className="md:hidden flex justify-between items-center p-2 border-t">
+          <span>Switch Theme</span>
+          <ThemeToggle />
+        </div>
         <SidebarMenu>
+            <SidebarMenuItem>
+                <SidebarMenuButton asChild tooltip={{children: 'Settings'}}>
+                    <Link href="#">
+                        <Settings className="h-5 w-5" />
+                        <span>Settings</span>
+                    </Link>
+                </SidebarMenuButton>
+            </SidebarMenuItem>
             <SidebarMenuItem>
                 <SidebarMenuButton asChild tooltip={{children: 'Logout'}}>
                     <Link href="/login">

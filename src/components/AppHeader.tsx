@@ -2,6 +2,7 @@ import { SidebarTrigger } from "@/components/ui/sidebar";
 import { UserNav } from "@/components/UserNav";
 import { Button } from "./ui/button";
 import { Bell, Search } from "lucide-react";
+import { ThemeToggle } from "./ThemeToggle";
 
 export function AppHeader() {
   return (
@@ -15,6 +16,7 @@ export function AppHeader() {
             <Bell className="h-5 w-5"/>
             <span className="sr-only">Notifications</span>
         </Button>
+        <ThemeToggle />
         <UserNav />
       </div>
     </header>
