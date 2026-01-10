@@ -5,13 +5,15 @@ import { cn } from '@/lib/utils';
 type LogoProps = {
   className?: string;
   iconOnly?: boolean;
+  iconSize?: number;
 }
 
-export function Logo({ className, iconOnly = false }: LogoProps) {
+export function Logo({ className, iconOnly = false, iconSize = 5 }: LogoProps) {
+  const iconDimensions = `h-${iconSize} w-${iconSize}`;
   return (
     <Link href="/" className={cn("flex items-center gap-2 group", className)}>
       <div className="bg-primary rounded-lg p-1.5 group-hover:scale-110 transition-transform">
-        <Heart className="h-5 w-5 text-primary-foreground" />
+        <Heart className={cn("text-primary-foreground", iconDimensions)} />
       </div>
       {!iconOnly && (
         <span className="text-xl font-bold font-headline">

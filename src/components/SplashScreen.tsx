@@ -10,13 +10,13 @@ export function SplashScreen() {
         initial={{ scale: 0.9, opacity: 0.7 }}
         animate={{ scale: 1, opacity: 1 }}
         transition={{ 
-            duration: 1,
+            duration: 0.5,
             repeat: Infinity,
             repeatType: 'reverse',
             ease: "easeInOut" 
         }}
       >
-        <Logo iconOnly className="!gap-0" />
+        <Logo iconOnly className="!gap-0" iconSize={12} />
       </motion.div>
     </div>
   );
