@@ -8,9 +8,9 @@ export function LandingHeader() {
       <div className="container mx-auto flex items-center justify-between">
         <Logo className="text-white" />
         <nav className="hidden md:flex absolute left-1/2 -translate-x-1/2 items-center gap-6 text-sm font-medium text-white">
-          <Link href="#" className="hover:underline">About</Link>
-          <Link href="#" className="hover:underline">Safety</Link>
-          <Link href="#" className="hover:underline">Support</Link>
+          <Link href="/about" className="hover:underline">About</Link>
+          <Link href="/safety" className="hover:underline">Safety</Link>
+          <Link href="/support" className="hover:underline">Support</Link>
         </nav>
         <div className="flex items-center gap-2 sm:gap-4">
           <Button asChild variant="ghost" className="text-white hover:bg-white/10 hover:text-white">
