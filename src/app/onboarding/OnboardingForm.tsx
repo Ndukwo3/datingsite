@@ -30,7 +30,7 @@ import { parse, isValid as isValidDate } from 'date-fns';
 
 
 const step1Schema = z.object({
-  fullName: z.string().min(2, { message: "Please enter your real name" }),
+  fullName: z.string().min(2, { message: "This name will be the one that will appear in the chat messaging" }),
   dob: z.string().refine(val => {
     if (val.length !== 10) return false;
     const parsedDate = parse(val, 'MM/dd/yyyy', new Date());
