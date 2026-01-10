@@ -15,7 +15,7 @@ export default function AboutPage() {
       <main className="flex-1 pt-24 pb-20">
         <div className="container mx-auto px-4">
           <section className="text-center">
-            <h1 className="font-headline text-4xl font-bold md:text-5xl text-pink-500">
+            <h1 className="font-headline text-4xl font-bold md:text-5xl dark:text-pink-500">
               About LinkUp9ja
             </h1>
             <p className="mx-auto mt-4 max-w-3xl text-lg text-muted-foreground">
@@ -27,7 +27,7 @@ export default function AboutPage() {
             <div className="mx-auto max-w-5xl">
               <div className="flex flex-col md:flex-row items-center gap-12">
                 <div className="w-full md:w-1/2">
-                  <h2 className="mb-4 font-headline text-3xl font-bold">Our Mission</h2>
+                  <h2 className="mb-4 font-headline text-3xl font-bold dark:text-pink-500">Our Mission</h2>
                   <p className="text-muted-foreground">
                     In a world of fleeting digital interactions, our mission is to build a trusted and vibrant online community where Nigerians can form deep, meaningful, and lasting relationships. We believe in celebrating our unique culture and creating a space where genuine connections can flourish, whether you're looking for a life partner, a cherished friend, or a beautiful new beginning.
                   </p>
@@ -48,7 +48,7 @@ export default function AboutPage() {
                     </div>
                   )}
                 <div className="w-full md:w-1/2">
-                  <h2 className="mb-4 font-headline text-3xl font-bold">Our Story</h2>
+                  <h2 className="mb-4 font-headline text-3xl font-bold dark:text-pink-500">Our Story</h2>
                   <p className="text-muted-foreground">
                   LinkUp9ja was born from a simple idea: dating should be easier and more authentic for Nigerians. Our founders, a group of friends who navigated the challenges of modern dating themselves, saw a need for a platform that understood the nuances of Nigerian culture, values, and aspirations. We set out to create more than just an app—we wanted to build a community founded on respect, authenticity, and the shared goal of finding happiness. Today, LinkUp9ja is a testament to that vision, helping thousands of people connect every single day.
                   </p>
