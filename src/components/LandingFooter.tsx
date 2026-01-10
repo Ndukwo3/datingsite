@@ -1,5 +1,5 @@
 import Link from 'next/link';
-import { Instagram, Twitter, Youtube, Facebook, Linkedin } from 'lucide-react';
+import { Instagram, Twitter, Youtube } from 'lucide-react';
 import { Logo } from './Logo';
 
 const footerLinks = {
@@ -18,7 +18,7 @@ const footerLinks = {
     { href: '#', icon: TikTokIcon },
     { href: '#', icon: Youtube },
     { href: '#', icon: Twitter },
-    { href: '#', icon: Facebook },
+    { href: '#', icon: FacebookIcon },
   ],
   faq: [
     { href: '#', text: 'Destinations' },
@@ -143,4 +143,17 @@ function TikTokIcon(props: React.SVGProps<SVGSVGElement>) {
         <path d="M12.525.02c1.31-.02 2.61-.01 3.91-.02.08 1.53.63 3.09 1.75 4.17 1.12 1.11 2.7 1.62 4.24 1.79v4.03c-1.44-.05-2.89-.35-4.2-.97-.57-.26-1.1-.59-1.62-.93-.01 2.92.01 5.84-.02 8.75-.08 1.4-.54 2.79-1.35 3.94-1.31 1.92-3.58 3.17-5.91 3.21-2.43.05-4.84-.95-6.43-2.8-1.59-1.87-2.32-4.2-2.09-6.63.23-2.43 1.12-4.74 2.73-6.51 1.64-1.79 3.8-2.84 6.07-3.02.02 1.52-.03 3.04.01 4.56-.45.05-.9.1-1.36.14-1.43.13-2.83.53-4.11 1.15-1.29.61-2.39 1.56-3.11 2.78-.54.91-.84 1.94-.84 3.03 0 1.05.28 2.06.77 2.94.49.88 1.19 1.62 2.05 2.18.86.56 1.84.88 2.87.91 1.05.03 2.09-.19 3.05-.63.96-.44 1.82-1.11 2.49-1.98.65-.85 1.12-1.85 1.38-2.92.03-1.53.01-3.07.01-4.6 0-1.88-.01-3.76-.01-5.64z" />
       </svg>
     );
-  }
+}
+
+function FacebookIcon(props: React.SVGProps<SVGSVGElement>) {
+    return (
+        <svg
+            xmlns="http://www.w3.org/2000/svg"
+            viewBox="0 0 24 24"
+            fill="currentColor"
+            {...props}
+        >
+            <path d="M22 12c0-5.523-4.477-10-10-10S2 6.477 2 12c0 4.991 3.657 9.128 8.438 9.878V14.89h-2.54V12h2.54V9.797c0-2.506 1.492-3.89 3.777-3.89 1.094 0 2.238.195 2.238.195v2.46h-1.26c-1.243 0-1.63.771-1.63 1.562V12h2.773l-.443 2.89h-2.33v7.028C18.343 21.128 22 16.991 22 12z" />
+        </svg>
+    );
+}
