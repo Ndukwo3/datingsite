@@ -56,12 +56,12 @@ export function LandingHeader({ theme = 'dark' }: LandingHeaderProps) {
           )}>
             <Link href="/login">Log In</Link>
           </Button>
-          <ThemeToggle className={cn(isLight ? "text-foreground" : "text-white")}/>
           <Button asChild className={cn(
             isLight ? "bg-primary text-primary-foreground hover:bg-primary/90" : "bg-white text-black hover:bg-white/90"
           )}>
             <Link href="/signup">Sign Up</Link>
           </Button>
+          <ThemeToggle className={cn(isLight ? "text-foreground" : "text-white")}/>
         </div>
       </div>
     </header>
