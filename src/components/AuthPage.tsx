@@ -58,21 +58,21 @@ export function AuthPage({ defaultTab }: AuthPageProps) {
     };
 
     return (
-        <div className="relative flex min-h-screen items-center justify-center overflow-hidden bg-gradient-to-br from-pink-100 via-red-50 to-yellow-50 p-6 dark:from-pink-500 dark:via-red-500 dark:to-yellow-500 md:p-8 font-body">
+        <div className="relative flex min-h-screen items-center justify-center overflow-hidden bg-gradient-to-br from-pink-100 via-red-50 to-yellow-50 p-6 dark:from-pink-900 dark:via-red-800/80 dark:to-purple-900 md:p-8 font-body">
             <div className="absolute inset-0 z-0">
                 <motion.div 
-                    className="absolute top-[10%] left-[10%] h-48 w-48 rounded-full bg-white/10"
+                    className="absolute top-[10%] left-[10%] h-48 w-48 rounded-full bg-white/10 dark:bg-white/5"
                     animate={{ y: [-20, 20], x: [-20, 20] }}
                     transition={{ duration: 15, repeat: Infinity, repeatType: "reverse", ease: "easeInOut" }}
                 />
                 <motion.div 
-                    className="absolute bottom-[15%] right-[15%] h-64 w-64 rounded-full bg-white/10"
+                    className="absolute bottom-[15%] right-[15%] h-64 w-64 rounded-full bg-white/10 dark:bg-white/5"
                     animate={{ y: [30, -30], x: [30, -30] }}
                     transition={{ duration: 20, repeat: Infinity, repeatType: "reverse", ease: "easeInOut" }}
                 />
             </div>
 
-            <ThemeToggle className="absolute top-6 right-6 text-foreground bg-black/10 hover:bg-black/20 hover:text-white" />
+            <ThemeToggle className="absolute top-4 right-4 md:top-6 md:right-6 text-foreground bg-black/10 hover:bg-black/20 hover:text-white" />
             
             <motion.div 
                 className="relative z-10 w-full max-w-sm rounded-2xl bg-white/20 p-8 shadow-2xl backdrop-blur-lg"
