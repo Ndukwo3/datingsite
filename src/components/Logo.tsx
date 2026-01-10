@@ -14,7 +14,7 @@ export function Logo({ className, iconOnly = false }: LogoProps) {
         <Heart className="h-5 w-5 text-primary-foreground" />
       </div>
       {!iconOnly && (
-        <span className="text-xl font-bold font-headline text-foreground">
+        <span className="text-xl font-bold font-headline">
           LinkUp9ja
         </span>
       )}

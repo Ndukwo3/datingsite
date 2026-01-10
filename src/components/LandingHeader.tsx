@@ -6,7 +6,7 @@ export function LandingHeader() {
   return (
     <header className="absolute top-0 left-0 right-0 z-10 p-4">
       <div className="container mx-auto flex items-center justify-between">
-        <Logo />
+        <Logo className="text-white" />
         <nav className="hidden md:flex items-center gap-6 text-sm font-medium text-white">
           <Link href="#" className="hover:underline">About</Link>
           <Link href="#" className="hover:underline">Safety</Link>
