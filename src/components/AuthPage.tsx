@@ -128,13 +128,13 @@ export function AuthPage({ defaultTab }: { defaultTab: "login" | "signup" }) {
                     </button>
                 </div>
 
-                <div className="relative mt-6 h-[420px] overflow-hidden">
+                <div className="relative mt-6 h-[280px] overflow-hidden">
                     <AnimatePresence mode="wait">
                         <motion.div
                             key={authStep}
-                            initial={{ opacity: 0, x: 50 }}
+                            initial={{ opacity: 0, x: authStep === 'login' ? -50 : 50 }}
                             animate={{ opacity: 1, x: 0 }}
-                            exit={{ opacity: 0, x: -50 }}
+                            exit={{ opacity: 0, x: authStep === 'login' ? 50 : -50 }}
                             transition={{ duration: 0.4, ease: "easeInOut" }}
                             className="absolute w-full"
                         >
@@ -190,18 +190,6 @@ const LoginForm = ({ onSubmit, isLoading }: { onSubmit: () => void; isLoading: b
             <Button type="submit" className="w-full bg-gradient-to-r from-pink-500 to-orange-500 py-3 text-white font-semibold shadow-lg hover:scale-105 transition-transform" disabled={isLoading}>
                  {isLoading && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
                 Log In
-            </Button>
-            <div className="relative my-6">
-                <div className="absolute inset-0 flex items-center">
-                    <span className="w-full border-t border-gray-300 dark:border-gray-600" />
-                </div>
-                <div className="relative flex justify-center text-xs uppercase">
-                    <span className="bg-white/50 px-2 text-gray-500 dark:bg-gray-800/50 dark:text-gray-400 backdrop-blur-sm">Or continue with</span>
-                </div>
-            </div>
-            <Button variant="outline" className="w-full">
-                <GoogleIcon className="mr-2 h-5 w-5" />
-                Continue with Google
             </Button>
         </form>
     );
@@ -293,18 +281,6 @@ const SignUpForm = ({ onSubmit, isLoading }: { onSubmit: (data: UserData) => voi
             <Button type="submit" className="w-full bg-gradient-to-r from-pink-500 to-orange-500 py-3 text-white font-semibold shadow-lg hover:scale-105 transition-transform" disabled={isLoading}>
                  {isLoading && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
                 Sign Up
-            </Button>
-            <div className="relative my-4">
-                <div className="absolute inset-0 flex items-center">
-                    <span className="w-full border-t border-gray-300 dark:border-gray-600" />
-                </div>
-                <div className="relative flex justify-center text-xs uppercase">
-                    <span className="bg-white/50 px-2 text-gray-500 dark:bg-gray-800/50 dark:text-gray-400 backdrop-blur-sm">Or continue with</span>
-                </div>
-            </div>
-            <Button variant="outline" className="w-full">
-                <GoogleIcon className="mr-2 h-5 w-5" />
-                Continue with Google
             </Button>
         </form>
     );
