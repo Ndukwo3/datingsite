@@ -331,7 +331,7 @@ const EmailForm = ({ onSubmit, onBack }: { onSubmit: (email: string) => void; on
                 </div>
             </div>
             <Button type="submit" className="w-full bg-gradient-to-r from-pink-500 to-orange-500 py-3 text-white font-semibold shadow-lg hover:scale-105 transition-transform">
-                Continue
+                Get OTP
             </Button>
             <div className="text-center">
                  <button type="button" onClick={onBack} className="mt-4 font-medium text-gray-500 hover:text-gray-700 dark:text-gray-400 dark:hover:text-white flex items-center gap-2 mx-auto">
