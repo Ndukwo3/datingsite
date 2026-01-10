@@ -1,7 +1,7 @@
 import { SidebarTrigger } from "@/components/ui/sidebar";
 import { UserNav } from "@/components/UserNav";
 import { Button } from "./ui/button";
-import { Bell, Search } from "lucide-react";
+import { Bell } from "lucide-react";
 import { ThemeToggle } from "./ThemeToggle";
 
 export function AppHeader() {
