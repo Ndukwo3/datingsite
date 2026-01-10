@@ -5,28 +5,18 @@ import { LandingFooter } from "@/components/LandingFooter";
 import { Users, Heart, Shield } from "lucide-react";
 import Image from "next/image";
 import { PlaceHolderImages } from "@/lib/placeholder-images";
-import { motion } from 'framer-motion';
 
 export default function AboutPage() {
   const missionImage = PlaceHolderImages.find(p => p.id === 'about-mission');
   const storyImage = PlaceHolderImages.find(p => p.id === 'about-story');
-
-  const fadeIn = {
-    initial: { opacity: 0, y: 20 },
-    animate: { opacity: 1, y: 0 },
-    transition: { duration: 0.6, ease: "easeOut" }
-  };
 
   return (
     <div className="flex min-h-screen flex-col bg-background text-foreground">
       <LandingHeader theme="light" />
       <main className="flex-1 pt-24 pb-20">
         <div className="container mx-auto px-4">
-          <motion.section 
+          <section
             className="text-center"
-            initial="initial"
-            animate="animate"
-            variants={fadeIn}
           >
             <h1 className="font-headline text-4xl font-bold md:text-5xl dark:text-pink-500">
               About LinkUp9ja
@@ -34,15 +24,11 @@ export default function AboutPage() {
             <p className="mx-auto mt-4 max-w-3xl text-lg text-muted-foreground">
               Forging Genuine Connections for Nigerians, Everywhere.
             </p>
-          </motion.section>
+          </section>
 
           <section className="mt-16 space-y-16">
-            <motion.div 
+            <div
               className="mx-auto max-w-5xl"
-              initial="initial"
-              whileInView="animate"
-              viewport={{ once: true, amount: 0.3 }}
-              variants={fadeIn}
             >
               <div className="flex flex-col md:flex-row items-center gap-12">
                 <div className="w-full md:w-1/2">
@@ -57,14 +43,10 @@ export default function AboutPage() {
                   </div>
                 )}
               </div>
-            </motion.div>
+            </div>
 
-            <motion.div 
+            <div
               className="mx-auto max-w-5xl"
-              initial="initial"
-              whileInView="animate"
-              viewport={{ once: true, amount: 0.3 }}
-              variants={fadeIn}
             >
                <div className="flex flex-col md:flex-row items-center gap-12">
                 {storyImage && (
@@ -79,34 +61,30 @@ export default function AboutPage() {
                   </p>
                 </div>
               </div>
-            </motion.div>
+            </div>
             
-            <motion.div 
+            <div
               className="mx-auto max-w-5xl"
-              initial="initial"
-              whileInView="animate"
-              viewport={{ once: true, amount: 0.2 }}
-              variants={fadeIn}
             >
                 <h2 className="mb-8 font-headline text-3xl font-bold text-center">Why Choose Us?</h2>
                 <div className="grid grid-cols-1 md:grid-cols-3 gap-8 text-center">
-                    <motion.div variants={fadeIn} className="rounded-lg border bg-card p-6 shadow-sm">
+                    <div className="rounded-lg border bg-card p-6 shadow-sm">
                         <Heart className="mx-auto h-12 w-12 text-primary mb-4" />
                         <h3 className="font-semibold text-xl mb-2">Culturally Attuned</h3>
                         <p className="text-muted-foreground">We understand Nigerian dating culture, making it easier to find someone who shares your values.</p>
-                    </motion.div>
-                    <motion.div variants={fadeIn} className="rounded-lg border bg-card p-6 shadow-sm">
+                    </div>
+                    <div className="rounded-lg border bg-card p-6 shadow-sm">
                         <Shield className="mx-auto h-12 w-12 text-primary mb-4" />
                         <h3 className="font-semibold text-xl mb-2">Safety First</h3>
                         <p className="text-muted-foreground">With advanced safety features like AI-powered harassment detection and profile verification, you can connect with confidence.</p>
-                    </motion.div>
-                    <motion.div variants={fadeIn} className="rounded-lg border bg-card p-6 shadow-sm">
+                    </div>
+                    <div className="rounded-lg border bg-card p-6 shadow-sm">
                         <Users className="mx-auto h-12 w-12 text-primary mb-4" />
                         <h3 className="font-semibold text-xl mb-2">Vibrant Community</h3>
                         <p className="text-muted-foreground">Join a growing community of genuine singles who are ready to find a real connection.</p>
-                    </motion.div>
+                    </div>
                 </div>
-            </motion.div>
+            </div>
 
           </section>
         </div>
