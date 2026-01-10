@@ -67,10 +67,10 @@ export function LandingFooter() {
 
         <div className="text-gray-400 text-sm">
             <p className="mb-4">
-              Single people, listen up: If you're looking for love, want to start dating, or just keep it casual, you need to be on LinkUp9ja. With over 55 billion matches made, it's the place to be to meet your next best match. Let's be real, the dating landscape looks very different today, as most people are meeting online. With LinkUp9ja, the world's most popular free dating app, you have millions of other single people at your fingertips and they're all ready to meet someone like you. Whether you're straight or in the LGBTQIA community, LinkUp9ja is here to bring you all the sparks.
+            Single people, listen up: If you're looking for love, want to start dating, or just keep it casual, you need to be on LinkUp9ja. With thousands of matches made, it's the place to be to meet your next best match. Let's be real, the dating landscape looks very different today, as most people are meeting online. With LinkUp9ja, Nigeria's most popular free dating app, you have millions of other single people at your fingertips and they're all ready to meet someone like you. LinkUp9ja is here to bring you all the sparks.
             </p>
             <p>
-              There really is something for everyone on LinkUp9ja. Want to get into a relationship? You got it. Trying to find some new friends? Say no more. New kid on campus and looking to make the most of your college experience? LinkUp9ja has you covered. LinkUp9ja isn't your average dating site — it's the most diverse dating app, where adults of all backgrounds and experiences are invited to make connections, memories, and everything in between.
+            There really is something for everyone on LinkUp9ja. Want to get into a relationship? You got it. Trying to find some new friends? Say no more. New to the city and looking to make the most of your experience? LinkUp9ja has you covered. LinkUp9ja isn't your average dating site — it's the most diverse dating app, where adults of all backgrounds and experiences are invited to make connections, memories, and everything in between.
             </p>
         </div>
 
