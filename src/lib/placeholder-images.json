@@ -3,8 +3,8 @@
     {
       "id": "hero-1",
       "description": "Happy couple smiling",
-      "imageUrl": "https://images.unsplash.com/photo-1541679368093-5c967ac6de11?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&ixid=M3w3NDE5ODJ8MHwxfHNlYXJjaHw4fHxoYXBweSUyMGNvdXBsZXxlbnwwfHx8fDE3NjgwMzA3MDF8MA&ixlib=rb-4.1.0&q=80&w=1080",
-      "imageHint": "happy couple"
+      "imageUrl": "https://images.unsplash.com/photo-1589199051916-92cd36b97ffa?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&ixid=M3w3NDE5ODJ8MHwxfHNlYXJjaHw5fHxIYXBweSUyMG5pZ2VyaWElMjBjb3VwbGUlMjBsYW5kc2NhcGV8ZW58MHx8fHwxNzY4MDU1MDYyfDA&ixlib=rb-4.1.0&q=80&w=1080",
+      "imageHint": "nigerian couple"
     },
     {
       "id": "signup-hero",
@@ -39,8 +39,8 @@
     {
       "id": "user-1",
       "description": "Profile picture of a smiling woman",
-      "imageUrl": "https://images.unsplash.com/photo-1535295972055-1c762f4483e5?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&ixid=M3w3NDE5ODJ8MHwxfHNlYXJjaHw5fHxzbWlsaW5nJTIwd29tYW58ZW58MHx8fHwxNzY3OTc3NzA5fDA&ixlib=rb-4.1.0&q=80&w=1080",
-      "imageHint": "smiling woman"
+      "imageUrl": "https://images.unsplash.com/photo-1619890161633-21cabd356230?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&ixid=M3w3NDE5ODJ8MHwxfHNlYXJjaHwyfHxuaWdlcmlhbiUyMHdvbWFufGVufDB8fHx8MTc2ODgyMDA2M3ww&ixlib=rb-4.1.0&q=80&w=1080",
+      "imageHint": "nigerian woman"
     },
     {
       "id": "user-2",
@@ -63,7 +63,7 @@
     {
       "id": "user-5",
       "description": "Profile picture of a woman laughing",
-      "imageUrl": "https://images.unsplash.com/photo-1619890161633-21cabd356230?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&ixid=M3w3NDE5ODJ8MHwxfHNlYXJjaHwyfHxuaWdlcmlhbiUyMHdvbWFufGVufDB8fHx8MTc2ODgyMDA2M3ww&ixlib=rb-4.1.0&q=80&w=1080",
+      "imageUrl": "https://images.unsplash.com/photo-1620245293237-975545f47a60?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&ixid=M3w3NDE5ODJ8MHwxfHNlYXJjaHw1fHxuaWdlcmlhbiUyMHdvbWFufGVufDB8fHx8MTc2ODgyMDA2M3ww&ixlib=rb-4.1.0&q=80&w=1080",
       "imageHint": "nigerian woman"
     },
     {
@@ -75,7 +75,7 @@
     {
       "id": "user-7",
       "description": "Profile picture of a woman with curly hair",
-      "imageUrl": "https://images.unsplash.com/photo-1620245293237-975545f47a60?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&ixid=M3w3NDE5ODJ8MHwxfHNlYXJjaHw1fHxuaWdlcmlhbiUyMHdvbWFufGVufDB8fHx8MTc2ODgyMDA2M3ww&ixlib=rb-4.1.0&q=80&w=1080",
+      "imageUrl": "https://images.unsplash.com/photo-1605553181498-844c5a75369c?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&ixid=M3w3NDE5ODJ8MHwxfHNlYXJjaHw3fHxuaWdlcmlhbiUyMHdvbWFufGVufDB8fHx8MTc2ODgyMDA2M3ww&ixlib=rb-4.1.0&q=80&w=1080",
       "imageHint": "nigerian woman"
     },
     {
@@ -87,7 +87,7 @@
     {
       "id": "user-9",
       "description": "Profile picture of a woman at the beach",
-      "imageUrl": "https://images.unsplash.com/photo-1605553181498-844c5a75369c?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&ixid=M3w3NDE5ODJ8MHwxfHNlYXJjaHw3fHxuaWdlcmlhbiUyMHdvbWFufGVufDB8fHx8MTc2ODgyMDA2M3ww&ixlib=rb-4.1.0&q=80&w=1080",
+      "imageUrl": "https://images.unsplash.com/photo-1604223594191-036d0deaf363?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&ixid=M3w3NDE5ODJ8MHwxfHNlYXJjaHwxMnx8bmlnZXJpYW4lMjB3b21hbnxlbnwwfHx8fDE3Njg4MjAwNjN8MA&ixlib=rb-4.1.0&q=80&w=1080",
       "imageHint": "nigerian woman"
     },
     {
@@ -99,8 +99,8 @@
     {
       "id": "user-11",
       "description": "Profile picture of a woman artist",
-      "imageUrl": "https://images.unsplash.com/photo-1604223594191-036d0deaf363?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&ixid=M3w3NDE5ODJ8MHwxfHNlYXJjaHwxMnx8bmlnZXJpYW4lMjB3b21hbnxlbnwwfHx8fDE3Njg4MjAwNjN8MA&ixlib=rb-4.1.0&q=80&w=1080",
-      "imageHint": "nigerian woman"
+      "imageUrl": "https://images.unsplash.com/photo-1535295972055-1c762f4483e5?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&ixid=M3w3NDE5ODJ8MHwxfHNlYXJjaHw5fHxzbWlsaW5nJTIwd29tYW58ZW58MHx8fHwxNzY3OTc3NzA5fDA&ixlib=rb-4.1.0&q=80&w=1080",
+      "imageHint": "smiling woman"
     },
     {
       "id": "user-12",
