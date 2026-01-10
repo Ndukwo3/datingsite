@@ -15,35 +15,35 @@ import { PlaceHolderImages } from "@/lib/placeholder-images";
 
 const tutorialSlides = [
   {
-    icon: <Heart className="w-12 h-12 text-primary" />,
+    icon: <Heart className="w-10 h-10 text-primary" />,
     title: "Swipe Right to Like",
     description: "If you're interested in someone, swipe their card to the right.",
     animation: {
       action: "right",
-      icon: <Heart className="w-24 h-24 text-green-400 fill-green-400" />,
+      icon: <Heart className="w-16 h-16 text-green-400 fill-green-400" />,
     }
   },
   {
-    icon: <X className="w-12 h-12 text-red-500" />,
+    icon: <X className="w-10 h-10 text-red-500" />,
     title: "Swipe Left to Pass",
     description: "Not interested? Swipe left to see the next profile.",
     animation: {
       action: "left",
-      icon: <X className="w-24 h-24 text-red-500" />,
+      icon: <X className="w-16 h-16 text-red-500" />,
     }
   },
   {
-    icon: <Star className="w-12 h-12 text-blue-500" />,
+    icon: <Star className="w-10 h-10 text-blue-500" />,
     title: "Super Like Someone Special",
     description: "Really like someone? Swipe up to send a Super Like and stand out.",
     note: "You get 1 free Super Like per day",
     animation: {
         action: "up",
-        icon: <Star className="w-24 h-24 text-blue-500 fill-blue-500" />,
+        icon: <Star className="w-16 h-16 text-blue-500 fill-blue-500" />,
     }
   },
   {
-    icon: <MessageSquare className="w-12 h-12 text-primary" />,
+    icon: <MessageSquare className="w-10 h-10 text-primary" />,
     title: "Match & Start Chatting",
     description: "When someone likes you back, it's a match! You can now send messages and get to know each other.",
     note: "Only mutual matches can message",
@@ -62,7 +62,7 @@ export function TutorialOverlay() {
 
   const handleNext = () => {
     setDirection(1);
-    if (currentSlide < tutorialSlides.length - 1) {
+    if (currentSlide < tutorialSlides.length) {
       setCurrentSlide(currentSlide + 1);
     }
   };
@@ -80,7 +80,7 @@ export function TutorialOverlay() {
     exit: (direction: number) => ({ opacity: 0, x: direction > 0 ? "-50%" : "50%" }),
   };
   
-  const currentAnimation = tutorialSlides[currentSlide].animation;
+  const currentAnimation = tutorialSlides[currentSlide]?.animation;
 
   return (
     <div className="fixed inset-0 z-50 flex flex-col items-center justify-center bg-black/80 backdrop-blur-sm">
@@ -93,9 +93,9 @@ export function TutorialOverlay() {
         
         <div className="flex-1 flex flex-col items-center justify-center text-center">
             {/* Visual Element */}
-            <div className="relative w-72 h-[24rem] mb-8">
+            <div className="relative w-64 h-[22rem] mb-6">
                  <AnimatePresence>
-                     {currentAnimation.action !== 'match' && (
+                     {currentAnimation && currentAnimation.action !== 'match' && (
                        <motion.div
                          key={currentSlide}
                          className="absolute inset-0"
@@ -114,7 +114,7 @@ export function TutorialOverlay() {
                        </motion.div>
                      )}
                  </AnimatePresence>
-                 {currentAnimation.action === 'match' && user1 && user2 && (
+                 {currentAnimation && currentAnimation.action === 'match' && user1 && user2 && (
                     <div className="relative w-full h-full flex items-center justify-center">
                         <motion.div initial={{opacity: 0, scale: 0.5}} animate={{opacity:1, scale:1, transition: {delay: 1.5}}} className="absolute text-center z-10">
                             <h2 className="text-4xl font-headline font-bold bg-primary-gradient text-transparent bg-clip-text">It's a Match!</h2>
@@ -131,7 +131,7 @@ export function TutorialOverlay() {
                         </motion.div>
                     </div>
                  )}
-                 {currentAnimation.action !== 'match' && <ProfileCard user={potentialMatches[currentSlide]} />}
+                 {currentAnimation && currentAnimation.action !== 'match' && <ProfileCard user={potentialMatches[currentSlide]} />}
             </div>
 
             <AnimatePresence mode="wait" custom={direction}>
@@ -145,10 +145,14 @@ export function TutorialOverlay() {
                     transition={{ duration: 0.3, ease: "easeInOut" }}
                     className="max-w-md"
                 >
-                    <div className="flex justify-center mb-4">{tutorialSlides[currentSlide].icon}</div>
-                    <h2 className="text-3xl font-headline font-bold mb-2">{tutorialSlides[currentSlide].title}</h2>
-                    <p className="text-lg text-white/80">{tutorialSlides[currentSlide].description}</p>
-                    {tutorialSlides[currentSlide].note && <p className="text-sm text-white/60 mt-2">{tutorialSlides[currentSlide].note}</p>}
+                    {tutorialSlides[currentSlide] && (
+                        <>
+                            <div className="flex justify-center mb-3">{tutorialSlides[currentSlide].icon}</div>
+                            <h2 className="text-2xl font-headline font-bold mb-2">{tutorialSlides[currentSlide].title}</h2>
+                            <p className="text-base text-white/80">{tutorialSlides[currentSlide].description}</p>
+                            {tutorialSlides[currentSlide].note && <p className="text-sm text-white/60 mt-2">{tutorialSlides[currentSlide].note}</p>}
+                        </>
+                    )}
                 </motion.div>
             </AnimatePresence>
         </div>
@@ -182,12 +186,17 @@ export function TutorialOverlay() {
                         <Link href="/">Start Discovering 🔥</Link>
                     </Button>
                 )}
-                 {currentSlide < tutorialSlides.length - 1 && <div className="w-20"/>}
+                 {currentSlide < tutorialSlides.length - 1 ? (
+                    <div className="w-20"/>
+                 ) : (
+                    currentSlide === tutorialSlides.length && <div className="w-20" />
+                 )}
             </div>
         </div>
       </div>
     </div>
   );
 }
+
 
 
