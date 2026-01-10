@@ -8,9 +8,9 @@
     },
     {
       "id": "signup-hero",
-      "description": "A stylish woman smiling in an urban setting",
-      "imageUrl": "https://images.unsplash.com/photo-1573496359142-b8d87734a5a2?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&ixid=M3w3NDE5ODJ8MHwxfHNlYXJjaHw0fHxzdHlsaXNoJTIwd29tYW4lMjBzbWlsaW5nfGVufDB8fHx8MTc2ODI4MjE3MXww&ixlib=rb-4.1.0&q=80&w=1080",
-      "imageHint": "stylish woman"
+      "description": "A happy couple looking at each other",
+      "imageUrl": "https://images.unsplash.com/photo-1504203705304-d5153f055152?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&ixid=M3w3NDE5ODJ8MHwxfHNlYXJjaHwxfHxoYXBweSUyMGNvdXBsZSUyMGxvb2tpbmclMjBlYWNoJTIwb3RoZXJ8ZW58MHx8fHwxNzY4MzM0MTE0fDA&ixlib=rb-4.1.0&q=80&w=1080",
+      "imageHint": "happy couple"
     },
     {
       "id": "about-mission",
