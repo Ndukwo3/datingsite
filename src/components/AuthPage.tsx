@@ -12,6 +12,7 @@ import { Input } from "./ui/input";
 import { Checkbox } from "./ui/checkbox";
 import Link from "next/link";
 import { SplashScreen } from "./SplashScreen";
+import { ThemeToggle } from "./ThemeToggle";
 
 const GoogleIcon = (props: React.SVGProps<SVGSVGElement>) => (
     <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 48 48" width="24px" height="24px" {...props}>
@@ -70,6 +71,8 @@ export function AuthPage({ defaultTab }: AuthPageProps) {
                     transition={{ duration: 20, repeat: Infinity, repeatType: "reverse", ease: "easeInOut" }}
                 />
             </div>
+
+            <ThemeToggle className="absolute top-6 right-6 text-white bg-black/10 hover:bg-black/20 hover:text-white" />
             
             <motion.div 
                 className="relative z-10 w-full max-w-sm rounded-2xl bg-white/20 p-8 shadow-2xl backdrop-blur-lg"
