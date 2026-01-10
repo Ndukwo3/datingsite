@@ -40,6 +40,9 @@ export function LandingFooter() {
   return (
     <footer className="bg-gray-900 text-white">
       <div className="container mx-auto px-6 py-12">
+        <div className="mb-12">
+            <Logo className="text-white" />
+        </div>
         <div className="grid grid-cols-2 md:grid-cols-4 lg:grid-cols-6 gap-8 mb-12">
           
           <FooterLinkColumn title="Legal" links={footerLinks.legal} />
@@ -98,32 +101,6 @@ function FooterLinkColumn({ title, links }: { title: string; links: { href: stri
       </ul>
     </div>
   );
-}
-
-function AppStoreButton() {
-    return (
-        <a href="#" className="inline-block" aria-label="Download on the App Store">
-            <svg width="120px" height="40px" viewBox="0 0 120 40">
-                <rect width="120" height="40" rx="7.5" fill="black" />
-                <path d="M31.2,10.6c-1.6,0-3.1,0.8-4.1,2.1c-1,1.3-1.8,3.1-1.8,5.1c0,2.1,0.7,4,1.8,5.3c1,1.3,2.4,2.1,4.1,2.1 c0.1,0,0.1,0,0.2,0c-0.1,0.5-0.2,1-0.4,1.5c-0.7,1.4-1.8,2.8-3.3,2.8c-1.4,0-2.3-0.7-3.4-0.7c-1.1,0-2.3,0.7-3.6,0.7 c-1.7,0-3.2-0.9-4.4-2.5c-2-2.5-2.6-6.1-1.4-9.6c1.4-4,4.4-6.4,8.2-6.4c1.5,0,2.9,0.7,3.9,0.7c1,0,2.6-0.8,4.3-0.8 C30.4,8.5,31.5,9.2,31.2,10.6z M27,5.8C27,7.4,25.9,8.4,25.9,8.4c0,0-1.2-1-2.6-1c-1.4,0-2.8,1-3.5,2.1c-0.8,1.1-1.3,2.5-1.3,4.1 c0,3.3,1.9,5,3.6,5c1.7,0,2.4-1.1,4.1-1.1s2,1.1,3.7,1.1c1.8,0,3.1-1.3,3.8-2.6c0.1-0.1,0.1-0.2,0.1-0.2c-2.3-1.1-3.7-3.3-3.7-5.8 C29.4,7.8,28.4,5.8,27,5.8z" fill="white" />
-                <text x="48" y="16" fill="white" fontSize="10" fontWeight="normal">Download on the</text>
-                <text x="48" y="30" fill="white" fontSize="14" fontWeight="bold">App Store</text>
-            </svg>
-        </a>
-    );
-}
-
-function GooglePlayButton() {
-    return (
-        <a href="#" className="inline-block">
-            <svg viewBox="0 0 135 40" width="135" height="40" alt="Get it on Google Play">
-                <rect width="135" height="40" rx="5" fill="black" />
-                <path d="M52.3,20l-4.2-4.2v8.3L52.3,20z M53,20.9l4.3,2.5l-2.6,1.5L53,20.9z M48.1,11.7l4.2,4.2l-4.2,4.2l-4.2-4.2L48.1,11.7z M53,19.1l-1.7-1l1.7-1l2.6,1.5L53,19.1z" fill="#4CAF50"/>
-                <text x="65" y="15" fill="white" fontSize="8" fontWeight="bold">GET IT ON</text>
-                <text x="65" y="29" fill="white" fontSize="14" fontWeight="bold">Google Play</text>
-            </svg>
-        </a>
-    );
 }
 
 function TikTokIcon(props: React.SVGProps<SVGSVGElement>) {
