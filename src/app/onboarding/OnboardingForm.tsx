@@ -115,12 +115,17 @@ export function OnboardingForm() {
     resolver: zodResolver(steps[currentStep].schema),
     mode: "onChange",
      defaultValues: {
+        fullName: '',
+        dob: '',
+        gender: undefined,
+        state: '',
+        city: '',
         photos: [],
+        bio: '',
         interests: [],
         interestedIn: 'everyone',
         ageRange: [18, 35],
         maxDistance: 50,
-        dob: '',
     }
   });
 
@@ -156,7 +161,7 @@ export function OnboardingForm() {
   const handlePrev = () => {
     if (currentStep > 0) {
       setDirection(-1);
-      setCurrentStep(step => step - 1);
+      setCurrentStep(step => step + 1);
     }
   };
   
@@ -268,7 +273,13 @@ export function OnboardingForm() {
                    </div>
                   <div>
                     <Label className="mb-2 block">I am a</Label>
-                    <GenderSelector value={watch('gender')} onChange={(value) => setValue('gender', value, { shouldValidate: true })} />
+                    <Controller
+                        name="gender"
+                        control={control}
+                        render={({ field }) => (
+                            <GenderSelector value={field.value} onChange={(value) => field.onChange(value)} />
+                        )}
+                    />
                     {errors.gender && <p className="text-sm text-destructive mt-1">{errors.gender.message}</p>}
                   </div>
                 </div>
@@ -284,16 +295,22 @@ export function OnboardingForm() {
                  <div className="space-y-6">
                     <div>
                         <Label htmlFor="state" className="mb-2 block">Your State</Label>
-                        <Select onValueChange={(value) => setValue('state', value, { shouldValidate: true })} defaultValue={watch('state')}>
-                            <SelectTrigger>
-                                <SelectValue placeholder="Select your state" />
-                            </SelectTrigger>
-                            <SelectContent>
-                                {nigerianStates.map(state => (
-                                    <SelectItem key={state} value={state}>{state}</SelectItem>
-                                ))}
-                            </SelectContent>
-                        </Select>
+                        <Controller
+                            name="state"
+                            control={control}
+                            render={({ field }) => (
+                                <Select onValueChange={field.onChange} defaultValue={field.value}>
+                                    <SelectTrigger>
+                                        <SelectValue placeholder="Select your state" />
+                                    </SelectTrigger>
+                                    <SelectContent>
+                                        {nigerianStates.map(state => (
+                                            <SelectItem key={state} value={state}>{state}</SelectItem>
+                                        ))}
+                                    </SelectContent>
+                                </Select>
+                            )}
+                        />
                         {errors.state && <p className="text-sm text-destructive mt-1">{errors.state.message}</p>}
                     </div>
                      <div>
@@ -365,13 +382,18 @@ export function OnboardingForm() {
                     <div className="space-y-6">
                         <div>
                             <Label htmlFor="bio" className="mb-2 block">About Me</Label>
-                            <Textarea 
-                                id="bio" 
-                                placeholder="Share a bit about yourself... What do you love doing? What makes you unique?" 
-                                className="min-h-[120px] bg-muted/50"
-                                value={bio}
-                                onChange={(e) => setValue('bio', e.target.value, { shouldValidate: true })}
-                                maxLength={500}
+                            <Controller
+                                name="bio"
+                                control={control}
+                                render={({ field }) => (
+                                    <Textarea 
+                                        id="bio" 
+                                        placeholder="Share a bit about yourself... What do you love doing? What makes you unique?" 
+                                        className="min-h-[120px] bg-muted/50"
+                                        {...field}
+                                        maxLength={500}
+                                    />
+                                )}
                             />
                             <div className="flex justify-between items-center mt-1">
                                 {errors.bio ? <p className="text-sm text-destructive">{errors.bio.message}</p> : <div/>}
@@ -408,30 +430,48 @@ export function OnboardingForm() {
                     <div className="space-y-6">
                         <div>
                             <Label className="mb-2 block">Show me</Label>
-                            <GenderSelector value={watch('interestedIn')} onChange={(value) => setValue('interestedIn', value, { shouldValidate: true })} options={[{value: 'men', label: "Men"}, {value: 'women', label: "Women"}, {value: 'everyone', label: "Everyone"}]} />
+                            <Controller
+                                name="interestedIn"
+                                control={control}
+                                render={({ field }) => (
+                                    <GenderSelector value={field.value} onChange={field.onChange} options={[{value: 'men', label: "Men"}, {value: 'women', label: "Women"}, {value: 'everyone', label: "Everyone"}]} />
+                                )}
+                            />
                         </div>
                         <div>
                             <Label className="mb-2 block">Age Range</Label>
                             <p className="text-sm text-muted-foreground">{ageRange[0]} - {ageRange[1]} years old</p>
-                            <Slider
-                                value={ageRange}
-                                onValueChange={(value) => setValue('ageRange', value as [number, number])}
-                                min={18}
-                                max={65}
-                                step={1}
-                                className="mt-2"
+                             <Controller
+                                name="ageRange"
+                                control={control}
+                                render={({ field }) => (
+                                    <Slider
+                                        value={field.value}
+                                        onValueChange={field.onChange}
+                                        min={18}
+                                        max={65}
+                                        step={1}
+                                        className="mt-2"
+                                    />
+                                )}
                             />
                         </div>
                          <div>
                             <Label className="mb-2 block">Maximum Distance</Label>
                             <p className="text-sm text-muted-foreground">Within {maxDistance} km</p>
-                            <Slider
-                                value={[maxDistance]}
-                                onValueChange={(value) => setValue('maxDistance', value[0])}
-                                min={10}
-                                max={100}
-                                step={5}
-                                className="mt-2"
+                            <Controller
+                                name="maxDistance"
+                                control={control}
+                                render={({ field }) => (
+                                     <Slider
+                                        value={[field.value]}
+                                        onValueChange={(value) => field.onChange(value[0])}
+                                        min={10}
+                                        max={100}
+                                        step={5}
+                                        className="mt-2"
+                                    />
+                                )}
                             />
                         </div>
                     </div>
