@@ -1,8 +1,9 @@
 
+
 "use client";
 
 import { useState } from 'react';
-import { useForm, FormProvider } from 'react-hook-form';
+import { useForm, FormProvider, Controller } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import * as z from 'zod';
 import { motion, AnimatePresence } from 'framer-motion';
@@ -17,7 +18,6 @@ import { Textarea } from '@/components/ui/textarea';
 import { Progress } from '@/components/ui/progress';
 import { Badge } from '@/components/ui/badge';
 import { useToast } from '@/hooks/use-toast';
-import { Calendar } from "@/components/ui/calendar";
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
 import { Calendar as CalendarIcon } from "lucide-react";
 import { GenderSelector } from '@/components/GenderSelector';
@@ -26,11 +26,18 @@ import { nigerianStates } from '@/lib/data';
 import { Accordion, AccordionContent, AccordionItem, AccordionTrigger } from '@/components/ui/accordion';
 import { Slider } from '@/components/ui/slider';
 import Link from 'next/link';
+import { parse, isValid as isValidDate } from 'date-fns';
+
 
 const step1Schema = z.object({
   fullName: z.string().min(2, { message: "Please enter your real name" }).regex(/^[a-zA-Z\s'-]+$/, { message: "Name can only contain letters and spaces." }),
-  dob: z.date({ required_error: "Please select your date of birth." }).refine(date => {
-    const age = new Date().getFullYear() - new Date(date).getFullYear();
+  dob: z.string().refine(val => {
+    if (val.length !== 10) return false;
+    const parsedDate = parse(val, 'MM/dd/yyyy', new Date());
+    return isValidDate(parsedDate) && parsedDate < new Date();
+  }, { message: "Please enter a valid date in MM/DD/YYYY format." }).refine(val => {
+    const parsedDate = parse(val, 'MM/dd/yyyy', new Date());
+    const age = new Date().getFullYear() - parsedDate.getFullYear();
     return age >= 18;
   }, { message: "You must be 18 or older to use LinkUp9ja" }),
   gender: z.enum(['male', 'female', 'other'], { required_error: "Please select a gender." }),
@@ -71,8 +78,11 @@ const steps = [
 
 const interestOptions = [ "🎵 Afrobeats", "⚽ Football", "🍛 Jollof Rice", "🎬 Nollywood", "💃 Dancing", "🎉 Owambe", "✈️ Travel", "📸 Photography", "🎭 Comedy", "📚 Reading", "💪 Fitness", "🎨 Art", "👗 Fashion", "💻 Tech", "🍳 Cooking", "🎮 Gaming", "⛪ Church", "🏀 Basketball", "🎸 Music", "📱 Social Media", "🌍 Volunteering", "💼 Business", "🎤 Karaoke", "🏖️ Beach Life", "🚗 Road Trips", "🍕 Food Explorer", "📺 Netflix", "🏋️ Gym", "🧘 Yoga", "🎪 Events" ];
 
-const getAge = (dob: Date | undefined) => {
-    if(!dob) return null;
+const getAge = (dobString: string | undefined) => {
+    if (!dobString) return null;
+    const dob = parse(dobString, 'MM/dd/yyyy', new Date());
+    if (!isValidDate(dob)) return null;
+
     const today = new Date();
     let age = today.getFullYear() - dob.getFullYear();
     const m = today.getMonth() - dob.getMonth();
@@ -81,6 +91,20 @@ const getAge = (dob: Date | undefined) => {
     }
     return age;
 }
+
+const formatDobInput = (value: string) => {
+    let input = value.replace(/\D/g, '').substring(0, 8);
+    const month = input.substring(0, 2);
+    const day = input.substring(2, 4);
+    const year = input.substring(4, 8);
+
+    if (input.length > 4) {
+        return `${month}/${day}/${year}`;
+    } else if (input.length > 2) {
+        return `${month}/${day}`;
+    }
+    return input;
+};
 
 export function OnboardingForm() {
   const [currentStep, setCurrentStep] = useState(0);
@@ -96,6 +120,7 @@ export function OnboardingForm() {
         interestedIn: 'everyone',
         ageRange: [18, 35],
         maxDistance: 50,
+        dob: '',
     }
   });
 
@@ -104,8 +129,8 @@ export function OnboardingForm() {
     getValues,
     setValue,
     watch,
-    formState: { errors, isValid },
-    register,
+    control,
+    formState: { errors },
   } = methods;
 
   const dob = watch('dob');
@@ -114,6 +139,7 @@ export function OnboardingForm() {
   const interests = watch('interests', []);
   const ageRange = watch('ageRange');
   const maxDistance = watch('maxDistance');
+  const isValid = Object.keys(errors).length === 0;
 
   const handleNext = async () => {
     const fields = steps[currentStep].fields;
@@ -130,7 +156,7 @@ export function OnboardingForm() {
   const handlePrev = () => {
     if (currentStep > 0) {
       setDirection(-1);
-      setCurrentStep(step => step - 1);
+      setCurrentStep(step => step + 1);
     }
   };
   
@@ -210,37 +236,35 @@ export function OnboardingForm() {
                 <div className="space-y-6">
                   <div>
                     <Label htmlFor="fullName" className="mb-2 block">What's your name?</Label>
-                    <Input id="fullName" placeholder="Enter your full name" {...register('fullName')} />
+                    <Controller
+                        name="fullName"
+                        control={control}
+                        render={({ field }) => <Input id="fullName" placeholder="Enter your full name" {...field} />}
+                    />
                     {errors.fullName && <p className="text-sm text-destructive mt-1">{errors.fullName.message}</p>}
                   </div>
                    <div>
                     <Label htmlFor="dob" className="mb-2 block">When's your birthday?</Label>
-                    <Popover>
-                        <PopoverTrigger asChild>
-                        <Button
-                            variant={"outline"}
-                            className={cn(
-                            "w-full justify-start text-left font-normal",
-                            !dob && "text-muted-foreground"
-                            )}
-                        >
-                            <CalendarIcon className="mr-2 h-4 w-4" />
-                            {dob ? format(dob, "PPP") : <span>Pick a date</span>}
-                        </Button>
-                        </PopoverTrigger>
-                        <PopoverContent className="w-auto p-0">
-                        <Calendar
-                            mode="single"
-                            selected={dob}
-                            onSelect={(date) => setValue('dob', date!, { shouldValidate: true })}
-                            initialFocus
-                            captionLayout="dropdown-buttons"
-                            fromYear={1950}
-                            toYear={new Date().getFullYear() - 18}
+                    <Controller
+                      name="dob"
+                      control={control}
+                      render={({ field }) => (
+                        <Input
+                          {...field}
+                          id="dob"
+                          placeholder="MM/DD/YYYY"
+                          onChange={(e) => {
+                            const formatted = formatDobInput(e.target.value);
+                            field.onChange(formatted);
+                          }}
                         />
-                        </PopoverContent>
-                    </Popover>
-                    {errors.dob ? <p className="text-sm text-destructive mt-1">{errors.dob.message}</p> : (dob && <p className="text-sm text-muted-foreground mt-1">You are {getAge(dob)} years old</p>)}
+                      )}
+                    />
+                    {errors.dob ? (
+                      <p className="text-sm text-destructive mt-1">{errors.dob.message}</p>
+                    ) : (
+                      dob && getAge(dob) !== null && <p className="text-sm text-muted-foreground mt-1">You are {getAge(dob)} years old</p>
+                    )}
                    </div>
                   <div>
                     <Label className="mb-2 block">I am a</Label>
@@ -274,7 +298,11 @@ export function OnboardingForm() {
                     </div>
                      <div>
                         <Label htmlFor="city" className="mb-2 block">Your City</Label>
-                        <Input id="city" placeholder="e.g., Ikeja, Victoria Island" {...register('city')} />
+                        <Controller
+                            name="city"
+                            control={control}
+                            render={({ field }) => <Input id="city" placeholder="e.g., Ikeja, Victoria Island" {...field} />}
+                        />
                         {errors.city && <p className="text-sm text-destructive mt-1">{errors.city.message}</p>}
                     </div>
                      <div className="rounded-lg bg-blue-500/10 p-3 text-blue-800 dark:bg-blue-300/10 dark:text-blue-200 border border-blue-500/20 flex items-start gap-3">
