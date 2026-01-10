@@ -28,7 +28,7 @@ export default function LandingPage() {
                 src={heroImage.imageUrl}
                 alt={heroImage.description}
                 fill
-                className="object-cover opacity-75"
+                className="object-cover opacity-60"
                 priority
                 data-ai-hint={heroImage.imageHint}
               />
