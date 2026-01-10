@@ -19,7 +19,7 @@ export default function LandingPage() {
       opacity: 1,
       transition: {
         staggerChildren: 0.3,
-        delayChildren: 0.2,
+        delayChildren: 0.5, // Delay text animation until after image fade-in
       },
     },
   };
@@ -36,20 +36,40 @@ export default function LandingPage() {
     },
   };
 
+  const imageVariants = {
+    hidden: { opacity: 0 },
+    visible: {
+      opacity: 1,
+      transition: {
+        duration: 0.5,
+        ease: "easeIn",
+      },
+    },
+  };
+
   return (
     <div className="flex min-h-screen flex-col bg-background text-foreground">
       <LandingHeader theme="dark" />
       <main className="flex-1">
-        <section className="relative h-screen">
+        <motion.section 
+          className="relative h-screen"
+          initial="hidden"
+          animate="visible"
+        >
           {heroImage && (
-            <Image
-              src={heroImage.imageUrl}
-              alt={heroImage.description}
-              fill
-              className="object-cover"
-              priority
-              data-ai-hint={heroImage.imageHint}
-            />
+            <motion.div
+              variants={imageVariants}
+              className="absolute inset-0"
+            >
+              <Image
+                src={heroImage.imageUrl}
+                alt={heroImage.description}
+                fill
+                className="object-cover"
+                priority
+                data-ai-hint={heroImage.imageHint}
+              />
+            </motion.div>
           )}
           <div className="absolute inset-0 bg-gradient-to-b from-black/60 via-black/20 to-black/60" />
           <div className="absolute inset-0 flex items-center justify-center">
@@ -78,7 +98,7 @@ export default function LandingPage() {
               </motion.div>
             </motion.div>
           </div>
-        </section>
+        </motion.section>
         <section className="bg-pink-100/50 py-16 text-center">
           <div className="container mx-auto px-4">
             <h2 className="mb-4 font-headline text-3xl font-bold">Why LinkUp9ja?</h2>
