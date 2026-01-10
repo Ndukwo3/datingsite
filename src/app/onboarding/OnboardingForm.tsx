@@ -156,7 +156,7 @@ export function OnboardingForm() {
   const handlePrev = () => {
     if (currentStep > 0) {
       setDirection(-1);
-      setCurrentStep(step => step + 1);
+      setCurrentStep(step => step - 1);
     }
   };
   
@@ -338,11 +338,20 @@ export function OnboardingForm() {
                     ))}
                     <Input id="photo-upload" type="file" accept="image/*" multiple onChange={handlePhotoUpload} className="hidden" />
                  </div>
-                 {errors.photos && <p className="text-sm text-destructive text-center">{(errors.photos as any).message}</p>}
+                 {errors.photos && <p className="text-sm text-destructive text-center">{errors.photos.message as string}</p>}
                  <div className='space-y-2 text-sm'>
-                    <div className={cn('flex items-center gap-2', photos.length >= 3 ? 'text-green-600' : 'text-muted-foreground')}><Check className='w-4 h-4'/> At least 3 photos (required)</div>
-                    <div className='flex items-center gap-2 text-muted-foreground'><Star className='w-4 h-4'/> First photo is your main profile picture</div>
-                    <div className='flex items-center gap-2 text-muted-foreground'><Camera className='w-4 h-4'/> Clear face photos work best</div>
+                    <div className={cn('flex items-center gap-2', photos.length >= 3 ? 'text-green-600' : 'text-muted-foreground')}>
+                        {photos.length >= 3 ? <Check className='w-4 h-4'/> : <span className="w-4 h-4" />}
+                        At least 3 photos (required)
+                    </div>
+                    <div className={cn('flex items-center gap-2', photos.length >= 3 ? 'text-green-600' : 'text-muted-foreground')}>
+                        {photos.length >= 3 ? <Check className='w-4 h-4'/> : <Star className='w-4 h-4'/>}
+                        First photo is your main profile picture
+                    </div>
+                    <div className={cn('flex items-center gap-2', photos.length >= 3 ? 'text-green-600' : 'text-muted-foreground')}>
+                        {photos.length >= 3 ? <Check className='w-4 h-4'/> : <Camera className='w-4 h-4'/>}
+                        Clear face photos work best
+                    </div>
                  </div>
               </div>
             )}
@@ -462,5 +471,3 @@ export function OnboardingForm() {
     </FormProvider>
   );
 }
-
-    
