@@ -183,8 +183,8 @@ const LoginForm = ({ onSubmit, isLoading, onSwitch }: { onSubmit: () => void; is
                  {isLoading && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
                 Log In
             </Button>
-            <p className="text-center text-sm text-gray-600 dark:text-gray-300">
-                Don't have an account?{' '}
+             <p className="text-center text-sm text-gray-600 dark:text-gray-300">
+                Doesn&apos;t have an account?{' '}
                 <button type="button" onClick={onSwitch} className="font-medium text-pink-600 hover:text-pink-500 dark:text-white dark:hover:text-gray-300">
                     Sign up
                 </button>
@@ -289,7 +289,3 @@ const SignUpForm = ({ onSubmit, isLoading, onSwitch }: { onSubmit: (data: UserDa
         </form>
     );
 };
-
-    
-
-    
