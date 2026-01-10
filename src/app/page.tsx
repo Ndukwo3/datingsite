@@ -1,18 +1,16 @@
 import Image from 'next/image';
 import Link from 'next/link';
 import { Button } from '@/components/ui/button';
-import { Logo } from '@/components/Logo';
 import { PlaceHolderImages } from '@/lib/placeholder-images';
+import { LandingHeader } from '@/components/LandingHeader';
 
 export default function LandingPage() {
   const heroImage = PlaceHolderImages.find(p => p.id === 'hero-1');
   return (
-    <div className="flex min-h-screen flex-col">
-      <header className="container mx-auto px-4 py-6">
-        <Logo />
-      </header>
+    <div className="flex min-h-screen flex-col bg-background text-foreground">
+      <LandingHeader />
       <main className="flex-1">
-        <section className="relative h-[60vh] md:h-[70vh]">
+        <section className="relative h-screen">
           {heroImage && (
             <Image
               src={heroImage.imageUrl}
@@ -23,7 +21,7 @@ export default function LandingPage() {
               data-ai-hint={heroImage.imageHint}
             />
           )}
-          <div className="absolute inset-0 bg-gradient-to-t from-black/60 to-transparent" />
+          <div className="absolute inset-0 bg-gradient-to-b from-black/60 via-black/20 to-black/60" />
           <div className="absolute inset-0 flex items-center justify-center">
             <div className="container mx-auto px-4 text-center text-primary-foreground">
               <h1 className="mb-4 font-headline text-4xl font-bold md:text-6xl">
@@ -32,14 +30,9 @@ export default function LandingPage() {
               <p className="mx-auto mb-8 max-w-2xl text-lg md:text-xl">
                 Join LinkUp9ja and discover meaningful connections with amazing people across Nigeria.
               </p>
-              <div className="flex flex-col items-center gap-4 sm:flex-row sm:justify-center">
-                <Button asChild size="lg" className="bg-primary hover:bg-primary/90 text-primary-foreground font-bold transition-transform duration-300 hover:scale-105">
-                  <Link href="/signup">Get Started</Link>
-                </Button>
-                <Button asChild size="lg" variant="secondary" className="font-bold transition-transform duration-300 hover:scale-105">
-                  <Link href="/login">Log In</Link>
-                </Button>
-              </div>
+              <Button asChild size="lg" className="bg-primary hover:bg-primary/90 text-primary-foreground font-bold transition-transform duration-300 hover:scale-105">
+                <Link href="/signup">Get Started</Link>
+              </Button>
             </div>
           </div>
         </section>
