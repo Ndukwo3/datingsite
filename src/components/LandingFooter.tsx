@@ -41,13 +41,7 @@ export function LandingFooter() {
     <footer className="bg-gray-900 text-white">
       <div className="container mx-auto px-6 py-12">
         <div className="grid grid-cols-2 md:grid-cols-4 lg:grid-cols-6 gap-8 mb-12">
-          <div className="col-span-2 md:col-span-4 lg:col-span-2">
-            <h3 className="text-lg font-bold mb-4">Get the app!</h3>
-            <div className="flex flex-col sm:flex-row gap-4">
-                <AppStoreButton />
-                <GooglePlayButton />
-            </div>
-          </div>
+          
           <FooterLinkColumn title="Legal" links={footerLinks.legal} />
           <FooterLinkColumn title="Careers" links={footerLinks.careers} />
           <div>
