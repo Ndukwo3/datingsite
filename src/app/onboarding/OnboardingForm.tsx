@@ -1,3 +1,4 @@
+
 "use client";
 
 import { useState } from 'react';
@@ -41,7 +42,7 @@ const step2Schema = z.object({
 });
 
 const step3Schema = z.object({
-  photos: z.array(z.instanceof(File)).min(3, "Please upload at least 3 photos.").max(6),
+  photos: z.array(z.any()).min(3, "Please upload at least 3 photos.").max(6),
 });
 
 const step4Schema = z.object({
@@ -208,12 +209,12 @@ export function OnboardingForm() {
                 </div>
                 <div className="space-y-6">
                   <div>
-                    <Label htmlFor="fullName">What's your name?</Label>
+                    <Label htmlFor="fullName" className="mb-2 block">What's your name?</Label>
                     <Input id="fullName" placeholder="Enter your full name" {...register('fullName')} />
                     {errors.fullName && <p className="text-sm text-destructive mt-1">{errors.fullName.message}</p>}
                   </div>
                    <div>
-                    <Label htmlFor="dob">When's your birthday?</Label>
+                    <Label htmlFor="dob" className="mb-2 block">When's your birthday?</Label>
                     <Popover>
                         <PopoverTrigger asChild>
                         <Button
@@ -242,7 +243,7 @@ export function OnboardingForm() {
                     {errors.dob ? <p className="text-sm text-destructive mt-1">{errors.dob.message}</p> : (dob && <p className="text-sm text-muted-foreground mt-1">You are {getAge(dob)} years old</p>)}
                    </div>
                   <div>
-                    <Label>I am a</Label>
+                    <Label className="mb-2 block">I am a</Label>
                     <GenderSelector value={watch('gender')} onChange={(value) => setValue('gender', value, { shouldValidate: true })} />
                     {errors.gender && <p className="text-sm text-destructive mt-1">{errors.gender.message}</p>}
                   </div>
@@ -258,7 +259,7 @@ export function OnboardingForm() {
                 </div>
                  <div className="space-y-6">
                     <div>
-                        <Label htmlFor="state">Your State</Label>
+                        <Label htmlFor="state" className="mb-2 block">Your State</Label>
                         <Select onValueChange={(value) => setValue('state', value, { shouldValidate: true })} defaultValue={watch('state')}>
                             <SelectTrigger>
                                 <SelectValue placeholder="Select your state" />
@@ -272,7 +273,7 @@ export function OnboardingForm() {
                         {errors.state && <p className="text-sm text-destructive mt-1">{errors.state.message}</p>}
                     </div>
                      <div>
-                        <Label htmlFor="city">Your City</Label>
+                        <Label htmlFor="city" className="mb-2 block">Your City</Label>
                         <Input id="city" placeholder="e.g., Ikeja, Victoria Island" {...register('city')} />
                         {errors.city && <p className="text-sm text-destructive mt-1">{errors.city.message}</p>}
                     </div>
@@ -309,7 +310,7 @@ export function OnboardingForm() {
                     ))}
                     <Input id="photo-upload" type="file" accept="image/*" multiple onChange={handlePhotoUpload} className="hidden" />
                  </div>
-                 {errors.photos && <p className="text-sm text-destructive text-center">{errors.photos.message}</p>}
+                 {errors.photos && <p className="text-sm text-destructive text-center">{(errors.photos as any).message}</p>}
                  <div className='space-y-2 text-sm'>
                     <div className={cn('flex items-center gap-2', photos.length >= 3 ? 'text-green-600' : 'text-muted-foreground')}><Check className='w-4 h-4'/> At least 3 photos (required)</div>
                     <div className='flex items-center gap-2 text-muted-foreground'><Star className='w-4 h-4'/> First photo is your main profile picture</div>
@@ -326,7 +327,7 @@ export function OnboardingForm() {
                     </div>
                     <div className="space-y-6">
                         <div>
-                            <Label htmlFor="bio">About Me</Label>
+                            <Label htmlFor="bio" className="mb-2 block">About Me</Label>
                             <Textarea 
                                 id="bio" 
                                 placeholder="Share a bit about yourself... What do you love doing? What makes you unique?" 
@@ -341,7 +342,7 @@ export function OnboardingForm() {
                             </div>
                         </div>
                         <div>
-                            <Label>What are you into?</Label>
+                            <Label className="mb-2 block">What are you into?</Label>
                             <p className="text-sm text-muted-foreground">Select at least 3 interests ({interests.length}/10 selected)</p>
                              <div className="flex flex-wrap gap-2 mt-2 min-h-[40px] rounded-md border border-input p-2">
                                 {interestOptions.map(interest => (
@@ -369,11 +370,11 @@ export function OnboardingForm() {
                     </div>
                     <div className="space-y-6">
                         <div>
-                            <Label>Show me</Label>
+                            <Label className="mb-2 block">Show me</Label>
                             <GenderSelector value={watch('interestedIn')} onChange={(value) => setValue('interestedIn', value, { shouldValidate: true })} options={[{value: 'men', label: "Men"}, {value: 'women', label: "Women"}, {value: 'everyone', label: "Everyone"}]} />
                         </div>
                         <div>
-                            <Label>Age Range</Label>
+                            <Label className="mb-2 block">Age Range</Label>
                             <p className="text-sm text-muted-foreground">{ageRange[0]} - {ageRange[1]} years old</p>
                             <Slider
                                 defaultValue={ageRange}
@@ -385,7 +386,7 @@ export function OnboardingForm() {
                             />
                         </div>
                          <div>
-                            <Label>Maximum Distance</Label>
+                            <Label className="mb-2 block">Maximum Distance</Label>
                             <p className="text-sm text-muted-foreground">Within {maxDistance} km</p>
                             <Slider
                                 defaultValue={[maxDistance]}
