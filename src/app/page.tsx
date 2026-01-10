@@ -8,6 +8,7 @@ import { PlaceHolderImages } from '@/lib/placeholder-images';
 import { LandingHeader } from '@/components/LandingHeader';
 import { AnimatedFeatures } from '@/components/AnimatedFeatures';
 import { LandingFooter } from '@/components/LandingFooter';
+import { motion } from 'framer-motion';
 
 export default function LandingPage() {
   const heroImage = PlaceHolderImages.find(p => p.id === 'hero-1');
@@ -35,8 +36,11 @@ export default function LandingPage() {
           )}
           <div className="absolute inset-0 bg-gradient-to-b from-black/60 via-black/20 to-black/60" />
           <div className="absolute inset-0 flex items-center justify-center">
-            <div
+            <motion.div
               className="container mx-auto px-4 text-center text-primary-foreground"
+              initial={{ opacity: 0, y: 20 }}
+              animate={{ opacity: 1, y: 0 }}
+              transition={{ duration: 0.5, delay: 0.2 }}
             >
               <h1
                 className="mb-4 font-headline text-4xl font-bold md:text-6xl"
@@ -53,7 +57,7 @@ export default function LandingPage() {
                   <Link href="/signup">Get Started</Link>
                 </Button>
               </div>
-            </div>
+            </motion.div>
           </div>
         </section>
         <section className="bg-pink-100/50 py-16 text-center">
@@ -70,4 +74,3 @@ export default function LandingPage() {
     </div>
   );
 }
-
