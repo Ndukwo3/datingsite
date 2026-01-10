@@ -24,14 +24,17 @@ const GoogleIcon = (props: React.SVGProps<SVGSVGElement>) => (
 );
 
 
-type Tab = "login" | "signup";
-
-type AuthPageProps = {
-    defaultTab: Tab;
+type AuthStep = "login" | "signup" | "otp";
+type UserData = {
+    firstName: string;
+    lastName: string;
+    email: string;
 };
 
-export function AuthPage({ defaultTab }: AuthPageProps) {
-    const [activeTab, setActiveTab] = useState<Tab>(defaultTab);
+
+export function AuthPage({ defaultTab }: { defaultTab: AuthStep }) {
+    const [authStep, setAuthStep] = useState<AuthStep>(defaultTab);
+    const [userData, setUserData] = useState<UserData | null>(null);
     const router = useRouter();
     const searchParams = useSearchParams();
     const fromNav = searchParams.get('fromNav');
@@ -48,14 +51,37 @@ export function AuthPage({ defaultTab }: AuthPageProps) {
         return <SplashScreen />;
     }
 
-    const handleFormSubmit = (e: React.FormEvent) => {
+    const handleLoginSubmit = (e: React.FormEvent) => {
         e.preventDefault();
-        router.push('/onboarding');
+        router.push('/');
     };
     
-    const handleSwitchTab = (tab: Tab) => {
-        setActiveTab(tab);
+    const handleSignupSubmit = (data: UserData) => {
+        setUserData(data);
+        setAuthStep('otp');
     };
+    
+    const handleOtpSubmit = (e: React.FormEvent) => {
+        e.preventDefault();
+        // Here you would typically verify the OTP
+        router.push('/onboarding');
+    };
+
+
+    const renderForm = () => {
+        switch (authStep) {
+            case 'login':
+                return <LoginForm onSubmit={handleLoginSubmit} />;
+            case 'signup':
+                return <SignUpForm onSubmit={handleSignupSubmit} />;
+            case 'otp':
+                return <OTPForm onSubmit={handleOtpSubmit} email={userData?.email || ''} onBack={() => setAuthStep('signup')} />;
+            default:
+                return null;
+        }
+    }
+    
+    const isOtpStep = authStep === 'otp';
 
     return (
         <div className="relative flex min-h-screen items-center justify-center overflow-hidden bg-gradient-to-br from-pink-100 via-red-50 to-yellow-50 p-6 dark:from-pink-900/80 dark:via-red-800/70 dark:to-purple-900/80 md:p-8 font-body">
@@ -84,35 +110,42 @@ export function AuthPage({ defaultTab }: AuthPageProps) {
                     <div className="mb-4 flex h-16 w-16 items-center justify-center rounded-2xl bg-gradient-to-br from-pink-500 to-orange-400">
                         <Heart className="h-8 w-8 text-white" />
                     </div>
-                    <h1 className="font-headline text-3xl font-bold text-gray-800 dark:text-white">LinkUp9ja</h1>
-                    <p className="mt-2 text-gray-600 dark:text-gray-200">Find your perfect match in Nigeria</p>
+                    <h1 className="font-headline text-3xl font-bold text-gray-800 dark:text-white">
+                        {isOtpStep ? "Check your email" : "LinkUp9ja"}
+                    </h1>
+                    <p className="mt-2 text-gray-600 dark:text-gray-200">
+                         {isOtpStep ? `We've sent a 6-digit code to ${userData?.email}` : "Find your perfect match in Nigeria"}
+                    </p>
                 </div>
 
-                <div className="relative flex rounded-lg bg-gray-100/70 p-1">
-                    <motion.div 
-                        className="absolute inset-0.5 w-1/2 rounded-md bg-white shadow"
-                        animate={{ x: activeTab === 'login' ? '0%' : '100%' }}
-                        transition={{ type: 'spring', stiffness: 300, damping: 30 }}
-                    />
-                    <button onClick={() => handleSwitchTab('login')} className={cn("relative z-10 w-1/2 py-2 text-sm font-medium transition-colors", activeTab === 'login' ? 'text-pink-600' : 'text-gray-500')}>
-                        Login
-                    </button>
-                    <button onClick={() => handleSwitchTab('signup')} className={cn("relative z-10 w-1/2 py-2 text-sm font-medium transition-colors", activeTab === 'signup' ? 'text-pink-600' : 'text-gray-500')}>
-                        Sign Up
-                    </button>
-                </div>
+                {!isOtpStep && (
+                    <div className="relative flex rounded-lg bg-gray-100/70 p-1">
+                        <motion.div 
+                            className="absolute inset-0.5 w-1/2 rounded-md bg-white shadow"
+                            animate={{ x: authStep === 'login' ? '0%' : '100%' }}
+                            transition={{ type: 'spring', stiffness: 300, damping: 30 }}
+                        />
+                        <button onClick={() => setAuthStep('login')} className={cn("relative z-10 w-1/2 py-2 text-sm font-medium transition-colors", authStep === 'login' ? 'text-pink-600' : 'text-gray-500')}>
+                            Login
+                        </button>
+                        <button onClick={() => setAuthStep('signup')} className={cn("relative z-10 w-1/2 py-2 text-sm font-medium transition-colors", authStep === 'signup' ? 'text-pink-600' : 'text-gray-500')}>
+                            Sign Up
+                        </button>
+                    </div>
+                )}
+
 
                 <div className="relative mt-6 h-[360px] overflow-hidden">
                     <AnimatePresence mode="wait">
                         <motion.div
-                            key={activeTab}
-                            initial={{ opacity: 0, x: activeTab === 'login' ? -50 : 50 }}
+                            key={authStep}
+                            initial={{ opacity: 0, x: -50 }}
                             animate={{ opacity: 1, x: 0 }}
-                            exit={{ opacity: 0, x: activeTab === 'login' ? 50 : -50 }}
+                            exit={{ opacity: 0, x: 50 }}
                             transition={{ duration: 0.4, ease: "easeInOut" }}
                             className="absolute w-full"
                         >
-                            {activeTab === 'login' ? <LoginForm onSubmit={handleFormSubmit} /> : <SignUpForm onSubmit={handleFormSubmit} />}
+                            {renderForm()}
                         </motion.div>
                     </AnimatePresence>
                 </div>
@@ -169,17 +202,29 @@ const LoginForm = ({ onSubmit }: { onSubmit: (e: React.FormEvent) => void }) => 
     </form>
 );
 
-const SignUpForm = ({ onSubmit }: { onSubmit: (e: React.FormEvent) => void }) => {
+const SignUpForm = ({ onSubmit }: { onSubmit: (data: UserData) => void }) => {
     const handleNameInputChange = (e: React.ChangeEvent<HTMLInputElement>) => {
         e.target.value = e.target.value.replace(/[^a-zA-Z]/g, '');
     };
 
+    const handleSubmit = (e: React.FormEvent<HTMLFormElement>) => {
+        e.preventDefault();
+        const formData = new FormData(e.currentTarget);
+        const data = {
+            firstName: formData.get('firstName') as string,
+            lastName: formData.get('lastName') as string,
+            email: formData.get('email') as string,
+        };
+        onSubmit(data);
+    };
+
     return (
-        <form onSubmit={onSubmit} className="space-y-6">
+        <form onSubmit={handleSubmit} className="space-y-6">
             <div className="grid grid-cols-2 gap-4">
                 <div className="relative">
                     <User className="absolute left-3 top-1/2 -translate-y-1/2 h-5 w-5 text-gray-400" />
                     <Input
+                        name="firstName"
                         type="text"
                         placeholder="First Name"
                         required
@@ -190,6 +235,7 @@ const SignUpForm = ({ onSubmit }: { onSubmit: (e: React.FormEvent) => void }) =>
                 <div className="relative">
                     <User className="absolute left-3 top-1/2 -translate-y-1/2 h-5 w-5 text-gray-400" />
                     <Input
+                        name="lastName"
                         type="text"
                         placeholder="Last Name"
                         required
@@ -202,6 +248,7 @@ const SignUpForm = ({ onSubmit }: { onSubmit: (e: React.FormEvent) => void }) =>
                 <div className="relative">
                     <Mail className="absolute left-3 top-1/2 -translate-y-1/2 h-5 w-5 text-gray-400" />
                     <Input
+                        name="email"
                         type="email"
                         placeholder="Email Address"
                         required
@@ -213,6 +260,7 @@ const SignUpForm = ({ onSubmit }: { onSubmit: (e: React.FormEvent) => void }) =>
                 <div className="relative">
                     <KeyRound className="absolute left-3 top-1/2 -translate-y-1/2 h-5 w-5 text-gray-400" />
                     <Input
+                        name="password"
                         type="password"
                         placeholder="Password"
                         required
@@ -232,6 +280,64 @@ const SignUpForm = ({ onSubmit }: { onSubmit: (e: React.FormEvent) => void }) =>
                 <GoogleIcon className="mr-2 h-5 w-5" />
                 Continue with Google
             </Button>
+        </form>
+    );
+};
+
+const OTPForm = ({ onSubmit, email, onBack }: { onSubmit: (e: React.FormEvent) => void; email: string, onBack: () => void; }) => {
+    const [otp, setOtp] = useState(new Array(6).fill(""));
+
+    const handleChange = (element: HTMLInputElement, index: number) => {
+        if (isNaN(Number(element.value))) return;
+
+        setOtp([...otp.map((d, idx) => (idx === index ? element.value : d))]);
+
+        // Focus next input
+        if (element.nextSibling && element.value) {
+            (element.nextSibling as HTMLInputElement).focus();
+        }
+    };
+    
+    const handleKeyDown = (e: React.KeyboardEvent<HTMLInputElement>, index: number) => {
+        const target = e.target as HTMLInputElement;
+        // Focus previous input on backspace
+        if (e.key === "Backspace" && !target.value && target.previousSibling) {
+            (target.previousSibling as HTMLInputElement).focus();
+        }
+    };
+
+    return (
+        <form onSubmit={onSubmit} className="space-y-6">
+            <div className="flex justify-center gap-2">
+                {otp.map((data, index) => {
+                    return (
+                        <Input
+                            key={index}
+                            type="text"
+                            value={data}
+                            maxLength={1}
+                            className="w-12 h-14 text-center text-2xl font-bold"
+                            onChange={(e) => handleChange(e.target, index)}
+                            onKeyDown={(e) => handleKeyDown(e, index)}
+                            onFocus={e => e.target.select()}
+                        />
+                    );
+                })}
+            </div>
+            <Button type="submit" className="w-full bg-gradient-to-r from-pink-500 to-orange-500 py-3 text-white font-semibold shadow-lg hover:scale-105 transition-transform">
+                Verify Account
+            </Button>
+            <div className="text-center text-sm">
+                <p className="text-gray-600 dark:text-gray-300">
+                    Didn't receive code?{" "}
+                    <button type="button" className="font-medium text-pink-600 hover:text-pink-500 dark:text-gray-200 dark:hover:text-white">
+                        Resend
+                    </button>
+                </p>
+                <button type="button" onClick={onBack} className="mt-4 font-medium text-gray-500 hover:text-gray-700 dark:text-gray-400 dark:hover:text-white">
+                    Back to Sign Up
+                </button>
+            </div>
         </form>
     );
 };
