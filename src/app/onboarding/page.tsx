@@ -5,7 +5,9 @@ export default function OnboardingPage() {
   return (
     <div className="container mx-auto flex min-h-screen max-w-3xl flex-col items-center p-4">
       <header className="w-full py-6">
-        <Logo />
+        <Link href="/" className="text-2xl font-bold font-headline">
+            <Logo />
+        </Link>
       </header>
       <main className="flex w-full flex-1 flex-col justify-center">
         <OnboardingForm />
@@ -13,3 +15,5 @@ export default function OnboardingPage() {
     </div>
   );
 }
+
+    

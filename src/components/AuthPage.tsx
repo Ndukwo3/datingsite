@@ -2,14 +2,15 @@
 "use client";
 
 import { useState } from "react";
-import Link from "next/link";
+import { useRouter, useSearchParams } from "next/navigation";
 import { motion, AnimatePresence } from "framer-motion";
 import { Heart, Mail, KeyRound, User, Check } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { Button } from "./ui/button";
 import { Input } from "./ui/input";
 import { Checkbox } from "./ui/checkbox";
-import { useRouter } from "next/navigation";
+import Link from "next/link";
+import { SplashScreen } from "./SplashScreen";
 
 const GoogleIcon = (props: React.SVGProps<SVGSVGElement>) => (
     <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 48 48" width="24px" height="24px" {...props}>
@@ -30,10 +31,28 @@ type AuthPageProps = {
 export function AuthPage({ defaultTab }: AuthPageProps) {
     const [activeTab, setActiveTab] = useState<Tab>(defaultTab);
     const router = useRouter();
+    const searchParams = useSearchParams();
+    const fromNav = searchParams.get('fromNav');
+    const [showSplash, setShowSplash] = useState(!!fromNav);
+
+    React.useEffect(() => {
+        if (showSplash) {
+            const timer = setTimeout(() => setShowSplash(false), 2500);
+            return () => clearTimeout(timer);
+        }
+    }, [showSplash]);
+
+    if (showSplash) {
+        return <SplashScreen />;
+    }
 
     const handleFormSubmit = (e: React.FormEvent) => {
         e.preventDefault();
-        router.push('/onboarding?fromNav=true');
+        router.push('/onboarding');
+    };
+    
+    const handleSwitchTab = (tab: Tab) => {
+        setActiveTab(tab);
     };
 
     return (
@@ -83,10 +102,10 @@ export function AuthPage({ defaultTab }: AuthPageProps) {
                             transition={{ duration: 0.3, ease: "easeInOut" }}
                             style={{ margin: '4px' }}
                         />
-                        <button onClick={() => setActiveTab('login')} className={cn("relative z-10 w-1/2 py-2 text-sm font-medium transition-colors", activeTab === 'login' ? 'text-[#FF6B6B]' : 'text-gray-500')}>
+                        <button onClick={() => handleSwitchTab('login')} className={cn("relative z-10 w-1/2 py-2 text-sm font-medium transition-colors", activeTab === 'login' ? 'text-[#FF6B6B]' : 'text-gray-500')}>
                             Login
                         </button>
-                        <button onClick={() => setActiveTab('signup')} className={cn("relative z-10 w-1/2 py-2 text-sm font-medium transition-colors", activeTab === 'signup' ? 'text-[#FF6B6B]' : 'text-gray-500')}>
+                        <button onClick={() => handleSwitchTab('signup')} className={cn("relative z-10 w-1/2 py-2 text-sm font-medium transition-colors", activeTab === 'signup' ? 'text-[#FF6B6B]' : 'text-gray-500')}>
                             Sign Up
                         </button>
                     </div>
@@ -102,7 +121,7 @@ export function AuthPage({ defaultTab }: AuthPageProps) {
                             transition={{ duration: 0.4, ease: "easeInOut" }}
                             className="absolute w-full"
                         >
-                            {activeTab === 'login' ? <LoginForm onSubmit={handleFormSubmit} /> : <SignUpForm onSubmit={handleFormSubmit} />}
+                            {activeTab === 'login' ? <LoginForm onSubmit={handleFormSubmit} onSwitchTab={() => handleSwitchTab('signup')} /> : <SignUpForm onSubmit={handleFormSubmit} onSwitchTab={() => handleSwitchTab('login')} />}
                         </motion.div>
                     </AnimatePresence>
                 </div>
@@ -111,7 +130,7 @@ export function AuthPage({ defaultTab }: AuthPageProps) {
     );
 }
 
-const LoginForm = ({ onSubmit }: { onSubmit: (e: React.FormEvent) => void }) => (
+const LoginForm = ({ onSubmit, onSwitchTab }: { onSubmit: (e: React.FormEvent) => void, onSwitchTab: () => void }) => (
     <form onSubmit={onSubmit} className="space-y-5">
         <div className="space-y-4">
             <div className="relative">
@@ -149,12 +168,12 @@ const LoginForm = ({ onSubmit }: { onSubmit: (e: React.FormEvent) => void }) => 
         </Button>
         <p className="pt-2 text-center text-sm text-[#7F8C8D]">
             Don&apos;t have an account?{' '}
-            <span className="cursor-pointer font-semibold text-[#FF6B6B]">Sign Up</span>
+            <span onClick={onSwitchTab} className="cursor-pointer font-semibold text-[#FF6B6B]">Sign Up</span>
         </p>
     </form>
 );
 
-const SignUpForm = ({ onSubmit }: { onSubmit: (e: React.FormEvent) => void }) => (
+const SignUpForm = ({ onSubmit, onSwitchTab }: { onSubmit: (e: React.FormEvent) => void, onSwitchTab: () => void }) => (
     <form onSubmit={onSubmit} className="space-y-5">
         <div className="space-y-4">
             <div className="relative">
@@ -191,7 +210,9 @@ const SignUpForm = ({ onSubmit }: { onSubmit: (e: React.FormEvent) => void }) =>
         </Button>
         <p className="pt-2 text-center text-sm text-[#7F8C8D]">
             Already have an account?{' '}
-            <span className="cursor-pointer font-semibold text-[#FF6B6B]">Login</span>
+            <span onClick={onSwitchTab} className="cursor-pointer font-semibold text-[#FF6B6B]">Login</span>
         </p>
     </form>
 );
+
+    
