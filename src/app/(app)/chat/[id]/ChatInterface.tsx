@@ -60,20 +60,19 @@ export function ChatInterface({ conversation, initialMessages, currentUser }: Ch
                 variant: 'destructive',
                 duration: 5000,
             });
-            setIsSending(false);
-            return;
+            // Don't return here, let finally block run
+        } else {
+            const messageToSend: Message = {
+                id: `msg-${Date.now()}`,
+                senderId: currentUser.id,
+                receiverId: participant.id,
+                text: newMessage,
+                timestamp: new Date(),
+            };
+
+            setMessages(prev => [...prev, messageToSend]);
+            setNewMessage('');
         }
-
-        const messageToSend: Message = {
-            id: `msg-${Date.now()}`,
-            senderId: currentUser.id,
-            receiverId: participant.id,
-            text: newMessage,
-            timestamp: new Date(),
-        };
-
-        setMessages(prev => [...prev, messageToSend]);
-        setNewMessage('');
 
     } catch (error) {
         console.error("Failed to send message or detect harassment:", error);
