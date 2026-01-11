@@ -2,8 +2,8 @@
 "use client";
 
 import { useState } from 'react';
-import { motion, AnimatePresence, useMotionValue, useTransform } from 'framer-motion';
-import { Heart, X, RotateCcw } from 'lucide-react';
+import { motion, AnimatePresence, useMotionValue, useTransform, animate } from 'framer-motion';
+import { Heart, X, RotateCcw, Star } from 'lucide-react';
 
 import { Button } from '@/components/ui/button';
 import { ProfileCard } from '@/components/ProfileCard';
@@ -11,7 +11,7 @@ import { potentialMatches } from '@/lib/data';
 import { MatchNotification } from '@/components/MatchNotification';
 import type { User } from '@/lib/types';
 
-type SwipeDirection = 'left' | 'right' | null;
+type SwipeDirection = 'left' | 'right' | 'up' | null;
 
 export default function SwipePage() {
   const [profiles, setProfiles] = useState(potentialMatches);
@@ -21,16 +21,25 @@ export default function SwipePage() {
   const [showMatch, setShowMatch] = useState(false);
 
   const x = useMotionValue(0);
+  const y = useMotionValue(0);
   const rotate = useTransform(x, [-200, 200], [-30, 30]);
-  const opacityX = useTransform(x, [-100, -20, 0, 20, 100], [1, 0, 0, 0, 0]);
+  const opacityX = useTransform(x, [-100, -20, 0, 20, 100], [1, 0, 0, 0, 1]);
   const opacityHeart = useTransform(x, [-100, -20, 0, 20, 100], [0, 0, 0, 0, 1]);
+  const opacityStar = useTransform(y, [-100, -20, 0], [1, 0, 0]);
 
-  const handleSwipe = (direction: 'left' | 'right') => {
+  const triggerSwipe = (direction: 'left' | 'right' | 'up') => {
     if (currentIndex >= profiles.length) return;
-
+    
+    setSwipeDirection(direction);
     const swipedUser = profiles[currentIndex];
     setLastSwipedUser(swipedUser);
-    setSwipeDirection(direction);
+    
+    // Animate card away
+    const exitX = direction === 'left' ? -300 : direction === 'right' ? 300 : 0;
+    const exitY = direction === 'up' ? -500 : 0;
+    
+    animate(x, exitX, { duration: 0.3 });
+    animate(y, exitY, { duration: 0.3 });
 
     // Simulate a match on every 3rd right swipe for demo purposes
     const shouldMatch = direction === 'right' && (currentIndex + 1) % 3 === 0;
@@ -40,15 +49,24 @@ export default function SwipePage() {
         if (shouldMatch) {
             setShowMatch(true);
         }
+        // Reset motion values for the next card
+        x.set(0);
+        y.set(0);
         setSwipeDirection(null);
     }, 300);
   };
   
-  const onDragEnd = (event: any, info: { offset: { x: any; }; velocity: { x: any; }; }) => {
-    if (info.offset.x > 100) {
-      handleSwipe('right');
-    } else if (info.offset.x < -100) {
-      handleSwipe('left');
+  const onDragEnd = (event: any, info: { offset: { x: number; y: number }; }) => {
+    if (info.offset.y < -150) {
+      triggerSwipe('up');
+    } else if (info.offset.x > 150) {
+      triggerSwipe('right');
+    } else if (info.offset.x < -150) {
+      triggerSwipe('left');
+    } else {
+        // Snap back to center
+        animate(x, 0, { type: 'spring', stiffness: 500, damping: 30 });
+        animate(y, 0, { type: 'spring', stiffness: 500, damping: 30 });
     }
   };
 
@@ -69,7 +87,8 @@ export default function SwipePage() {
     animate: { scale: 1, opacity: 1, y: 0 },
     exit: (direction: SwipeDirection) => {
         return {
-            x: direction === 'right' ? 300 : -300,
+            x: direction === 'right' ? 300 : direction === 'left' ? -300 : 0,
+            y: direction === 'up' ? -500 : 0,
             opacity: 0,
             scale: 0.8,
             transition: { duration: 0.3 }
@@ -94,9 +113,9 @@ export default function SwipePage() {
           {currentIndex < profiles.length ? (
             <motion.div
               key={currentIndex}
-              drag="x"
+              drag
               dragConstraints={{ left: 0, right: 0, top: 0, bottom: 0 }}
-              style={{ x, rotate }}
+              style={{ x, y, rotate }}
               onDragEnd={onDragEnd}
               variants={variants}
               initial="initial"
@@ -112,6 +131,9 @@ export default function SwipePage() {
                     </motion.div>
                      <motion.div style={{ opacity: opacityX }}>
                         <X className="h-24 w-24 text-destructive" />
+                    </motion.div>
+                    <motion.div style={{ opacity: opacityStar }}>
+                        <Star className="h-24 w-24 text-blue-500 fill-blue-500" />
                     </motion.div>
                 </div>
               <ProfileCard user={currentProfile} />
@@ -135,7 +157,7 @@ export default function SwipePage() {
 
       <div className="flex items-center gap-6">
         <Button
-          onClick={() => handleSwipe('left')}
+          onClick={() => triggerSwipe('left')}
           variant="outline"
           size="icon"
           className="h-20 w-20 rounded-full border-2 border-yellow-500 text-yellow-500 shadow-lg transition-transform duration-300 hover:scale-110 hover:bg-yellow-500/10"
@@ -144,8 +166,17 @@ export default function SwipePage() {
         >
           <X className="h-10 w-10" />
         </Button>
+         <Button
+          onClick={() => triggerSwipe('up')}
+          size="icon"
+          className="h-16 w-16 rounded-full bg-blue-500 text-white shadow-xl transition-transform duration-300 hover:scale-110"
+          aria-label="Super Like"
+          disabled={swipeDirection !== null || showMatch}
+        >
+          <Star className="h-8 w-8 fill-current" />
+        </Button>
         <Button
-          onClick={() => handleSwipe('right')}
+          onClick={() => triggerSwipe('right')}
           size="icon"
           className="h-24 w-24 rounded-full bg-primary text-primary-foreground shadow-xl transition-transform duration-300 hover:scale-110"
           aria-label="Like"
