@@ -154,8 +154,8 @@ export function TutorialOverlay() {
                     {tutorialSlides[currentSlide] && (
                         <>
                             <h2 className="text-2xl font-headline font-bold mb-2 flex items-center justify-center gap-3">
-                                {tutorialSlides[currentSlide].icon}
                                 <span>{tutorialSlides[currentSlide].title}</span>
+                                {tutorialSlides[currentSlide].icon}
                             </h2>
                             <p className="text-base text-white/80">{tutorialSlides[currentSlide].description}</p>
                             {tutorialSlides[currentSlide].note && <p className="text-sm text-white/60 mt-2">{tutorialSlides[currentSlide].note}</p>}
