@@ -21,6 +21,7 @@ import { useUser, useFirestore, useCollection } from '@/firebase';
 import { collection, addDoc, serverTimestamp, query, orderBy } from 'firebase/firestore';
 import { errorEmitter } from '@/firebase/error-emitter';
 import { FirestorePermissionError } from '@/firebase/errors';
+import { isValidHttpUrl } from '@/lib/is-valid-url';
 
 type ChatInterfaceProps = {
   participant: User;
@@ -115,7 +116,7 @@ export function ChatInterface({ participant, conversationId }: ChatInterfaceProp
             <Link href="/chat"><ArrowLeft /></Link>
         </Button>
         <Avatar className="h-10 w-10">
-          {participantImage && typeof participantImage === 'string' && participantImage.length > 0 ? (
+          {isValidHttpUrl(participantImage) ? (
             <AvatarImage src={participantImage} alt={participant.name} />
           ) : (
             <AvatarFallback>{participantFirstName.charAt(0)}</AvatarFallback>

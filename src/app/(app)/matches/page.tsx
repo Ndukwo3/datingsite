@@ -10,6 +10,7 @@ import { Badge } from '@/components/ui/badge';
 import { useCollection, useFirestore, useUser } from '@/firebase';
 import { collection, query, where } from 'firebase/firestore';
 import type { Conversation, User } from '@/lib/types';
+import { isValidHttpUrl } from '@/lib/is-valid-url';
 
 
 export default function MatchesPage() {
@@ -55,7 +56,7 @@ export default function MatchesPage() {
             <Link href={`/chat/${participant.id}`} key={match.id} className="group">
               <Card className="overflow-hidden transition-all duration-300 hover:scale-105 hover:shadow-lg border-transparent hover:border-primary">
                 <CardContent className="relative aspect-square p-0">
-                  {userImage && typeof userImage === 'string' && userImage.length > 0 ? (
+                  {isValidHttpUrl(userImage) ? (
                     <Image
                       src={userImage}
                       alt={participant.name}

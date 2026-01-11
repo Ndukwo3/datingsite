@@ -11,6 +11,7 @@ import { Loader2, MapPin, User as UserIcon } from 'lucide-react';
 import type { User } from '@/lib/types';
 import { useCollection, useFirestore } from '@/firebase';
 import { collection } from 'firebase/firestore';
+import { isValidHttpUrl } from '@/lib/is-valid-url';
 
 // Fisher-Yates shuffle algorithm
 const shuffleArray = (array: User[]) => {
@@ -63,7 +64,7 @@ export default function FeedPage() {
             <Link href={`/profile/${user.id}`} key={user.id}>
               <Card className="overflow-hidden transition-transform duration-300 hover:scale-105 hover:shadow-lg">
                 <CardContent className="relative aspect-[3/4.5] p-0">
-                  {userImage && typeof userImage === 'string' && userImage.length > 0 ? (
+                  {isValidHttpUrl(userImage) ? (
                     <Image
                       src={userImage}
                       alt={user.name}

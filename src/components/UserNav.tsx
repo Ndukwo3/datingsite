@@ -16,6 +16,7 @@ import { CreditCard, LogOut, Settings, User, Crown } from "lucide-react";
 import { getAuth, signOut } from "firebase/auth";
 import { useRouter } from "next/navigation";
 import { useToast } from "@/hooks/use-toast";
+import { isValidHttpUrl } from "@/lib/is-valid-url";
 
 export function UserNav() {
   const { user: authUser, userData } = useUser();
@@ -46,7 +47,7 @@ export function UserNav() {
       <DropdownMenuTrigger asChild>
         <Button variant="ghost" className="relative h-10 w-10 rounded-full">
           <Avatar className="h-10 w-10 border-2 border-primary">
-            {userImage && typeof userImage === 'string' && userImage.length > 0 ? (
+            {isValidHttpUrl(userImage) ? (
               <AvatarImage src={userImage} alt={userName} />
             ) : (
               <AvatarFallback>{userName.charAt(0)}</AvatarFallback>

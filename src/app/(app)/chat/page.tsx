@@ -10,6 +10,7 @@ import { useCollection, useFirestore, useUser } from '@/firebase';
 import { collection, query, where } from 'firebase/firestore';
 import { Conversation } from '@/lib/types';
 import { Loader2 } from 'lucide-react';
+import { isValidHttpUrl } from '@/lib/is-valid-url';
 
 export default function ChatListPage() {
   const firestore = useFirestore();
@@ -54,7 +55,7 @@ export default function ChatListPage() {
                 >
                   <div className="flex items-center gap-4">
                     <Avatar className="h-12 w-12">
-                      {userImage && typeof userImage === 'string' && userImage.length > 0 ? (
+                      {isValidHttpUrl(userImage) ? (
                         <AvatarImage src={userImage} alt={participant.name} />
                       ) : (
                         <AvatarFallback>{firstName.charAt(0)}</AvatarFallback>

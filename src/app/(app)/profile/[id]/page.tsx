@@ -11,6 +11,7 @@ import Link from 'next/link';
 import { useDoc, useFirestore } from '@/firebase';
 import { doc } from 'firebase/firestore';
 import type { User } from '@/lib/types';
+import { isValidHttpUrl } from '@/lib/is-valid-url';
 
 function SpotifyIcon(props: React.SVGProps<SVGSVGElement>) {
     return (
@@ -52,7 +53,7 @@ export default function UserProfilePage() {
 
       {/* Left side: Photo Gallery */}
       <div className="relative h-96 md:w-2/5 md:h-screen md:sticky md:top-0 bg-black overflow-hidden md:rounded-xl">
-        {userImage && typeof userImage === 'string' && userImage.length > 0 ? (
+        {isValidHttpUrl(userImage) ? (
             <Image
             src={userImage}
             alt={`${user.name}'s photo`}

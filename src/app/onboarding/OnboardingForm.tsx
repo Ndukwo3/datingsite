@@ -186,7 +186,8 @@ export function OnboardingForm() {
     const userDocRef = doc(firestore, 'users', authUser.uid);
     const age = getAge(data.dob);
 
-    const photoUploadPromises = data.photos.map(photo => uploadFile(photo, `users/${authUser.uid}/photos`));
+    const photoFiles = data.photos.filter(p => p instanceof File);
+    const photoUploadPromises = photoFiles.map(photo => uploadFile(photo, `users/${authUser.uid}/photos`));
     const photoURLs = await Promise.all(photoUploadPromises);
 
     const finalUserData = {

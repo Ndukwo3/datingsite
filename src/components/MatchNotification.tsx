@@ -8,6 +8,7 @@ import { Button } from '@/components/ui/button';
 import { useUser } from '@/firebase';
 import type { User } from '@/lib/types';
 import { Heart, User as UserIcon } from 'lucide-react';
+import { isValidHttpUrl } from '@/lib/is-valid-url';
 
 type MatchNotificationProps = {
   matchedUser: User;
@@ -47,7 +48,7 @@ export function MatchNotification({ matchedUser, onKeepSwiping }: MatchNotificat
           transition={{ delay: 0.3, type: 'spring' }}
           className="relative w-40 h-52 md:w-48 md:h-64"
         >
-          {currentUserImage && typeof currentUserImage === 'string' && currentUserImage.length > 0 ? (
+          {isValidHttpUrl(currentUserImage) ? (
             <Image
               src={currentUserImage}
               alt={currentUser?.name || 'Current User'}
@@ -76,7 +77,7 @@ export function MatchNotification({ matchedUser, onKeepSwiping }: MatchNotificat
           transition={{ delay: 0.3, type: 'spring' }}
           className="relative w-40 h-52 md:w-48 md:h-64"
         >
-          {matchedUserImage && typeof matchedUserImage === 'string' && matchedUserImage.length > 0 ? (
+          {isValidHttpUrl(matchedUserImage) ? (
             <Image
               src={matchedUserImage}
               alt={matchedUser.name}

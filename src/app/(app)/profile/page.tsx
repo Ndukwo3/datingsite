@@ -13,6 +13,7 @@ import { useUser, useFirestore, useDoc } from '@/firebase';
 import { doc } from 'firebase/firestore';
 import type { User } from '@/lib/types';
 import { useRouter } from 'next/navigation';
+import { isValidHttpUrl } from '@/lib/is-valid-url';
 
 export default function ProfilePage() {
     const { user: authUser, loading: authLoading } = useUser();
@@ -48,7 +49,7 @@ export default function ProfilePage() {
                 <CardContent className="p-6">
                     <div className="flex flex-col items-center gap-6 sm:flex-row">
                         <Avatar className="h-24 w-24 border-4 border-primary">
-                            {userImage && typeof userImage === 'string' && userImage.length > 0 ? (
+                            {isValidHttpUrl(userImage) ? (
                                <AvatarImage src={userImage} alt={currentUser.name} />
                             ) : (
                                 <AvatarFallback>{currentUser.name.charAt(0)}</AvatarFallback>
@@ -99,7 +100,7 @@ export default function ProfilePage() {
               <div className="grid grid-cols-2 gap-4 md:grid-cols-4">
                 {currentUser.photos.map((photoUrl, index) => (
                   <div key={index} className="group relative aspect-square">
-                      {photoUrl && typeof photoUrl === 'string' && photoUrl.length > 0 ? (
+                      {isValidHttpUrl(photoUrl) ? (
                         <Image
                             src={photoUrl}
                             alt={`Profile photo ${index + 1}`}
