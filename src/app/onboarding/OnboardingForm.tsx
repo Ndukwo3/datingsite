@@ -115,8 +115,10 @@ export function OnboardingForm() {
   const { user: authUser } = useUser();
   const firestore = useFirestore();
 
+  const currentSchema = steps[currentStep].schema;
+
   const methods = useForm<FormData>({
-    resolver: zodResolver(steps[currentStep].schema),
+    resolver: zodResolver(currentStep === steps.length - 2 ? fullSchema : currentSchema),
     mode: "onChange",
      defaultValues: {
         fullName: '',
@@ -194,7 +196,7 @@ export function OnboardingForm() {
             bio: data.bio,
             interests: data.interests,
             // In a real app, these would be URLs from Firebase Storage
-            photos: photoIds.slice(0, data.photos.length),
+            photos: photoIds.slice(0, data.photos?.length || 0),
             onboardingComplete: true,
             // We can also save preference data here
         };
@@ -243,7 +245,7 @@ export function OnboardingForm() {
   const handlePhotoUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
     if (e.target.files) {
       const files = Array.from(e.target.files);
-      const currentPhotos = getValues('photos');
+      const currentPhotos = getValues('photos') || [];
       if (currentPhotos.length + files.length > 6) {
         toast({ title: "You can upload a maximum of 6 photos.", variant: 'destructive' });
         return;
