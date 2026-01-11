@@ -12,10 +12,9 @@ import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover
 import { cn } from '@/lib/utils';
 import type { Conversation, Message, User } from '@/lib/types';
 import { PlaceHolderImages } from '@/lib/placeholder-images';
-import { ArrowLeft, Loader2, MoreVertical, SendHorizontal, Smile, ShieldAlert, User as UserIcon, XCircle } from 'lucide-react';
+import { ArrowLeft, Loader2, MoreVertical, SendHorizontal, Smile, ShieldAlert, User as UserIcon } from 'lucide-react';
 import { useToast } from '@/hooks/use-toast';
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuSeparator, DropdownMenuTrigger } from '@/components/ui/dropdown-menu';
-import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle, AlertDialogTrigger } from '@/components/ui/alert-dialog';
 import { Dialog, DialogTrigger, DialogContent, DialogHeader, DialogTitle, DialogDescription, DialogFooter, DialogClose } from '@/components/ui/dialog';
 import { Label } from '@/components/ui/label';
 import { RadioGroup, RadioGroupItem } from '@/components/ui/radio-group';
@@ -98,14 +97,6 @@ export function ChatInterface({ conversation, initialMessages, currentUser }: Ch
   const handleEmojiSelect = (emoji: string) => {
     setNewMessage(prev => prev + emoji);
   }
-  
-  const handleBlockUser = () => {
-    toast({
-        title: `User ${participantFirstName} blocked`,
-        description: "You will no longer see their profile or receive messages from them.",
-    });
-    // Here you would add logic to actually block the user
-  };
 
   const handleReportSubmit = () => {
      toast({
@@ -185,25 +176,6 @@ export function ChatInterface({ conversation, initialMessages, currentUser }: Ch
                         </DialogFooter>
                     </DialogContent>
                 </Dialog>
-                 <AlertDialog>
-                    <AlertDialogTrigger asChild>
-                         <DropdownMenuItem onSelect={(e) => e.preventDefault()} className="text-destructive focus:text-destructive">
-                             <XCircle className="mr-2" /> Block User
-                        </DropdownMenuItem>
-                    </AlertDialogTrigger>
-                    <AlertDialogContent>
-                        <AlertDialogHeader>
-                            <AlertDialogTitle>Block {participantFirstName}?</AlertDialogTitle>
-                            <AlertDialogDescription>
-                                You will not be able to send or receive messages from this user, and you won't see their profile. Are you sure?
-                            </AlertDialogDescription>
-                        </AlertDialogHeader>
-                        <AlertDialogFooter>
-                            <AlertDialogCancel>Cancel</AlertDialogCancel>
-                            <AlertDialogAction onClick={handleBlockUser} className={cn(buttonVariants({variant: 'destructive'}))}>Block</AlertDialogAction>
-                        </AlertDialogFooter>
-                    </AlertDialogContent>
-                </AlertDialog>
             </DropdownMenuContent>
         </DropdownMenu>
       </header>
