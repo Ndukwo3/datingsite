@@ -114,17 +114,8 @@ export function AuthPage({ defaultTab }: { defaultTab: "login" | "signup" }) {
 
         try {
             await setPersistence(auth, data.rememberMe ? browserLocalPersistence : browserSessionPersistence);
-            const userCredential = await signInWithEmailAndPassword(auth, data.email, data.password);
-            const user = userCredential.user;
-
-            const userDocRef = doc(firestore, 'users', user.uid);
-            const userDoc = await getDoc(userDocRef);
-
-            if (userDoc.exists() && userDoc.data().onboardingComplete) {
-                router.push('/feed');
-            } else {
-                router.push('/onboarding');
-            }
+            await signInWithEmailAndPassword(auth, data.email, data.password);
+            router.push('/feed');
         } catch (error: any) {
             let description = "An unexpected error occurred. Please try again.";
             if (error.code === 'auth/invalid-credential' || error.code === 'auth/user-not-found' || error.code === 'auth/wrong-password') {
