@@ -54,7 +54,7 @@ export function LandingHeader({ theme = 'dark' }: LandingHeaderProps) {
         : "bg-transparent",
       isScrolled && !isLight && "bg-black/50 backdrop-blur-lg"
     )}>
-      <div className="flex items-center justify-between px-4 sm:px-6 h-16">
+      <div className="flex h-16 items-center justify-between px-4 sm:px-6">
         <Logo className={cn(isLight ? "text-foreground" : "text-white")} />
         
         <nav className={cn(
@@ -77,7 +77,7 @@ export function LandingHeader({ theme = 'dark' }: LandingHeaderProps) {
           )}>
             <Link href="/signup?fromNav=true">Sign Up</Link>
           </Button>
-          <ThemeToggle className={cn(isLight ? "text-foreground" : "text-white", "hidden md:inline-flex")}/>
+          <ThemeToggle className={cn(isLight ? "text-foreground" : "text-white")}/>
         </div>
       </div>
     </header>
