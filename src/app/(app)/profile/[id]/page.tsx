@@ -35,7 +35,7 @@ export default function UserProfilePage({ params }: ProfilePageProps) {
     notFound();
   }
 
-  const userImages = user.photos.map(photoId => PlaceHolderImages.find(p => p.id === photoId)).filter(Boolean);
+  const userImage = PlaceHolderImages.find(p => p.id === user.photos[0]);
 
   return (
     <div className="relative flex h-full min-h-screen flex-col md:flex-row">
@@ -44,21 +44,15 @@ export default function UserProfilePage({ params }: ProfilePageProps) {
        </Button>
 
       {/* Left side: Photo Gallery */}
-      <div className="md:w-2/5 md:h-screen md:sticky md:top-0 bg-black">
-        <div className="grid grid-cols-2 grid-rows-2 gap-1 h-full">
-            {userImages.slice(0, 4).map((image, index) => (
-                <div key={image!.id} className="relative w-full h-full">
-                    {image && (
-                        <Image
-                        src={image.imageUrl}
-                        alt={`${user.name}'s photo ${index + 1}`}
-                        fill
-                        className="object-cover"
-                        />
-                    )}
-                </div>
-            ))}
-        </div>
+      <div className="relative md:w-2/5 md:h-screen md:sticky md:top-0 bg-black">
+        {userImage && (
+            <Image
+            src={userImage.imageUrl}
+            alt={`${user.name}'s photo`}
+            fill
+            className="object-cover"
+            />
+        )}
       </div>
 
       {/* Right side: Profile Details */}
