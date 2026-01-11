@@ -1,13 +1,20 @@
+
 export type User = {
   id: string;
   name: string;
   age: number;
   bio: string;
   location: string;
+  job: string;
+  education: string;
   interests: string[];
   photos: string[]; // Array of image placeholder IDs
   isVerified: boolean;
   lastSeen: Date | 'online';
+  socials?: {
+    instagram?: string;
+    spotify?: string;
+  }
 };
 
 export type Match = {
