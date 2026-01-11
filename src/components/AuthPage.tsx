@@ -296,6 +296,17 @@ const SignUpForm = ({ onSubmit, isLoading, onSwitch }: { onSubmit: (data: UserDa
             return;
         }
 
+        const passwordRegex = /^(?=.*[A-Z])(?=.*\d)(?=.*[!@#$%^&*()_+\-=\[\]{};':"\\|,.<>\/?]).{8,}$/;
+        if (!passwordRegex.test(password)) {
+            toast({
+                title: "Weak Password",
+                description: "Password must be at least 8 characters long and include one capital letter, one number, and one symbol.",
+                variant: "destructive",
+                duration: 5000,
+            });
+            return;
+        }
+
         const data = {
             name: formData.get('name') as string,
             phone: formData.get('phone') as string,
@@ -389,5 +400,3 @@ const SignUpForm = ({ onSubmit, isLoading, onSwitch }: { onSubmit: (data: UserDa
         </form>
     );
 };
-
-    
