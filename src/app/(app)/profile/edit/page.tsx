@@ -15,6 +15,7 @@ import Link from 'next/link';
 import { ArrowLeft } from 'lucide-react';
 import { Badge } from '@/components/ui/badge';
 import { interestOptions } from '@/lib/data';
+import { useRouter } from 'next/navigation';
 
 const profileSchema = z.object({
   name: z.string().min(2, 'Name must be at least 2 characters.'),
@@ -28,6 +29,7 @@ type ProfileFormData = z.infer<typeof profileSchema>;
 
 export default function EditProfilePage() {
   const { toast } = useToast();
+  const router = useRouter();
   const { control, handleSubmit, formState: { errors }, getValues, setValue, watch } = useForm<ProfileFormData>({
     resolver: zodResolver(profileSchema),
     defaultValues: {
@@ -45,6 +47,7 @@ export default function EditProfilePage() {
       title: 'Profile Updated!',
       description: 'Your changes have been saved successfully.',
     });
+    router.push('/profile');
   };
 
   const interests = watch('interests', []);
