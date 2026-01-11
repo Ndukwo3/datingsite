@@ -7,6 +7,7 @@ export type User = {
   interests: string[];
   photos: string[]; // Array of image placeholder IDs
   isVerified: boolean;
+  lastSeen: Date | 'online';
 };
 
 export type Match = {

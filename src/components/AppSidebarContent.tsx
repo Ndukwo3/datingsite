@@ -12,11 +12,12 @@ import {
 } from "@/components/ui/sidebar";
 import { Logo } from "@/components/Logo";
 import { Button } from "./ui/button";
-import { Flame, MessageSquareText, Users, CircleUser, Crown, LogOut, Settings } from "lucide-react";
+import { Flame, MessageSquareText, Users, CircleUser, Crown, LogOut, Settings, Rss } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { ThemeToggle } from "./ThemeToggle";
 
 const menuItems = [
+  { href: "/feed", label: "Feed", icon: Rss },
   { href: "/discover", label: "Swipe", icon: Flame },
   { href: "/matches", label: "Matches", icon: Users },
   { href: "/chat", label: "Chat", icon: MessageSquareText },
