@@ -4,47 +4,152 @@
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import Image from 'next/image';
-import { Briefcase, ChevronRight, Crown, Edit, Eye, GraduationCap, HelpCircle, KeyRound, Loader2, MapPin, Bell, ShieldCheck, Trash2, Upload, User as UserIcon } from 'lucide-react';
+import { Briefcase, ChevronRight, Crown, Edit, Eye, GraduationCap, HelpCircle, KeyRound, Loader2, MapPin, Bell, ShieldCheck, Trash2, Upload, User as UserIcon, X } from 'lucide-react';
 import Link from 'next/link';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { Badge } from '@/components/ui/badge';
 import { Switch } from '@/components/ui/switch';
 import { useUser, useFirestore, useDoc } from '@/firebase';
-import { doc } from 'firebase/firestore';
+import { doc, setDoc, updateDoc } from 'firebase/firestore';
 import type { User } from '@/lib/types';
 import { useRouter } from 'next/navigation';
 import { isValidHttpUrl } from '@/lib/is-valid-url';
-import { useEffect } from 'react';
+import { useEffect, useState, useRef } from 'react';
+import { useToast } from '@/hooks/use-toast';
+import imageCompression from 'browser-image-compression';
+import { validateProfilePhoto } from '@/ai/flows/validate-profile-photo';
+import { uploadFile } from '@/lib/storage';
+import { cn } from '@/lib/utils';
+import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+  AlertDialogTrigger,
+} from "@/components/ui/alert-dialog"
 
 export default function ProfilePage() {
     const { user: authUser, loading: authLoading, userData } = useUser();
     const router = useRouter();
+    const { toast } = useToast();
+    const firestore = useFirestore();
+    const fileInputRef = useRef<HTMLInputElement>(null);
+    const [uploading, setUploading] = useState(false);
 
     const loading = authLoading;
 
     useEffect(() => {
-      // Wait until loading is finished to make a decision.
       if (!loading) {
-        // If there's no authenticated user, or if the user data exists but onboarding is not complete, redirect.
         if (!authUser || (userData && userData.onboardingComplete === false)) {
           router.push('/onboarding');
         }
       }
     }, [loading, authUser, userData, router]);
 
-    // Show a loading spinner while we check auth and user data.
-    // Also show loading if userData is not yet available, which prevents showing a partially rendered page.
     if (loading || !userData) {
         return <div className="flex h-full items-center justify-center"><Loader2 className="h-8 w-8 animate-spin" /></div>;
     }
     
-    // If we've passed the loading and effect checks, it's safe to render the profile.
     const currentUser = userData;
     const userImage = currentUser.photos?.[0];
+
+    const fileToDataUri = (file: File): Promise<string> => {
+        return new Promise((resolve, reject) => {
+            const reader = new FileReader();
+            reader.onload = () => resolve(reader.result as string);
+            reader.onerror = reject;
+            reader.readAsDataURL(file);
+        });
+    }
+
+    const handlePhotoUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
+        if (!e.target.files || !firestore || !authUser) return;
+
+        const files = Array.from(e.target.files);
+        if (currentUser.photos.length + files.length > 6) {
+            toast({ title: "You can upload a maximum of 6 photos.", variant: "destructive" });
+            return;
+        }
+
+        setUploading(true);
+        try {
+            const uploadPromises = files.map(async (file) => {
+                const compressionOptions = {
+                    maxSizeMB: 0.2,
+                    maxWidthOrHeight: 1080,
+                    useWebWorker: true,
+                };
+                const compressedFile = await imageCompression(file, compressionOptions);
+                const photoDataUri = await fileToDataUri(compressedFile);
+
+                const validation = await validateProfilePhoto({ photoDataUri });
+                if (!validation.isValid) {
+                    throw new Error(validation.reason || "Invalid photo");
+                }
+
+                return uploadFile(compressedFile, `users/${authUser.uid}/photos`);
+            });
+
+            const newPhotoUrls = await Promise.all(uploadPromises);
+            const userDocRef = doc(firestore, 'users', authUser.uid);
+            await updateDoc(userDocRef, {
+                photos: [...currentUser.photos, ...newPhotoUrls]
+            });
+
+            toast({ title: "Photos uploaded successfully!" });
+
+        } catch (error: any) {
+            toast({
+                title: "Upload failed",
+                description: error.message || "Could not upload photo. Please try again.",
+                variant: "destructive"
+            });
+        } finally {
+            setUploading(false);
+            if (fileInputRef.current) {
+                fileInputRef.current.value = "";
+            }
+        }
+    };
+    
+    const handleDeletePhoto = async (photoUrlToDelete: string) => {
+        if (!firestore || !authUser) return;
+
+        const updatedPhotos = currentUser.photos.filter(url => url !== photoUrlToDelete);
+        const userDocRef = doc(firestore, 'users', authUser.uid);
+
+        try {
+            await updateDoc(userDocRef, { photos: updatedPhotos });
+            toast({ title: "Photo removed." });
+        } catch (error) {
+            toast({ title: "Error", description: "Could not remove photo.", variant: "destructive" });
+        }
+    };
+
+    const handleSetMainPhoto = async (photoUrlToSetAsMain: string) => {
+        if (!firestore || !authUser) return;
+
+        const otherPhotos = currentUser.photos.filter(url => url !== photoUrlToSetAsMain);
+        const newPhotoOrder = [photoUrlToSetAsMain, ...otherPhotos];
+        const userDocRef = doc(firestore, 'users', authUser.uid);
+
+        try {
+            await updateDoc(userDocRef, { photos: newPhotoOrder });
+            toast({ title: "Main photo updated." });
+        } catch (error) {
+            toast({ title: "Error", description: "Could not update main photo.", variant: "destructive" });
+        }
+    };
+
 
   return (
     <div className="space-y-8">
       <h1 className="font-headline text-3xl font-bold">My Profile</h1>
+      <input type="file" ref={fileInputRef} onChange={handlePhotoUpload} accept="image/*" multiple className="hidden" />
 
       <div className="grid grid-cols-1 gap-8 lg:grid-cols-3">
         {/* Left Column */}
@@ -97,34 +202,67 @@ export default function ProfilePage() {
           <Card>
             <CardHeader className="flex-row items-center justify-between">
               <CardTitle>My Photos</CardTitle>
-              <Button variant="ghost" size="sm">
-                <Upload className="mr-2 h-4 w-4" />
+               <Button variant="ghost" size="sm" onClick={() => fileInputRef.current?.click()} disabled={uploading}>
+                {uploading ? <Loader2 className="mr-2 h-4 w-4 animate-spin" /> : <Upload className="mr-2 h-4 w-4" />}
                 Add Photo
               </Button>
             </CardHeader>
             <CardContent>
               <div className="grid grid-cols-2 gap-4 md:grid-cols-4">
                 {currentUser.photos.map((photoUrl, index) => (
-                  <div key={index} className="group relative aspect-square">
-                      {isValidHttpUrl(photoUrl) ? (
-                        <Image
-                            src={photoUrl}
-                            alt={`Profile photo ${index + 1}`}
-                            fill
-                            className="rounded-lg object-cover"
-                        />
-                      ) : (
-                         <div className="w-full h-full bg-muted rounded-lg flex items-center justify-center">
-                           <UserIcon className="w-10 h-10 text-muted-foreground" />
-                         </div>
-                      )}
-                    {index === 0 && <Badge className="absolute top-2 left-2">Main</Badge>}
-                  </div>
+                    <div key={index} className="group relative aspect-square">
+                        {isValidHttpUrl(photoUrl) ? (
+                            <Image
+                                src={photoUrl}
+                                alt={`Profile photo ${index + 1}`}
+                                fill
+                                className="rounded-lg object-cover"
+                            />
+                        ) : (
+                            <div className="w-full h-full bg-muted rounded-lg flex items-center justify-center">
+                            <UserIcon className="w-10 h-10 text-muted-foreground" />
+                            </div>
+                        )}
+                        <div className="absolute inset-0 bg-black/50 opacity-0 group-hover:opacity-100 transition-opacity rounded-lg flex items-center justify-center gap-2">
+                             <AlertDialog>
+                                <AlertDialogTrigger asChild>
+                                    <Button variant="destructive" size="icon" className="h-8 w-8">
+                                        <Trash2 className="h-4 w-4"/>
+                                    </Button>
+                                </AlertDialogTrigger>
+                                <AlertDialogContent>
+                                    <AlertDialogHeader>
+                                    <AlertDialogTitle>Are you sure?</AlertDialogTitle>
+                                    <AlertDialogDescription>
+                                        This will permanently delete this photo from your profile.
+                                    </AlertDialogDescription>
+                                    </AlertDialogHeader>
+                                    <AlertDialogFooter>
+                                    <AlertDialogCancel>Cancel</AlertDialogCancel>
+                                    <AlertDialogAction onClick={() => handleDeletePhoto(photoUrl)} className={cn(buttonVariants({variant: 'destructive'}))}>Delete</AlertDialogAction>
+                                    </AlertDialogFooter>
+                                </AlertDialogContent>
+                            </AlertDialog>
+                            {index > 0 && (
+                                <Button variant="secondary" size="icon" className="h-8 w-8" onClick={() => handleSetMainPhoto(photoUrl)}>
+                                    <Star className="h-4 w-4"/>
+                                </Button>
+                            )}
+                        </div>
+                         {index === 0 && <Badge className="absolute top-2 left-2">Main</Badge>}
+                    </div>
                 ))}
-                <div className="flex aspect-square cursor-pointer flex-col items-center justify-center rounded-lg border-2 border-dashed border-muted-foreground/50 text-muted-foreground transition-colors hover:bg-muted">
-                  <Upload className="h-8 w-8" />
-                  <span className="mt-2 text-sm">Add Photo</span>
-                </div>
+                 {currentUser.photos.length < 6 && (
+                    <div 
+                        className="flex aspect-square cursor-pointer flex-col items-center justify-center rounded-lg border-2 border-dashed border-muted-foreground/50 text-muted-foreground transition-colors hover:bg-muted"
+                        onClick={() => fileInputRef.current?.click()}
+                    >
+                         {uploading ? <Loader2 className="h-8 w-8 animate-spin" /> : <Upload className="h-8 w-8" />}
+                        <span className="mt-2 text-sm text-center">
+                            {uploading ? 'Uploading...' : 'Add Photo'}
+                        </span>
+                    </div>
+                 )}
               </div>
             </CardContent>
           </Card>
@@ -276,3 +414,5 @@ export default function ProfilePage() {
     </div>
   );
 }
+
+    
