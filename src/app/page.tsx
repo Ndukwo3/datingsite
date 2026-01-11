@@ -15,7 +15,7 @@ export default function LandingPage() {
   
   return (
     <div className="flex min-h-screen flex-col bg-background text-foreground">
-      <LandingHeader theme="dark" />
+      <LandingHeader theme="light" />
       <main className="flex-1">
         <section 
           className="relative h-screen"
