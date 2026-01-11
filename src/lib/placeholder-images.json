@@ -63,7 +63,7 @@
     {
       "id": "user-5",
       "description": "Profile picture of a woman laughing",
-      "imageUrl": "https://images.unsplash.com/photo-1620245293237-975545f47a60?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&ixid=M3w3NDE5ODJ8MHwxfHNlYXJjaHw1fHxuaWdlcmlhbiUyMHdvbWFufGVufDB8fHx8MTc2ODgyMDA2M3ww&ixlib=rb-4.1.0&q=80&w=1080",
+      "imageUrl": "https://images.unsplash.com/photo-1620245293237-975545f47a60?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&ixid=M3w3NDE5ODJ8MHwxfHNlYXJjaHw1fHxuaWdlcmlhbiUyMHdvbWFufGVufDB8fHx8fDE3Njg4MjAwNjN8MA&ixlib=rb-4.1.0&q=80&w=1080",
       "imageHint": "nigerian woman"
     },
     {
@@ -86,9 +86,9 @@
     },
     {
       "id": "user-9",
-      "description": "Profile picture of a woman at the beach",
-      "imageUrl": "https://images.unsplash.com/photo-1604223594191-036d0deaf363?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&ixid=M3w3NDE5ODJ8MHwxfHNlYXJjaHwxMnx8bmlnZXJpYW4lMjB3b21hbnxlbnwwfHx8fDE3Njg4MjAwNjN8MA&ixlib=rb-4.1.0&q=80&w=1080",
-      "imageHint": "nigerian woman"
+      "description": "Profile picture of an african woman",
+      "imageUrl": "https://images.unsplash.com/photo-1742473716788-72ec6df8a830?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&ixid=M3w3NDE5ODJ8MHwxfHNlYXJjaHw2fHxhbiUyMGFmcmljYW4lMjB3d29tYW58ZW58MHx8fHwxNzY4MTIxMjc3fDA&ixlib=rb-4.1.0&q=80&w=1080",
+      "imageHint": "african woman"
     },
     {
       "id": "user-10",
