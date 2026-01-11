@@ -84,7 +84,7 @@ export function AuthPage({ defaultTab }: { defaultTab: "login" | "signup" }) {
             
             router.push('/onboarding');
         } catch (error: any) {
-            console.error(error);
+            
             const errorMessage = error.code === 'auth/email-already-in-use'
                 ? 'This email is already registered. Please log in.'
                 : error.message || "An unexpected error occurred.";
@@ -109,7 +109,6 @@ export function AuthPage({ defaultTab }: { defaultTab: "login" | "signup" }) {
             await signInWithEmailAndPassword(auth, data.email, data.password);
             router.push('/feed');
         } catch (error: any) {
-            console.error(error);
             let description = "An unexpected error occurred. Please try again.";
             if (error.code === 'auth/invalid-credential' || error.code === 'auth/user-not-found' || error.code === 'auth/wrong-password') {
                 description = "Invalid credentials. Please check your email and password.";
