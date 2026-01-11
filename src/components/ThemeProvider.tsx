@@ -27,14 +27,29 @@ export function ThemeProvider({
   defaultTheme?: Theme
   storageKey?: string
 }) {
-  const [theme, setTheme] = React.useState<Theme>(() => {
-    if (typeof window === 'undefined') {
-      return defaultTheme;
-    }
-    return (localStorage.getItem(storageKey) as Theme) || defaultTheme;
-  })
+  const [theme, setTheme] = React.useState<Theme>(defaultTheme);
+  const [isMounted, setIsMounted] = React.useState(false);
 
   React.useEffect(() => {
+    setIsMounted(true);
+  }, []);
+
+  React.useEffect(() => {
+    if (isMounted) {
+      try {
+        const storedTheme = localStorage.getItem(storageKey) as Theme | null;
+        if (storedTheme) {
+          setTheme(storedTheme);
+        }
+      } catch (e) {
+        // Ignore
+      }
+    }
+  }, [isMounted, storageKey]);
+  
+  React.useEffect(() => {
+    if (!isMounted) return;
+    
     const root = window.document.documentElement
 
     root.classList.remove("light", "dark")
@@ -48,15 +63,19 @@ export function ThemeProvider({
     }
 
     root.classList.add(effectiveTheme)
-  }, [theme])
+  }, [theme, isMounted])
 
   const value = {
     theme,
-    setTheme: (theme: Theme) => {
-      if (typeof window !== 'undefined') {
-        localStorage.setItem(storageKey, theme)
+    setTheme: (newTheme: Theme) => {
+      if (isMounted) {
+        try {
+          localStorage.setItem(storageKey, newTheme);
+        } catch (e) {
+          // Ignore
+        }
+        setTheme(newTheme);
       }
-      setTheme(theme)
     },
   }
 
