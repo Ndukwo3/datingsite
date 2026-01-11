@@ -55,7 +55,7 @@ export default function MatchesPage() {
             <Link href={`/chat/${participant.id}`} key={match.id} className="group">
               <Card className="overflow-hidden transition-all duration-300 hover:scale-105 hover:shadow-lg border-transparent hover:border-primary">
                 <CardContent className="relative aspect-square p-0">
-                  {userImage && typeof userImage === 'string' ? (
+                  {userImage && typeof userImage === 'string' && userImage.length > 0 ? (
                     <Image
                       src={userImage}
                       alt={participant.name}

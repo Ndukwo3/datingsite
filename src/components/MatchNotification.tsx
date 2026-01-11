@@ -7,7 +7,7 @@ import Link from 'next/link';
 import { Button } from '@/components/ui/button';
 import { useUser } from '@/firebase';
 import type { User } from '@/lib/types';
-import { Heart } from 'lucide-react';
+import { Heart, User as UserIcon } from 'lucide-react';
 
 type MatchNotificationProps = {
   matchedUser: User;
@@ -47,13 +47,17 @@ export function MatchNotification({ matchedUser, onKeepSwiping }: MatchNotificat
           transition={{ delay: 0.3, type: 'spring' }}
           className="relative w-40 h-52 md:w-48 md:h-64"
         >
-          {currentUserImage && currentUser && (
+          {currentUserImage && typeof currentUserImage === 'string' && currentUserImage.length > 0 ? (
             <Image
               src={currentUserImage}
-              alt={currentUser.name}
+              alt={currentUser?.name || 'Current User'}
               fill
               className="rounded-2xl object-cover border-4 border-white shadow-2xl"
             />
+          ) : (
+            <div className="w-full h-full bg-muted rounded-2xl border-4 border-white shadow-2xl flex items-center justify-center">
+              <UserIcon className="w-16 h-16 text-muted-foreground" />
+            </div>
           )}
         </motion.div>
         
@@ -72,13 +76,17 @@ export function MatchNotification({ matchedUser, onKeepSwiping }: MatchNotificat
           transition={{ delay: 0.3, type: 'spring' }}
           className="relative w-40 h-52 md:w-48 md:h-64"
         >
-          {matchedUserImage && (
+          {matchedUserImage && typeof matchedUserImage === 'string' && matchedUserImage.length > 0 ? (
             <Image
               src={matchedUserImage}
               alt={matchedUser.name}
               fill
               className="rounded-2xl object-cover border-4 border-white shadow-2xl"
             />
+          ) : (
+             <div className="w-full h-full bg-muted rounded-2xl border-4 border-white shadow-2xl flex items-center justify-center">
+              <UserIcon className="w-16 h-16 text-muted-foreground" />
+            </div>
           )}
         </motion.div>
       </div>

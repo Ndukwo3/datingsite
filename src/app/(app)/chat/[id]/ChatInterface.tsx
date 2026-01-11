@@ -115,7 +115,7 @@ export function ChatInterface({ participant, conversationId }: ChatInterfaceProp
             <Link href="/chat"><ArrowLeft /></Link>
         </Button>
         <Avatar className="h-10 w-10">
-          {participantImage && typeof participantImage === 'string' ? (
+          {participantImage && typeof participantImage === 'string' && participantImage.length > 0 ? (
             <AvatarImage src={participantImage} alt={participant.name} />
           ) : (
             <AvatarFallback>{participantFirstName.charAt(0)}</AvatarFallback>
