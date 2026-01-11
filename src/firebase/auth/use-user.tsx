@@ -33,6 +33,6 @@ export function useUser() {
   return {
     user,
     userData,
-    loading: loading || (user ? userDataLoading : false),
+    loading: loading || userDataLoading,
   };
 }

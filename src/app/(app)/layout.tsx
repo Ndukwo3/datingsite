@@ -22,8 +22,8 @@ export default function AppLayout({ children }: { children: ReactNode }) {
         }
     }, [user, loading, router]);
 
-
-    if (loading || !user) {
+    // Show a loading spinner while the auth state is being determined.
+    if (loading) {
         return (
             <div className="flex h-screen w-screen items-center justify-center bg-background">
                 <Loader2 className="h-8 w-8 animate-spin" />
@@ -31,6 +31,17 @@ export default function AppLayout({ children }: { children: ReactNode }) {
         );
     }
     
+    // If loading is finished and there's still no user, the useEffect will handle the redirect.
+    // We can render null or a loading spinner here to prevent a brief flash of the layout.
+    if (!user) {
+        return (
+             <div className="flex h-screen w-screen items-center justify-center bg-background">
+                <Loader2 className="h-8 w-8 animate-spin" />
+            </div>
+        );
+    }
+    
+    // If we have a user, render the full layout.
     return (
         <SidebarProvider>
             <Sidebar>

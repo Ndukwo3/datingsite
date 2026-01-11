@@ -3,7 +3,6 @@
 
 import { useState, useEffect } from "react";
 import {
-  doc,
   onSnapshot,
   type DocumentReference,
   type DocumentData,
@@ -55,7 +54,7 @@ export function useDoc<T = DocumentData>(
 
     return () => unsubscribe();
   // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [ref]);
+  }, [ref?.path]);
 
   return { data, loading, error };
 }
