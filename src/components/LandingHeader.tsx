@@ -66,7 +66,7 @@ export function LandingHeader({ theme = 'dark' }: LandingHeaderProps) {
             ))}
         </nav>
         
-        <div className="hidden md:flex items-center gap-2 sm:gap-4">
+        <div className="flex items-center gap-2 sm:gap-4">
           <Button asChild variant="ghost" className={cn(
             isLight ? "text-foreground hover:bg-muted" : "text-white hover:bg-white/10 hover:text-white"
           )}>
@@ -77,37 +77,7 @@ export function LandingHeader({ theme = 'dark' }: LandingHeaderProps) {
           )}>
             <Link href="/signup?fromNav=true">Sign Up</Link>
           </Button>
-          <ThemeToggle className={cn(isLight ? "text-foreground" : "text-white")}/>
-        </div>
-
-        <div className="md:hidden flex items-center gap-2">
-            <Button asChild variant="ghost" size="sm" className={cn(isLight ? "text-foreground" : "text-white")}>
-                <Link href="/login?fromNav=true">Log In</Link>
-            </Button>
-            <Button asChild size="sm" className={cn(isLight ? "bg-primary text-primary-foreground" : "bg-white text-black")}>
-                <Link href="/signup?fromNav=true">Sign Up</Link>
-            </Button>
-            <ThemeToggle className={cn(isLight ? "text-foreground" : "text-white")}/>
-            <Sheet>
-                <SheetTrigger asChild>
-                    <Button variant="ghost" size="icon" className={cn(isLight ? "text-foreground" : "text-white")}>
-                        <Menu />
-                        <span className="sr-only">Open menu</span>
-                    </Button>
-                </SheetTrigger>
-                <SheetContent side="right" className={cn("bg-background text-foreground", !isLight && "dark bg-gray-900 text-white border-gray-800")}>
-                    <div className="flex flex-col h-full">
-                        <div className="p-4">
-                            <Logo />
-                        </div>
-                        <nav className="flex-1 flex flex-col items-center justify-center gap-8">
-                            {navLinks.map(link => (
-                                <Link key={link.href} href={link.href} className={linkClasses(link.href, true)}>{link.label}</Link>
-                            ))}
-                        </nav>
-                    </div>
-                </SheetContent>
-            </Sheet>
+          <ThemeToggle className={cn(isLight ? "text-foreground" : "text-white", "hidden md:inline-flex")}/>
         </div>
       </div>
     </header>
