@@ -16,7 +16,7 @@ import { PlaceHolderImages } from "@/lib/placeholder-images";
 
 const tutorialSlides = [
   {
-    icon: <Heart className="w-10 h-10 text-primary" />,
+    icon: <Heart className="w-8 h-8 text-primary" />,
     title: "Swipe Right to Like",
     description: "If you're interested in someone, swipe their card to the right.",
     animation: {
@@ -25,7 +25,7 @@ const tutorialSlides = [
     }
   },
   {
-    icon: <X className="w-10 h-10 text-red-500" />,
+    icon: <X className="w-8 h-8 text-red-500" />,
     title: "Swipe Left to Pass",
     description: "Not interested? Swipe left to see the next profile.",
     animation: {
@@ -34,7 +34,7 @@ const tutorialSlides = [
     }
   },
   {
-    icon: <Star className="w-10 h-10 text-blue-500" />,
+    icon: <Star className="w-8 h-8 text-blue-500" />,
     title: "Super Like Someone Special",
     description: "Really like someone? Swipe up to send a Super Like and stand out.",
     note: "You get 1 free Super Like per day",
@@ -44,7 +44,7 @@ const tutorialSlides = [
     }
   },
   {
-    icon: <MessageSquare className="w-10 h-10 text-primary" />,
+    icon: <MessageSquare className="w-8 h-8 text-primary" />,
     title: "Match & Start Chatting",
     description: "When someone likes you back, it's a match! You can now send messages and get to know each other.",
     note: "Only mutual matches can message",
@@ -153,8 +153,10 @@ export function TutorialOverlay() {
                 >
                     {tutorialSlides[currentSlide] && (
                         <>
-                            <div className="flex justify-center mb-3">{tutorialSlides[currentSlide].icon}</div>
-                            <h2 className="text-2xl font-headline font-bold mb-2">{tutorialSlides[currentSlide].title}</h2>
+                            <h2 className="text-2xl font-headline font-bold mb-2 flex items-center justify-center gap-3">
+                                {tutorialSlides[currentSlide].icon}
+                                <span>{tutorialSlides[currentSlide].title}</span>
+                            </h2>
                             <p className="text-base text-white/80">{tutorialSlides[currentSlide].description}</p>
                             {tutorialSlides[currentSlide].note && <p className="text-sm text-white/60 mt-2">{tutorialSlides[currentSlide].note}</p>}
                         </>
