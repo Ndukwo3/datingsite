@@ -14,7 +14,6 @@ import type { Conversation, Message, User } from '@/lib/types';
 import { PlaceHolderImages } from '@/lib/placeholder-images';
 import { ArrowLeft, Loader2, MoreVertical, SendHorizontal, Smile } from 'lucide-react';
 import { useToast } from '@/hooks/use-toast';
-import { detectHarassment } from '@/ai/flows/harassment-detection';
 
 type ChatInterfaceProps = {
   conversation: Conversation;
@@ -52,30 +51,20 @@ export function ChatInterface({ conversation, initialMessages, currentUser }: Ch
     setIsSending(true);
 
     try {
-        const harassmentResult = await detectHarassment({ message: newMessage });
-        if(harassmentResult.isHarassment) {
-            toast({
-                title: "Message Blocked",
-                description: `Our AI detected potential harassment: ${harassmentResult.reason}. Please be respectful.`,
-                variant: 'destructive',
-                duration: 5000,
-            });
-            // Don't return here, let finally block run
-        } else {
-            const messageToSend: Message = {
-                id: `msg-${Date.now()}`,
-                senderId: currentUser.id,
-                receiverId: participant.id,
-                text: newMessage,
-                timestamp: new Date(),
-            };
+        // AI Harassment detection removed
+        const messageToSend: Message = {
+            id: `msg-${Date.now()}`,
+            senderId: currentUser.id,
+            receiverId: participant.id,
+            text: newMessage,
+            timestamp: new Date(),
+        };
 
-            setMessages(prev => [...prev, messageToSend]);
-            setNewMessage('');
-        }
+        setMessages(prev => [...prev, messageToSend]);
+        setNewMessage('');
 
     } catch (error) {
-        console.error("Failed to send message or detect harassment:", error);
+        console.error("Failed to send message:", error);
         toast({
             title: "Error",
             description: "Could not send message. Please try again.",

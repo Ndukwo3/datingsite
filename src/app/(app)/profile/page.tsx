@@ -12,44 +12,14 @@ import Image from 'next/image';
 import { Save, Sparkles, Upload } from 'lucide-react';
 import { useState } from 'react';
 import { useToast } from '@/hooks/use-toast';
-import { suggestPreferences } from '@/ai/flows/suggested-preferences';
 import { Loader2 } from 'lucide-react';
 import { Badge } from '@/components/ui/badge';
 
 export default function ProfilePage() {
   const [bio, setBio] = useState(currentUser.bio);
   const [interests, setInterests] = useState(currentUser.interests.join(', '));
-  const [suggested, setSuggested] = useState<string[]>([]);
   const [selectedPrefs, setSelectedPrefs] = useState<string[]>(currentUser.interests);
-  const [isLoadingSuggestions, setIsLoadingSuggestions] = useState(false);
   const { toast } = useToast();
-
-  const handleGetSuggestions = async () => {
-    if (!bio || !interests) {
-      toast({
-        title: 'Please fill out your bio and interests.',
-        variant: 'destructive',
-      });
-      return;
-    }
-
-    setIsLoadingSuggestions(true);
-    try {
-      const result = await suggestPreferences({ bio, interests, age: currentUser.age, location: currentUser.location });
-      // Filter out suggestions that are already in the user's interests
-      const newSuggestions = result.suggestedPreferences.filter(p => !selectedPrefs.find(sp => sp.toLowerCase() === p.toLowerCase()));
-      setSuggested(newSuggestions);
-    } catch (error) {
-      console.error(error);
-      toast({
-        title: "Couldn't get suggestions",
-        description: 'There was an issue with our AI. Please try again.',
-        variant: 'destructive',
-      });
-    } finally {
-      setIsLoadingSuggestions(false);
-    }
-  };
 
   const togglePreference = (pref: string) => {
     setSelectedPrefs(prev => {
@@ -147,39 +117,8 @@ export default function ProfilePage() {
                     </Badge>
                 ))}
             </div>
-            <p className="text-sm text-muted-foreground">Separate interests with a comma, or use the suggestions below.</p>
+            <p className="text-sm text-muted-foreground">Separate interests with a comma.</p>
           </div>
-           <Card>
-                <CardContent className="pt-6">
-                <div className="flex flex-col md:flex-row items-center gap-4">
-                    <div className="flex-1">
-                    <h3 className="font-semibold flex items-center gap-2"><Sparkles className="text-accent w-5 h-5"/> AI-Powered Suggestions</h3>
-                    <p className="text-sm text-muted-foreground">Get personalized interest suggestions based on your profile.</p>
-                    </div>
-                    <Button onClick={handleGetSuggestions} disabled={isLoadingSuggestions} variant="outline">
-                    {isLoadingSuggestions ? <Loader2 className="mr-2 h-4 w-4 animate-spin" /> : <Sparkles className="mr-2 h-4 w-4" />}
-                    Suggest Interests
-                    </Button>
-                </div>
-                {suggested.length > 0 && (
-                    <div className="mt-4 space-y-2">
-                        <p className="text-sm font-medium">Click to add suggestions:</p>
-                    <div className="flex flex-wrap gap-2">
-                        {suggested.map((pref) => (
-                        <Badge
-                            key={pref}
-                            variant={"outline"}
-                            onClick={() => togglePreference(pref)}
-                            className="cursor-pointer transition-colors"
-                        >
-                            + {pref}
-                        </Badge>
-                        ))}
-                    </div>
-                    </div>
-                )}
-                </CardContent>
-            </Card>
           <div className="flex justify-end">
             <Button className="bg-primary text-primary-foreground hover:bg-primary/90">
               <Save className="mr-2 h-4 w-4" /> Save Changes
