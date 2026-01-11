@@ -9,7 +9,7 @@ import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import { BadgeCheck, Heart, MapPin, X, Star, Briefcase, GraduationCap, Instagram, Share2, Flag, ArrowLeft, Loader2 } from 'lucide-react';
 import Link from 'next/link';
-import { useDoc, useFirestore } from '@/firebase';
+import { useDoc, useFirestore } from '../../../../firebase';
 import { doc } from 'firebase/firestore';
 import type { User } from '@/lib/types';
 

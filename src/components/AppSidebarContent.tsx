@@ -15,7 +15,7 @@ import { Logo } from "@/components/Logo";
 import { Flame, MessageSquareText, Users, CircleUser, Crown, LogOut, Settings, Rss } from "lucide-react";
 import { ThemeToggle } from "./ThemeToggle";
 import { getAuth, signOut } from "firebase/auth";
-import { useFirebaseApp } from "@/firebase";
+import { useFirebaseApp } from "../firebase";
 import { useRouter } from "next/navigation";
 import { useToast } from "@/hooks/use-toast";
 

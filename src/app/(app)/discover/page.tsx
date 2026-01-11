@@ -10,7 +10,7 @@ import { Button } from '@/components/ui/button';
 import { ProfileCard } from '@/components/ProfileCard';
 import { MatchNotification } from '@/components/MatchNotification';
 import type { User } from '@/lib/types';
-import { useUser, useFirestore, useCollection } from '@/firebase';
+import { useUser, useFirestore, useCollection } from '../../../../firebase';
 
 type SwipeDirection = 'left' | 'right' | 'up' | null;
 

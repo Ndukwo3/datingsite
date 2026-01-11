@@ -12,7 +12,7 @@ import {
 import { Button } from "@/components/ui/button";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { PlaceHolderImages } from "@/lib/placeholder-images";
-import { useUser, useFirebaseApp } from "@/firebase";
+import { useUser, useFirebaseApp } from "../firebase";
 import { CreditCard, LogOut, Settings, User, Crown } from "lucide-react";
 import { getAuth, signOut } from "firebase/auth";
 import { useRouter } from "next/navigation";

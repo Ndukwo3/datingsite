@@ -14,7 +14,7 @@ import Link from "next/link";
 import { SplashScreen } from "./SplashScreen";
 import { ThemeToggle } from "./ThemeToggle";
 import { useToast } from "@/hooks/use-toast";
-import { useFirebaseApp } from "@/firebase";
+import { useFirebaseApp } from "../firebase";
 import { getAuth, createUserWithEmailAndPassword, signInWithEmailAndPassword, updateProfile } from "firebase/auth";
 import { getFirestore, doc, setDoc, serverTimestamp } from "firebase/firestore";
 

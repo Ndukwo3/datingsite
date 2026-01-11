@@ -3,7 +3,7 @@
 
 import { notFound, useParams } from 'next/navigation';
 import { ChatInterface } from './ChatInterface';
-import { useDoc, useFirestore } from '@/firebase';
+import { useDoc, useFirestore } from '../../../../firebase';
 import { doc } from 'firebase/firestore';
 import type { User } from '@/lib/types';
 import { Loader2 } from 'lucide-react';

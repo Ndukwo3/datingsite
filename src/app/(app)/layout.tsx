@@ -7,7 +7,7 @@ import { SidebarProvider, Sidebar, SidebarInset } from "@/components/ui/sidebar"
 import { AppSidebarContent } from '@/components/AppSidebarContent';
 import { AppHeader } from '@/components/AppHeader';
 import { cn } from "@/lib/utils";
-import { useUser } from "@/firebase";
+import { useUser } from "../../firebase";
 import { Loader2 } from "lucide-react";
 
 export default function AppLayout({ children }: { children: ReactNode }) {

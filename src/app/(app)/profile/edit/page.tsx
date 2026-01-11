@@ -15,9 +15,10 @@ import { ArrowLeft, Loader2 } from 'lucide-react';
 import { Badge } from '@/components/ui/badge';
 import { interestOptions } from '@/lib/data';
 import { useRouter } from 'next/navigation';
-import { useUser, useFirestore, useDoc } from '@/firebase';
+import { useUser, useFirestore, useDoc } from '../../../../firebase';
 import { doc, setDoc } from 'firebase/firestore';
 import type { User } from '@/lib/types';
+import * as React from 'react';
 
 const profileSchema = z.object({
   name: z.string().min(2, 'Name must be at least 2 characters.'),
