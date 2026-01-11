@@ -16,7 +16,7 @@ import { ThemeToggle } from "./ThemeToggle";
 import { useToast } from "@/hooks/use-toast";
 import { useFirebaseApp } from "@/firebase";
 import { getAuth, createUserWithEmailAndPassword, signInWithEmailAndPassword, updateProfile, sendPasswordResetEmail } from "firebase/auth";
-import { getFirestore, doc, setDoc, serverTimestamp } from "firebase/firestore";
+import { getFirestore, doc, setDoc, getDoc, serverTimestamp } from "firebase/firestore";
 
 type AuthStep = "login" | "signup" | "forgot-password";
 type UserData = {
@@ -80,6 +80,7 @@ export function AuthPage({ defaultTab }: { defaultTab: "login" | "signup" }) {
                 photos: ['user-1'], // Default photo
                 isVerified: false,
                 lastSeen: 'online',
+                onboardingComplete: false,
             });
             
             router.push('/onboarding');
@@ -105,9 +106,20 @@ export function AuthPage({ defaultTab }: { defaultTab: "login" | "signup" }) {
         }
         setIsLoading(true);
         const auth = getAuth(firebaseApp);
+        const firestore = getFirestore(firebaseApp);
+
         try {
-            await signInWithEmailAndPassword(auth, data.email, data.password);
-            router.push('/feed');
+            const userCredential = await signInWithEmailAndPassword(auth, data.email, data.password);
+            const user = userCredential.user;
+
+            const userDocRef = doc(firestore, 'users', user.uid);
+            const userDoc = await getDoc(userDocRef);
+
+            if (userDoc.exists() && userDoc.data().onboardingComplete) {
+                router.push('/feed');
+            } else {
+                router.push('/onboarding');
+            }
         } catch (error: any) {
             let description = "An unexpected error occurred. Please try again.";
             if (error.code === 'auth/invalid-credential' || error.code === 'auth/user-not-found' || error.code === 'auth/wrong-password') {
@@ -465,5 +477,3 @@ const ForgotPasswordForm = ({ onSubmit, isLoading, onBackToLogin }: { onSubmit: 
         </form>
     );
 };
-
-    

@@ -8,6 +8,9 @@ import * as z from 'zod';
 import { motion, AnimatePresence } from 'framer-motion';
 import { Loader2, Sparkles, Upload, Camera, ArrowLeft, Info, ChevronDown, Check, Star, X, PartyPopper } from 'lucide-react';
 import { cn } from "@/lib/utils";
+import { useRouter } from 'next/navigation';
+import { useUser, useFirestore } from '@/firebase';
+import { doc, setDoc } from 'firebase/firestore';
 
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -105,6 +108,9 @@ export function OnboardingForm() {
   const [currentStep, setCurrentStep] = useState(0);
   const [direction, setDirection] = useState(1);
   const { toast } = useToast();
+  const router = useRouter();
+  const { user: authUser } = useUser();
+  const firestore = useFirestore();
 
   const methods = useForm<FormData>({
     resolver: zodResolver(steps[currentStep].schema),
@@ -130,7 +136,8 @@ export function OnboardingForm() {
     setValue,
     watch,
     control,
-    formState: { errors },
+    handleSubmit,
+    formState: { errors, isSubmitting },
   } = methods;
 
   const dob = watch('dob');
@@ -147,9 +154,12 @@ export function OnboardingForm() {
 
     if (!output) return;
 
-    if (currentStep < steps.length - 1) {
-      setDirection(1);
-      setCurrentStep(step => step + 1);
+    if (currentStep < steps.length - 2) {
+        setDirection(1);
+        setCurrentStep(step => step + 1);
+    } else {
+        // This is the final step before completion, so we submit the form
+        await handleSubmit(onSubmit)();
     }
   };
 
@@ -160,6 +170,48 @@ export function OnboardingForm() {
     }
   };
   
+  const onSubmit = async (data: FormData) => {
+    if (!authUser || !firestore) {
+        toast({ title: 'You must be logged in to complete onboarding.', variant: 'destructive' });
+        return;
+    }
+    try {
+        const userDocRef = doc(firestore, 'users', authUser.uid);
+        const age = getAge(data.dob);
+
+        // Here we can add logic to upload photos to Firebase Storage and get URLs
+        // For now, we'll continue using placeholders
+        const photoIds = ['user-1', 'user-2', 'user-3', 'user-4', 'user-5', 'user-6'];
+
+        const finalUserData = {
+            name: data.fullName,
+            age: age,
+            gender: data.gender,
+            location: `${data.city}, ${data.state}`,
+            bio: data.bio,
+            interests: data.interests,
+            // In a real app, these would be URLs from Firebase Storage
+            photos: photoIds.slice(0, data.photos.length),
+            onboardingComplete: true,
+            // We can also save preference data here
+        };
+
+        await setDoc(userDocRef, finalUserData, { merge: true });
+        
+        setDirection(1);
+        setCurrentStep(step => step + 1);
+
+    } catch (error) {
+        console.error("Failed to save onboarding data:", error);
+        toast({
+            title: "Something went wrong",
+            description: "Could not save your profile. Please try again.",
+            variant: "destructive"
+        });
+    }
+  };
+
+
   const toggleInterest = (interest: string) => {
     const currentInterests = getValues('interests') || [];
     const isSelected = currentInterests.includes(interest);
@@ -518,7 +570,8 @@ export function OnboardingForm() {
         )}
         {currentStep === steps.length - 2 && (
              <div className="flex justify-end pt-4">
-                <Button onClick={handleNext} disabled={!isValid} size="lg" className="w-full bg-primary-gradient text-primary-foreground font-semibold">
+                <Button onClick={handleNext} disabled={!isValid || isSubmitting} size="lg" className="w-full bg-primary-gradient text-primary-foreground font-semibold">
+                    {isSubmitting && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
                     Complete Profile
                 </Button>
             </div>
