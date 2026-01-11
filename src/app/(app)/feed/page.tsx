@@ -1,4 +1,7 @@
 
+"use client";
+
+import { useState, useEffect } from 'react';
 import Image from 'next/image';
 import Link from 'next/link';
 import { Card, CardContent } from '@/components/ui/card';
@@ -7,17 +10,34 @@ import { PlaceHolderImages } from '@/lib/placeholder-images';
 import { formatActivity } from '@/lib/utils';
 import { cn } from '@/lib/utils';
 import { MapPin } from 'lucide-react';
+import type { User } from '@/lib/types';
+
+// Fisher-Yates shuffle algorithm
+const shuffleArray = (array: User[]) => {
+  let currentIndex = array.length, randomIndex;
+  while (currentIndex !== 0) {
+    randomIndex = Math.floor(Math.random() * currentIndex);
+    currentIndex--;
+    [array[currentIndex], array[randomIndex]] = [
+      array[randomIndex], array[currentIndex]];
+  }
+  return array;
+};
 
 export default function FeedPage() {
-  // Sort users by activity: online first, then by most recent activity
-  const sortedUsers = [...users].sort((a, b) => {
-    if (a.lastSeen === 'online' && b.lastSeen !== 'online') return -1;
-    if (a.lastSeen !== 'online' && b.lastSeen === 'online') return 1;
-    if (a.lastSeen instanceof Date && b.lastSeen instanceof Date) {
-      return b.lastSeen.getTime() - a.lastSeen.getTime();
-    }
-    return 0;
-  });
+  const [shuffledUsers, setShuffledUsers] = useState<User[]>([]);
+
+  useEffect(() => {
+    // Separate online users from offline users
+    const onlineUsers = users.filter(u => u.lastSeen === 'online');
+    const offlineUsers = users.filter(u => u.lastSeen !== 'online');
+
+    // Shuffle the offline users
+    const shuffledOffline = shuffleArray(offlineUsers);
+
+    // Combine them back, with online users first
+    setShuffledUsers([...onlineUsers, ...shuffledOffline]);
+  }, []);
 
   return (
     <div className="space-y-6">
@@ -29,7 +49,7 @@ export default function FeedPage() {
       </div>
 
       <div className="grid grid-cols-2 gap-4 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 xl:grid-cols-6">
-        {sortedUsers.map((user) => {
+        {shuffledUsers.map((user) => {
           const userImage = PlaceHolderImages.find(p => p.id === user.photos[0]);
           const isOnline = user.lastSeen === 'online';
           
