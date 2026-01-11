@@ -81,6 +81,12 @@ export function LandingHeader({ theme = 'dark' }: LandingHeaderProps) {
         </div>
 
         <div className="md:hidden flex items-center gap-2">
+            <Button asChild variant="ghost" size="sm" className={cn(isLight ? "text-foreground" : "text-white")}>
+                <Link href="/login?fromNav=true">Log In</Link>
+            </Button>
+            <Button asChild size="sm" className={cn(isLight ? "bg-primary text-primary-foreground" : "bg-white text-black")}>
+                <Link href="/signup?fromNav=true">Sign Up</Link>
+            </Button>
             <ThemeToggle className={cn(isLight ? "text-foreground" : "text-white")}/>
             <Sheet>
                 <SheetTrigger asChild>
@@ -99,14 +105,6 @@ export function LandingHeader({ theme = 'dark' }: LandingHeaderProps) {
                                 <Link key={link.href} href={link.href} className={linkClasses(link.href, true)}>{link.label}</Link>
                             ))}
                         </nav>
-                        <div className="p-4 space-y-4">
-                            <Button asChild className="w-full" size="lg">
-                                <Link href="/signup?fromNav=true">Sign Up</Link>
-                            </Button>
-                            <Button asChild variant="outline" className="w-full" size="lg">
-                                <Link href="/login?fromNav=true">Log In</Link>
-                            </Button>
-                        </div>
                     </div>
                 </SheetContent>
             </Sheet>
