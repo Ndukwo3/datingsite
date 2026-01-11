@@ -11,7 +11,6 @@ import { Separator } from '@/components/ui/separator';
 import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover';
 import { cn } from '@/lib/utils';
 import type { Message, User } from '@/lib/types';
-import { PlaceHolderImages } from '@/lib/placeholder-images';
 import { ArrowLeft, Loader2, MoreVertical, SendHorizontal, Smile, ShieldAlert, User as UserIcon } from 'lucide-react';
 import { useToast } from '@/hooks/use-toast';
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuSeparator, DropdownMenuTrigger } from '@/components/ui/dropdown-menu';
@@ -53,7 +52,7 @@ export function ChatInterface({ participant, conversationId }: ChatInterfaceProp
   const [isReportDialogOpen, setIsReportDialogOpen] = useState(false);
   const [reportReason, setReportReason] = useState('');
 
-  const participantImage = PlaceHolderImages.find(p => p.id === participant.photos[0]);
+  const participantImage = participant.photos?.[0];
   const participantFirstName = participant.name.split(' ')[0];
 
   useEffect(() => {
@@ -116,7 +115,7 @@ export function ChatInterface({ participant, conversationId }: ChatInterfaceProp
             <Link href="/chat"><ArrowLeft /></Link>
         </Button>
         <Avatar className="h-10 w-10">
-          {participantImage && <AvatarImage src={participantImage.imageUrl} alt={participant.name} />}
+          {participantImage && <AvatarImage src={participantImage} alt={participant.name} />}
           <AvatarFallback>{participantFirstName.charAt(0)}</AvatarFallback>
         </Avatar>
         <div className="flex-1">

@@ -5,7 +5,6 @@ import { useMemo } from 'react';
 import Link from 'next/link';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
-import { PlaceHolderImages } from '@/lib/placeholder-images';
 import { formatDistanceToNow } from 'date-fns';
 import { useCollection, useFirestore, useUser } from '@/firebase';
 import { collection, query, where } from 'firebase/firestore';
@@ -16,7 +15,6 @@ export default function ChatListPage() {
   const firestore = useFirestore();
   const { user } = useUser();
 
-  // Query for conversations where the current user is a participant
   const conversationsQuery = useMemo(() => {
     if (!firestore || !user) return null;
     return query(
@@ -40,14 +38,12 @@ export default function ChatListPage() {
         <CardContent>
           <div className="space-y-2">
             {conversations && conversations.map((convo) => {
-              // This assumes the participant data is embedded in the conversation doc
               const participant = convo.participantDetails[convo.participants.find(p => p !== user?.uid) || ''];
               if (!participant) return null;
 
-              const userImage = PlaceHolderImages.find(p => p.id === participant.photos[0]);
+              const userImage = participant.photos?.[0];
               const firstName = participant.name.split(' ')[0];
               
-              // Fallback for lastMessage if it doesn't exist
               const lastMessage = convo.lastMessage || { text: 'No messages yet', timestamp: new Date() };
 
               return (
@@ -58,7 +54,7 @@ export default function ChatListPage() {
                 >
                   <div className="flex items-center gap-4">
                     <Avatar className="h-12 w-12">
-                      {userImage && <AvatarImage src={userImage.imageUrl} alt={participant.name} />}
+                      {userImage && <AvatarImage src={userImage} alt={participant.name} />}
                       <AvatarFallback>{firstName.charAt(0)}</AvatarFallback>
                     </Avatar>
                     <div className="flex-1">

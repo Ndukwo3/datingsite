@@ -14,6 +14,7 @@ import { doc, setDoc, serverTimestamp } from 'firebase/firestore';
 import imageCompression from 'browser-image-compression';
 import { errorEmitter } from '@/firebase/error-emitter';
 import { FirestorePermissionError } from '@/firebase/errors';
+import { uploadFile } from '@/lib/storage';
 
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -165,7 +166,6 @@ export function OnboardingForm() {
         setDirection(1);
         setCurrentStep(step => step + 1);
     } else {
-        // This is the final step before completion, so we submit the form
         await handleSubmit(onSubmit)();
     }
   };
@@ -186,9 +186,8 @@ export function OnboardingForm() {
     const userDocRef = doc(firestore, 'users', authUser.uid);
     const age = getAge(data.dob);
 
-    // Here we can add logic to upload photos to Firebase Storage and get URLs
-    // For now, we'll continue using placeholders
-    const photoIds = ['user-1', 'user-2', 'user-3', 'user-4', 'user-5', 'user-6'];
+    const photoUploadPromises = data.photos.map(photo => uploadFile(photo, `users/${authUser.uid}/photos`));
+    const photoURLs = await Promise.all(photoUploadPromises);
 
     const finalUserData = {
         name: data.fullName,
@@ -197,9 +196,8 @@ export function OnboardingForm() {
         location: `${data.city}, ${data.state}`,
         bio: data.bio,
         interests: data.interests,
-        photos: photoIds.slice(0, data.photos?.length || 0),
+        photos: photoURLs,
         onboardingComplete: true,
-        // We can also save preference data here
     };
 
     setDoc(userDocRef, finalUserData, { merge: true })
@@ -254,7 +252,6 @@ export function OnboardingForm() {
       
       const newlyAddedIndex = currentPhotos.length;
       
-      // We will add placeholders first, then replace them with compressed files
       const placeholderFiles = files.map(f => new File([], f.name));
       setValue('photos', [...currentPhotos, ...placeholderFiles], { shouldValidate: true });
 
@@ -280,11 +277,9 @@ export function OnboardingForm() {
                     description: result.reason,
                     variant: "destructive"
                 });
-                // Remove the invalid photo
                 const updatedPhotos = getValues('photos').filter((_, idx) => idx !== photoIndex);
                 setValue('photos', updatedPhotos, { shouldValidate: true });
             } else {
-                // Replace placeholder with the real compressed file
                 const updatedPhotos = getValues('photos');
                 updatedPhotos[photoIndex] = compressedFile;
                 setValue('photos', updatedPhotos, { shouldValidate: true });
@@ -649,5 +644,3 @@ export function OnboardingForm() {
     </FormProvider>
   );
 }
-
-    

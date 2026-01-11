@@ -5,8 +5,7 @@ import { motion } from 'framer-motion';
 import Image from 'next/image';
 import Link from 'next/link';
 import { Button } from '@/components/ui/button';
-import { PlaceHolderImages } from '@/lib/placeholder-images';
-import { currentUser } from '@/lib/data';
+import { useUser } from '@/firebase';
 import type { User } from '@/lib/types';
 import { Heart } from 'lucide-react';
 
@@ -16,8 +15,10 @@ type MatchNotificationProps = {
 };
 
 export function MatchNotification({ matchedUser, onKeepSwiping }: MatchNotificationProps) {
-  const currentUserImage = PlaceHolderImages.find(p => p.id === currentUser.photos[0]);
-  const matchedUserImage = PlaceHolderImages.find(p => p.id === matchedUser.photos[0]);
+  const { userData: currentUser } = useUser();
+
+  const currentUserImage = currentUser?.photos?.[0];
+  const matchedUserImage = matchedUser.photos?.[0];
 
   return (
     <motion.div
@@ -46,9 +47,9 @@ export function MatchNotification({ matchedUser, onKeepSwiping }: MatchNotificat
           transition={{ delay: 0.3, type: 'spring' }}
           className="relative w-40 h-52 md:w-48 md:h-64"
         >
-          {currentUserImage && (
+          {currentUserImage && currentUser && (
             <Image
-              src={currentUserImage.imageUrl}
+              src={currentUserImage}
               alt={currentUser.name}
               fill
               className="rounded-2xl object-cover border-4 border-white shadow-2xl"
@@ -73,7 +74,7 @@ export function MatchNotification({ matchedUser, onKeepSwiping }: MatchNotificat
         >
           {matchedUserImage && (
             <Image
-              src={matchedUserImage.imageUrl}
+              src={matchedUserImage}
               alt={matchedUser.name}
               fill
               className="rounded-2xl object-cover border-4 border-white shadow-2xl"

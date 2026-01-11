@@ -11,7 +11,6 @@ import {
 } from "@/components/ui/dropdown-menu";
 import { Button } from "@/components/ui/button";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
-import { PlaceHolderImages } from "@/lib/placeholder-images";
 import { useUser, useFirebaseApp } from "@/firebase";
 import { CreditCard, LogOut, Settings, User, Crown } from "lucide-react";
 import { getAuth, signOut } from "firebase/auth";
@@ -38,7 +37,7 @@ export function UserNav() {
     }
   };
 
-  const userImage = userData ? PlaceHolderImages.find(p => p.id === userData.photos[0]) : null;
+  const userImage = userData?.photos?.[0];
   const userName = userData?.name || authUser?.displayName || 'User';
   const userLocation = userData?.location || '';
 
@@ -47,7 +46,7 @@ export function UserNav() {
       <DropdownMenuTrigger asChild>
         <Button variant="ghost" className="relative h-10 w-10 rounded-full">
           <Avatar className="h-10 w-10 border-2 border-primary">
-            {userImage && <AvatarImage src={userImage.imageUrl} alt={userName} />}
+            {userImage && <AvatarImage src={userImage} alt={userName} />}
             <AvatarFallback>{userName.charAt(0)}</AvatarFallback>
           </Avatar>
         </Button>

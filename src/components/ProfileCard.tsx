@@ -3,7 +3,6 @@ import Image from 'next/image';
 import { Badge } from '@/components/ui/badge';
 import { Card, CardContent } from '@/components/ui/card';
 import type { User } from '@/lib/types';
-import { PlaceHolderImages } from '@/lib/placeholder-images';
 import { BadgeCheck, MapPin } from 'lucide-react';
 
 type ProfileCardProps = {
@@ -11,17 +10,16 @@ type ProfileCardProps = {
 };
 
 export function ProfileCard({ user }: ProfileCardProps) {
-  const userImage = PlaceHolderImages.find(p => p.id === user.photos[0]);
+  const userImage = user.photos?.[0];
 
   return (
     <Card className="relative aspect-[3/4.5] w-full max-w-xs overflow-hidden rounded-2xl shadow-lg">
       {userImage && (
         <Image
-          src={userImage.imageUrl}
+          src={userImage}
           alt={user.name}
           fill
           className="object-cover"
-          data-ai-hint={userImage.imageHint}
         />
       )}
       <div className="absolute inset-0 bg-gradient-to-t from-black/80 via-black/40 to-transparent" />

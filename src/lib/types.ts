@@ -10,7 +10,7 @@ export type User = {
   job: string;
   education: string;
   interests: string[];
-  photos: string[]; // Array of image placeholder IDs
+  photos: string[]; // Array of image URLs from Firebase Storage
   isVerified: boolean;
   lastSeen: Date | 'online';
   socials?: {

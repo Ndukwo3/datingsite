@@ -5,7 +5,6 @@ import { useState, useEffect } from 'react';
 import Image from 'next/image';
 import Link from 'next/link';
 import { Card, CardContent } from '@/components/ui/card';
-import { PlaceHolderImages } from '@/lib/placeholder-images';
 import { formatActivity } from '@/lib/utils';
 import { cn } from '@/lib/utils';
 import { Loader2, MapPin } from 'lucide-react';
@@ -32,15 +31,12 @@ export default function FeedPage() {
 
   useEffect(() => {
     if (users) {
-      // Separate online users from offline users
       const onlineUsers = users.filter(u => u.lastSeen === 'online');
       const offlineUsers = users.filter(u => u.lastSeen !== 'online');
 
-      // Shuffle both lists
       const shuffledOnline = shuffleArray(onlineUsers);
       const shuffledOffline = shuffleArray(offlineUsers);
 
-      // Combine them back, with online users first
       setShuffledUsers([...shuffledOnline, ...shuffledOffline]);
     }
   }, [users]);
@@ -60,7 +56,7 @@ export default function FeedPage() {
 
       <div className="grid grid-cols-2 gap-4 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 xl:grid-cols-6">
         {shuffledUsers.map((user) => {
-          const userImage = PlaceHolderImages.find(p => p.id === user.photos[0]);
+          const userImage = user.photos?.[0];
           const isOnline = user.lastSeen === 'online';
           
           return (
@@ -69,11 +65,10 @@ export default function FeedPage() {
                 <CardContent className="relative aspect-[3/4.5] p-0">
                   {userImage && (
                     <Image
-                      src={userImage.imageUrl}
+                      src={userImage}
                       alt={user.name}
                       fill
                       className="object-cover"
-                      data-ai-hint={userImage.imageHint}
                     />
                   )}
                   <div className="absolute inset-x-0 bottom-0 bg-gradient-to-t from-black/80 to-transparent p-3 text-primary-foreground">

@@ -62,7 +62,6 @@ export function AuthPage({ defaultTab }: { defaultTab: "login" | "signup" }) {
 
             await updateProfile(user, { displayName: data.name });
 
-            // Create a user document in Firestore
             const userDocRef = doc(firestore, "users", user.uid);
             await setDoc(userDocRef, {
                 id: user.uid,
@@ -70,14 +69,13 @@ export function AuthPage({ defaultTab }: { defaultTab: "login" | "signup" }) {
                 email: data.email,
                 phone: data.phone,
                 createdAt: serverTimestamp(),
-                // Add default empty values for profile fields
                 age: 18,
                 bio: '',
                 location: '',
                 job: '',
                 education: '',
                 interests: [],
-                photos: ['user-1'], // Default photo
+                photos: [], 
                 isVerified: false,
                 lastSeen: 'online',
                 onboardingComplete: false,
@@ -485,5 +483,3 @@ const ForgotPasswordForm = ({ onSubmit, isLoading, onBackToLogin }: { onSubmit: 
         </form>
     );
 };
-
-    

@@ -4,7 +4,6 @@
 import Image from 'next/image';
 import Link from 'next/link';
 import { Card, CardContent } from '@/components/ui/card';
-import { PlaceHolderImages } from '@/lib/placeholder-images';
 import { BadgeCheck, MessageSquare, Sparkles, Loader2 } from 'lucide-react';
 import { cn, formatMatchTime } from '@/lib/utils';
 import { Badge } from '@/components/ui/badge';
@@ -18,7 +17,6 @@ export default function MatchesPage() {
     const firestore = useFirestore();
     const { user: currentUser } = useUser();
 
-    // Query for conversations where the current user is a participant
     const matchesQuery = firestore && currentUser
         ? query(
             collection(firestore, 'conversations'),
@@ -46,12 +44,10 @@ export default function MatchesPage() {
           const participantId = match.participants.find(p => p !== currentUser?.uid);
           if (!participantId) return null;
 
-          // Assuming participant details are embedded. If not, a separate fetch is needed.
           const participant = match.participantDetails[participantId] as User;
           if (!participant) return null;
 
-          const userImage = PlaceHolderImages.find(p => p.id === participant.photos[0]);
-          // Use createdAt for match time, assuming lastMessage might not exist initially
+          const userImage = participant.photos?.[0];
           const matchTimestamp = match.createdAt ? new Date(match.createdAt.seconds * 1000) : new Date();
           const isNewMatch = matchTimestamp > twentyFourHoursAgo;
           
@@ -61,11 +57,10 @@ export default function MatchesPage() {
                 <CardContent className="relative aspect-square p-0">
                   {userImage && (
                     <Image
-                      src={userImage.imageUrl}
+                      src={userImage}
                       alt={participant.name}
                       fill
                       className="object-cover"
-                      data-ai-hint={userImage.imageHint}
                     />
                   )}
                   {isNewMatch && (
