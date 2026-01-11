@@ -10,7 +10,7 @@ import { formatActivity } from '@/lib/utils';
 import { cn } from '@/lib/utils';
 import { Loader2, MapPin } from 'lucide-react';
 import type { User } from '@/lib/types';
-import { useCollection, useFirestore } from '../../../firebase';
+import { useCollection, useFirestore } from '@/firebase';
 import { collection } from 'firebase/firestore';
 
 // Fisher-Yates shuffle algorithm

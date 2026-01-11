@@ -8,7 +8,7 @@ import { PlaceHolderImages } from '@/lib/placeholder-images';
 import { BadgeCheck, MessageSquare, Sparkles, Loader2 } from 'lucide-react';
 import { cn, formatMatchTime } from '@/lib/utils';
 import { Badge } from '@/components/ui/badge';
-import { useCollection, useFirestore, useUser } from '../../../firebase';
+import { useCollection, useFirestore, useUser } from '@/firebase';
 import { collection, query, where } from 'firebase/firestore';
 import type { Conversation, User } from '@/lib/types';
 
