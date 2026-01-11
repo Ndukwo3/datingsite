@@ -32,11 +32,12 @@ export default function FeedPage() {
     const onlineUsers = users.filter(u => u.lastSeen === 'online');
     const offlineUsers = users.filter(u => u.lastSeen !== 'online');
 
-    // Shuffle the offline users
+    // Shuffle both lists
+    const shuffledOnline = shuffleArray(onlineUsers);
     const shuffledOffline = shuffleArray(offlineUsers);
 
     // Combine them back, with online users first
-    setShuffledUsers([...onlineUsers, ...shuffledOffline]);
+    setShuffledUsers([...shuffledOnline, ...shuffledOffline]);
   }, []);
 
   return (
