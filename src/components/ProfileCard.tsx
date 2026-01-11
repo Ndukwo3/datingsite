@@ -1,9 +1,10 @@
+
 import Image from 'next/image';
 import { Badge } from '@/components/ui/badge';
 import { Card, CardContent } from '@/components/ui/card';
 import type { User } from '@/lib/types';
 import { PlaceHolderImages } from '@/lib/placeholder-images';
-import { CheckCircle, MapPin } from 'lucide-react';
+import { BadgeCheck, MapPin } from 'lucide-react';
 
 type ProfileCardProps = {
   user: User;
@@ -27,7 +28,7 @@ export function ProfileCard({ user }: ProfileCardProps) {
       <CardContent className="absolute bottom-0 w-full p-6 text-primary-foreground">
         <div className="flex items-center gap-2">
             <h2 className="font-headline text-3xl font-bold">{user.name}, {user.age}</h2>
-            {user.isVerified && <CheckCircle className="h-6 w-6 text-blue-400 fill-primary-foreground" />}
+            {user.isVerified && <BadgeCheck className="h-6 w-6 text-blue-400 fill-primary-foreground" />}
         </div>
         <p className="mt-1 flex items-center gap-1.5 text-sm text-primary-foreground/80">
           <MapPin className="h-4 w-4" /> {user.location}

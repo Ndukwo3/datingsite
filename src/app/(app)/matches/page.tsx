@@ -1,9 +1,10 @@
+
 import Image from 'next/image';
 import Link from 'next/link';
 import { Card, CardContent } from '@/components/ui/card';
 import { conversations } from '@/lib/data';
 import { PlaceHolderImages } from '@/lib/placeholder-images';
-import { CheckCircle } from 'lucide-react';
+import { BadgeCheck } from 'lucide-react';
 
 export default function MatchesPage() {
   return (
@@ -34,7 +35,7 @@ export default function MatchesPage() {
                   <div className="absolute inset-x-0 bottom-0 bg-gradient-to-t from-black/70 to-transparent p-3">
                     <div className="flex items-center gap-1.5">
                       <p className="font-semibold text-primary-foreground">{participant.name}</p>
-                      {participant.isVerified && <CheckCircle className="h-4 w-4 text-blue-400 fill-primary-foreground" />}
+                      {participant.isVerified && <BadgeCheck className="h-4 w-4 text-blue-400 fill-primary-foreground" />}
                     </div>
                   </div>
                 </CardContent>

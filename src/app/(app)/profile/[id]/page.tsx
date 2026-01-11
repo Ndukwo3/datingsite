@@ -6,7 +6,7 @@ import { PlaceHolderImages } from '@/lib/placeholder-images';
 import { Card, CardContent } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
-import { CheckCircle, Heart, MapPin, X, Star, Briefcase, GraduationCap, Instagram, Share2, Flag, ArrowLeft } from 'lucide-react';
+import { BadgeCheck, Heart, MapPin, X, Star, Briefcase, GraduationCap, Instagram, Share2, Flag, ArrowLeft } from 'lucide-react';
 import Link from 'next/link';
 
 import {
@@ -84,7 +84,7 @@ export default function UserProfilePage({ params }: ProfilePageProps) {
         <div className="space-y-2">
             <div className="flex items-center gap-3">
                 <h1 className="font-headline text-4xl font-bold">{user.name}, {user.age}</h1>
-                 {user.isVerified && <CheckCircle className="h-7 w-7 text-blue-500 fill-blue-100" />}
+                 {user.isVerified && <BadgeCheck className="h-7 w-7 text-blue-500 fill-blue-100" />}
             </div>
             <p className="flex items-center gap-2 text-muted-foreground">
                 <MapPin className="h-5 w-5" />
@@ -170,4 +170,3 @@ export default function UserProfilePage({ params }: ProfilePageProps) {
     </div>
   );
 }
-
