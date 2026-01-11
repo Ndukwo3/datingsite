@@ -12,6 +12,8 @@ import { useRouter } from 'next/navigation';
 import { useUser, useFirestore } from '@/firebase';
 import { doc, setDoc, serverTimestamp } from 'firebase/firestore';
 import imageCompression from 'browser-image-compression';
+import { errorEmitter } from '@/firebase/error-emitter';
+import { FirestorePermissionError } from '@/firebase/errors';
 
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -118,7 +120,7 @@ export function OnboardingForm() {
   const currentSchema = steps[currentStep].schema;
 
   const methods = useForm<FormData>({
-    resolver: zodResolver(currentStep === steps.length - 2 ? fullSchema : currentSchema),
+    resolver: zodResolver(currentStep < steps.length - 2 ? currentSchema : fullSchema),
     mode: "onChange",
      defaultValues: {
         fullName: '',
@@ -180,40 +182,39 @@ export function OnboardingForm() {
         toast({ title: 'You must be logged in to complete onboarding.', variant: 'destructive' });
         return;
     }
-    try {
-        const userDocRef = doc(firestore, 'users', authUser.uid);
-        const age = getAge(data.dob);
+    
+    const userDocRef = doc(firestore, 'users', authUser.uid);
+    const age = getAge(data.dob);
 
-        // Here we can add logic to upload photos to Firebase Storage and get URLs
-        // For now, we'll continue using placeholders
-        const photoIds = ['user-1', 'user-2', 'user-3', 'user-4', 'user-5', 'user-6'];
+    // Here we can add logic to upload photos to Firebase Storage and get URLs
+    // For now, we'll continue using placeholders
+    const photoIds = ['user-1', 'user-2', 'user-3', 'user-4', 'user-5', 'user-6'];
 
-        const finalUserData = {
-            name: data.fullName,
-            age: age,
-            gender: data.gender,
-            location: `${data.city}, ${data.state}`,
-            bio: data.bio,
-            interests: data.interests,
-            // In a real app, these would be URLs from Firebase Storage
-            photos: photoIds.slice(0, data.photos?.length || 0),
-            onboardingComplete: true,
-            // We can also save preference data here
-        };
+    const finalUserData = {
+        name: data.fullName,
+        age: age,
+        gender: data.gender,
+        location: `${data.city}, ${data.state}`,
+        bio: data.bio,
+        interests: data.interests,
+        photos: photoIds.slice(0, data.photos?.length || 0),
+        onboardingComplete: true,
+        // We can also save preference data here
+    };
 
-        await setDoc(userDocRef, finalUserData, { merge: true });
-        
+    setDoc(userDocRef, finalUserData, { merge: true })
+      .then(() => {
         setDirection(1);
         setCurrentStep(step => step + 1);
-
-    } catch (error) {
-        console.error("Failed to save onboarding data:", error);
-        toast({
-            title: "Something went wrong",
-            description: "Could not save your profile. Please try again.",
-            variant: "destructive"
+      })
+      .catch(error => {
+        const permissionError = new FirestorePermissionError({
+          path: userDocRef.path,
+          operation: 'update',
+          requestResourceData: finalUserData,
         });
-    }
+        errorEmitter.emit('permission-error', permissionError);
+      });
   };
 
 

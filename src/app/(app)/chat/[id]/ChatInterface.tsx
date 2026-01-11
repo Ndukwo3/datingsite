@@ -20,6 +20,8 @@ import { Label } from '@/components/ui/label';
 import { RadioGroup, RadioGroupItem } from '@/components/ui/radio-group';
 import { useUser, useFirestore, useCollection } from '@/firebase';
 import { collection, addDoc, serverTimestamp, query, orderBy } from 'firebase/firestore';
+import { errorEmitter } from '@/firebase/error-emitter';
+import { FirestorePermissionError } from '@/firebase/errors';
 
 type ChatInterfaceProps = {
   participant: User;
@@ -70,26 +72,27 @@ export function ChatInterface({ participant, conversationId }: ChatInterfaceProp
 
     setIsSending(true);
 
-    try {
-      const messagesCol = collection(firestore, 'conversations', conversationId, 'messages');
-      await addDoc(messagesCol, {
-        senderId: currentUser.uid,
-        receiverId: participant.id,
-        text: newMessage,
-        timestamp: serverTimestamp(),
-      });
+    const messageData = {
+      senderId: currentUser.uid,
+      receiverId: participant.id,
+      text: newMessage,
+      timestamp: serverTimestamp(),
+    };
 
-      setNewMessage('');
-    } catch (error) {
-        console.error("Failed to send message:", error);
-        toast({
-            title: "Error",
-            description: "Could not send message. Please try again.",
-            variant: "destructive",
-        });
-    } finally {
-        setIsSending(false);
-    }
+    const messagesCol = collection(firestore, 'conversations', conversationId, 'messages');
+    
+    addDoc(messagesCol, messageData).catch(error => {
+      const permissionError = new FirestorePermissionError({
+        path: messagesCol.path,
+        operation: 'create',
+        requestResourceData: messageData,
+      });
+      errorEmitter.emit('permission-error', permissionError);
+    }).finally(() => {
+      setIsSending(false);
+    });
+
+    setNewMessage('');
   };
 
   const handleEmojiSelect = (emoji: string) => {
