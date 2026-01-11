@@ -85,15 +85,21 @@ export function AuthPage({ defaultTab }: { defaultTab: "login" | "signup" }) {
             
             router.push('/onboarding');
         } catch (error: any) {
-            
-            const errorMessage = error.code === 'auth/email-already-in-use'
-                ? 'This email is already registered. Please log in.'
-                : error.message || "An unexpected error occurred.";
-            toast({
-                title: "Sign up failed",
-                description: errorMessage,
-                variant: "destructive"
-            });
+             if (error.code === 'auth/email-already-in-use') {
+                toast({
+                    title: "Email already exists",
+                    description: "This email is already registered. Please log in.",
+                    variant: "default",
+                });
+                setAuthStep('login');
+            } else {
+                 const errorMessage = error.message || "An unexpected error occurred.";
+                 toast({
+                    title: "Sign up failed",
+                    description: errorMessage,
+                    variant: "destructive"
+                });
+            }
         } finally {
             setIsLoading(false);
         }
@@ -477,3 +483,5 @@ const ForgotPasswordForm = ({ onSubmit, isLoading, onBackToLogin }: { onSubmit: 
         </form>
     );
 };
+
+    
