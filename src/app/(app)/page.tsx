@@ -8,6 +8,8 @@ import { Heart, X, RotateCcw } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { ProfileCard } from '@/components/ProfileCard';
 import { potentialMatches } from '@/lib/data';
+import { MatchNotification } from '@/components/MatchNotification';
+import type { User } from '@/lib/types';
 
 type SwipeDirection = 'left' | 'right' | null;
 
@@ -15,6 +17,8 @@ export default function SwipePage() {
   const [profiles, setProfiles] = useState(potentialMatches);
   const [currentIndex, setCurrentIndex] = useState(0);
   const [swipeDirection, setSwipeDirection] = useState<SwipeDirection>(null);
+  const [lastSwipedUser, setLastSwipedUser] = useState<User | null>(null);
+  const [showMatch, setShowMatch] = useState(false);
 
   const x = useMotionValue(0);
   const rotate = useTransform(x, [-200, 200], [-30, 30]);
@@ -22,10 +26,19 @@ export default function SwipePage() {
   const opacityHeart = useTransform(x, [-100, -20, 0, 20, 100], [0, 0, 0, 0, 1]);
 
   const handleSwipe = (direction: 'left' | 'right') => {
+    if (currentIndex >= profiles.length) return;
+
+    const swipedUser = profiles[currentIndex];
+    setLastSwipedUser(swipedUser);
     setSwipeDirection(direction);
+
+    // Simulate a match on every 3rd right swipe for demo purposes
+    const shouldMatch = direction === 'right' && (currentIndex + 1) % 3 === 0;
+
     setTimeout(() => {
-        if (currentIndex < profiles.length) {
-            setCurrentIndex(currentIndex + 1);
+        setCurrentIndex(currentIndex + 1);
+        if (shouldMatch) {
+            setShowMatch(true);
         }
         setSwipeDirection(null);
     }, 300);
@@ -42,6 +55,11 @@ export default function SwipePage() {
   const resetSwipes = () => {
     setCurrentIndex(0);
     setProfiles(potentialMatches); // Reshuffle or refetch if needed
+    setShowMatch(false);
+  }
+
+  const closeMatchNotification = () => {
+    setShowMatch(false);
   }
   
   const currentProfile = profiles[currentIndex];
@@ -60,6 +78,16 @@ export default function SwipePage() {
   };
 
   return (
+    <>
+    <AnimatePresence>
+        {showMatch && lastSwipedUser && (
+            <MatchNotification
+                matchedUser={lastSwipedUser}
+                onKeepSwiping={closeMatchNotification}
+            />
+        )}
+    </AnimatePresence>
+
     <div className="flex h-full flex-col items-center justify-center gap-8">
       <div className="relative w-full max-w-sm h-[60vh]">
         <AnimatePresence custom={swipeDirection}>
@@ -112,7 +140,7 @@ export default function SwipePage() {
           size="icon"
           className="h-20 w-20 rounded-full border-2 border-yellow-500 text-yellow-500 shadow-lg transition-transform duration-300 hover:scale-110 hover:bg-yellow-500/10"
           aria-label="Dislike"
-          disabled={swipeDirection !== null}
+          disabled={swipeDirection !== null || showMatch}
         >
           <X className="h-10 w-10" />
         </Button>
@@ -121,11 +149,12 @@ export default function SwipePage() {
           size="icon"
           className="h-24 w-24 rounded-full bg-primary text-primary-foreground shadow-xl transition-transform duration-300 hover:scale-110"
           aria-label="Like"
-          disabled={swipeDirection !== null}
+          disabled={swipeDirection !== null || showMatch}
         >
           <Heart className="h-12 w-12 fill-current" />
         </Button>
       </div>
     </div>
+    </>
   );
 }
