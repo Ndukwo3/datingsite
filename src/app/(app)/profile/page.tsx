@@ -2,15 +2,15 @@
 'use client';
 
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
-import { Button } from '@/components/ui/button';
+import { Button, buttonVariants } from '@/components/ui/button';
 import Image from 'next/image';
-import { Briefcase, ChevronRight, Crown, Edit, Eye, GraduationCap, HelpCircle, KeyRound, Loader2, MapPin, Bell, ShieldCheck, Trash2, Upload, User as UserIcon, X } from 'lucide-react';
+import { Briefcase, ChevronRight, Crown, Edit, Eye, GraduationCap, HelpCircle, KeyRound, Loader2, MapPin, Bell, ShieldCheck, Trash2, Upload, User as UserIcon, X, Star } from 'lucide-react';
 import Link from 'next/link';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { Badge } from '@/components/ui/badge';
 import { Switch } from '@/components/ui/switch';
-import { useUser, useFirestore, useDoc } from '@/firebase';
-import { doc, setDoc, updateDoc } from 'firebase/firestore';
+import { useUser, useFirestore } from '@/firebase';
+import { doc, updateDoc } from 'firebase/firestore';
 import type { User } from '@/lib/types';
 import { useRouter } from 'next/navigation';
 import { isValidHttpUrl } from '@/lib/is-valid-url';
@@ -43,10 +43,8 @@ export default function ProfilePage() {
     const loading = authLoading;
 
     useEffect(() => {
-      if (!loading) {
-        if (!authUser || (userData && userData.onboardingComplete === false)) {
+      if (!loading && (!authUser || (userData && userData.onboardingComplete === false))) {
           router.push('/onboarding');
-        }
       }
     }, [loading, authUser, userData, router]);
 
@@ -67,17 +65,19 @@ export default function ProfilePage() {
     }
 
     const handlePhotoUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
-        if (!e.target.files || !firestore || !authUser) return;
-
+        if (!e.target.files || !firestore || !authUser || !currentUser) return;
+    
         const files = Array.from(e.target.files);
         if (currentUser.photos.length + files.length > 6) {
             toast({ title: "You can upload a maximum of 6 photos.", variant: "destructive" });
             return;
         }
-
+    
         setUploading(true);
+        const newPhotoUrls: string[] = [];
+    
         try {
-            const uploadPromises = files.map(async (file) => {
+            for (const file of files) {
                 const compressionOptions = {
                     maxSizeMB: 0.2,
                     maxWidthOrHeight: 1080,
@@ -85,31 +85,34 @@ export default function ProfilePage() {
                 };
                 const compressedFile = await imageCompression(file, compressionOptions);
                 const photoDataUri = await fileToDataUri(compressedFile);
-
+    
                 const validation = await validateProfilePhoto({ photoDataUri });
                 if (!validation.isValid) {
-                    throw new Error(validation.reason || "Invalid photo");
+                    // Stop the upload process and show the specific error
+                    throw new Error(validation.reason || "A selected photo is not valid.");
                 }
-
-                return uploadFile(compressedFile, `users/${authUser.uid}/photos`);
-            });
-
-            const newPhotoUrls = await Promise.all(uploadPromises);
-            const userDocRef = doc(firestore, 'users', authUser.uid);
-            await updateDoc(userDocRef, {
-                photos: [...currentUser.photos, ...newPhotoUrls]
-            });
-
-            toast({ title: "Photos uploaded successfully!" });
-
+    
+                const url = await uploadFile(compressedFile, `users/${authUser.uid}/photos`);
+                newPhotoUrls.push(url);
+            }
+    
+            if (newPhotoUrls.length > 0) {
+                const userDocRef = doc(firestore, 'users', authUser.uid);
+                await updateDoc(userDocRef, {
+                    photos: [...currentUser.photos, ...newPhotoUrls]
+                });
+                toast({ title: `${newPhotoUrls.length} photo(s) uploaded successfully!` });
+            }
+    
         } catch (error: any) {
             toast({
                 title: "Upload failed",
-                description: error.message || "Could not upload photo. Please try again.",
+                description: error.message || "Could not upload photos. Please try again.",
                 variant: "destructive"
             });
         } finally {
             setUploading(false);
+            // Reset the file input so the user can select the same file again if needed
             if (fileInputRef.current) {
                 fileInputRef.current.value = "";
             }
@@ -117,7 +120,7 @@ export default function ProfilePage() {
     };
     
     const handleDeletePhoto = async (photoUrlToDelete: string) => {
-        if (!firestore || !authUser) return;
+        if (!firestore || !authUser || !currentUser) return;
 
         const updatedPhotos = currentUser.photos.filter(url => url !== photoUrlToDelete);
         const userDocRef = doc(firestore, 'users', authUser.uid);
@@ -131,7 +134,7 @@ export default function ProfilePage() {
     };
 
     const handleSetMainPhoto = async (photoUrlToSetAsMain: string) => {
-        if (!firestore || !authUser) return;
+        if (!firestore || !authUser || !currentUser) return;
 
         const otherPhotos = currentUser.photos.filter(url => url !== photoUrlToSetAsMain);
         const newPhotoOrder = [photoUrlToSetAsMain, ...otherPhotos];
@@ -413,6 +416,5 @@ export default function ProfilePage() {
       </div>
     </div>
   );
-}
 
     
