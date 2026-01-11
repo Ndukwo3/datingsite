@@ -17,7 +17,7 @@ import { cn } from "@/lib/utils";
 import { ThemeToggle } from "./ThemeToggle";
 
 const menuItems = [
-  { href: "/", label: "Swipe", icon: Flame },
+  { href: "/discover", label: "Swipe", icon: Flame },
   { href: "/matches", label: "Matches", icon: Users },
   { href: "/chat", label: "Chat", icon: MessageSquareText },
   { href: "/profile", label: "Profile", icon: CircleUser },
@@ -27,7 +27,7 @@ export function AppSidebarContent() {
   const pathname = usePathname();
   
   const isActive = (href: string) => {
-    if (href === '/') return pathname === '/';
+    if (href === '/discover') return pathname === '/discover' || pathname === '/';
     return pathname.startsWith(href);
   };
 

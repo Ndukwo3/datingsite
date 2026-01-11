@@ -77,7 +77,7 @@ export function TutorialOverlay() {
   };
 
   const handleFinish = () => {
-    router.push('/');
+    router.push('/discover');
   };
 
   const slideVariants = {
@@ -93,7 +93,7 @@ export function TutorialOverlay() {
       <div className="container mx-auto text-white p-4 h-full flex flex-col">
         <div className="flex justify-end">
             <Button variant="ghost" className="text-white hover:bg-white/10 hover:text-white" asChild>
-                <Link href="/">Skip Tutorial</Link>
+                <Link href="/discover">Skip Tutorial</Link>
             </Button>
         </div>
         
@@ -203,7 +203,3 @@ export function TutorialOverlay() {
     </div>
   );
 }
-
-
-
-

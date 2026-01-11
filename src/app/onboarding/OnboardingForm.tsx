@@ -502,7 +502,7 @@ export function OnboardingForm() {
                     <Link href="/tutorial">Take a Quick Tour</Link>
                  </Button>
                   <Button size="lg" variant="ghost" className="w-full font-bold" asChild>
-                    <Link href="/">Start Swiping 🔥</Link>
+                    <Link href="/discover">Start Swiping 🔥</Link>
                  </Button>
               </div>
             )}
