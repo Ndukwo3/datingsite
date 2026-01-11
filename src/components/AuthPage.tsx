@@ -15,10 +15,10 @@ import { SplashScreen } from "./SplashScreen";
 import { ThemeToggle } from "./ThemeToggle";
 import { useToast } from "@/hooks/use-toast";
 import { useFirebaseApp } from "@/firebase";
-import { getAuth, createUserWithEmailAndPassword, signInWithEmailAndPassword, updateProfile } from "firebase/auth";
+import { getAuth, createUserWithEmailAndPassword, signInWithEmailAndPassword, updateProfile, sendPasswordResetEmail } from "firebase/auth";
 import { getFirestore, doc, setDoc, serverTimestamp } from "firebase/firestore";
 
-type AuthStep = "login" | "signup";
+type AuthStep = "login" | "signup" | "forgot-password";
 type UserData = {
     name: string;
     phone: string;
@@ -122,13 +122,40 @@ export function AuthPage({ defaultTab }: { defaultTab: "login" | "signup" }) {
             setIsLoading(false);
         }
     };
+    
+    const handlePasswordResetSubmit = async (data: { email: string }) => {
+        if (!firebaseApp) {
+            toast({ title: "Initialization error", description: "Firebase is not ready.", variant: "destructive" });
+            return;
+        }
+        setIsLoading(true);
+        const auth = getAuth(firebaseApp);
+        try {
+            await sendPasswordResetEmail(auth, data.email);
+            toast({
+                title: "Password Reset Email Sent",
+                description: "Check your inbox for a link to reset your password.",
+            });
+            setAuthStep('login');
+        } catch (error: any) {
+             toast({
+                title: "Error Sending Email",
+                description: "Could not send password reset email. Please check the address and try again.",
+                variant: "destructive"
+            });
+        } finally {
+            setIsLoading(false);
+        }
+    }
 
     const renderForm = () => {
         switch (authStep) {
             case 'login':
-                return <LoginForm onSubmit={handleLoginSubmit} isLoading={isLoading} onSwitch={() => setAuthStep('signup')} />;
+                return <LoginForm onSubmit={handleLoginSubmit} isLoading={isLoading} onSwitch={() => setAuthStep('signup')} onForgotPassword={() => setAuthStep('forgot-password')} />;
             case 'signup':
                 return <SignUpForm onSubmit={handleSignupSubmit} isLoading={isLoading} onSwitch={() => setAuthStep('login')} />;
+            case 'forgot-password':
+                return <ForgotPasswordForm onSubmit={handlePasswordResetSubmit} isLoading={isLoading} onBackToLogin={() => setAuthStep('login')} />;
             default:
                 return null;
         }
@@ -162,26 +189,29 @@ export function AuthPage({ defaultTab }: { defaultTab: "login" | "signup" }) {
                         <Heart className="h-8 w-8 text-white" />
                     </div>
                     <h1 className="font-headline text-3xl font-bold text-gray-800 dark:text-white">
-                        LinkUp9ja
+                        {authStep === 'forgot-password' ? 'Reset Password' : 'LinkUp9ja'}
                     </h1>
                     <p className="mt-2 text-gray-600 dark:text-gray-200">
-                        Find your perfect match in Nigeria
+                         {authStep === 'forgot-password' ? 'Enter your email to get a reset link' : 'Find your perfect match in Nigeria'}
                     </p>
                 </div>
 
-                <div className="relative mt-4 flex rounded-lg bg-gray-100/70 p-1">
-                    <motion.div 
-                        className="absolute inset-0.5 w-1/2 rounded-md bg-white shadow"
-                        animate={{ x: authStep === 'login' ? '0%' : '100%' }}
-                        transition={{ type: 'spring', stiffness: 300, damping: 30 }}
-                    />
-                    <button onClick={() => setAuthStep('login')} className={cn("relative z-10 w-1/2 py-2 text-sm font-medium transition-colors", authStep === 'login' ? 'text-pink-600' : 'text-gray-500')}>
-                        Login
-                    </button>
-                    <button onClick={() => setAuthStep('signup')} className={cn("relative z-10 w-1/2 py-2 text-sm font-medium transition-colors", authStep === 'signup' ? 'text-pink-600' : 'text-gray-500')}>
-                        Sign Up
-                    </button>
-                </div>
+                {authStep !== 'forgot-password' && (
+                    <div className="relative mt-4 flex rounded-lg bg-gray-100/70 p-1">
+                        <motion.div 
+                            className="absolute inset-0.5 w-1/2 rounded-md bg-white shadow"
+                            animate={{ x: authStep === 'login' ? '0%' : '100%' }}
+                            transition={{ type: 'spring', stiffness: 300, damping: 30 }}
+                        />
+                        <button onClick={() => setAuthStep('login')} className={cn("relative z-10 w-1/2 py-2 text-sm font-medium transition-colors", authStep === 'login' ? 'text-pink-600' : 'text-gray-500')}>
+                            Login
+                        </button>
+                        <button onClick={() => setAuthStep('signup')} className={cn("relative z-10 w-1/2 py-2 text-sm font-medium transition-colors", authStep === 'signup' ? 'text-pink-600' : 'text-gray-500')}>
+                            Sign Up
+                        </button>
+                    </div>
+                )}
+
 
                 <div className="relative mt-6 h-[400px] overflow-hidden">
                     <AnimatePresence mode="wait">
@@ -202,7 +232,7 @@ export function AuthPage({ defaultTab }: { defaultTab: "login" | "signup" }) {
     );
 }
 
-const LoginForm = ({ onSubmit, isLoading, onSwitch }: { onSubmit: (data: {email: string, password: string}) => void; isLoading: boolean; onSwitch: () => void; }) => {
+const LoginForm = ({ onSubmit, isLoading, onSwitch, onForgotPassword }: { onSubmit: (data: {email: string, password: string}) => void; isLoading: boolean; onSwitch: () => void; onForgotPassword: () => void; }) => {
     const [showPassword, setShowPassword] = useState(false);
     
     const handleSubmit = (e: React.FormEvent<HTMLFormElement>) => {
@@ -253,9 +283,9 @@ const LoginForm = ({ onSubmit, isLoading, onSwitch }: { onSubmit: (data: {email:
                     <Checkbox id="remember-me" />
                     Remember me
                 </label>
-                <Link href="#" className="font-medium text-pink-600 hover:text-pink-500 dark:text-white dark:hover:text-gray-300">
+                <button type="button" onClick={onForgotPassword} className="font-medium text-pink-600 hover:text-pink-500 dark:text-white dark:hover:text-gray-300">
                     Forgot Password?
-                </Link>
+                </button>
             </div>
             <Button type="submit" className="w-full bg-gradient-to-r from-pink-500 to-orange-500 py-3 text-white font-semibold shadow-lg hover:scale-105 transition-transform" disabled={isLoading}>
                  {isLoading && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
@@ -399,3 +429,41 @@ const SignUpForm = ({ onSubmit, isLoading, onSwitch }: { onSubmit: (data: UserDa
         </form>
     );
 };
+
+const ForgotPasswordForm = ({ onSubmit, isLoading, onBackToLogin }: { onSubmit: (data: {email: string}) => void; isLoading: boolean; onBackToLogin: () => void; }) => {
+    const handleSubmit = (e: React.FormEvent<HTMLFormElement>) => {
+        e.preventDefault();
+        const formData = new FormData(e.currentTarget);
+        const email = formData.get("email") as string;
+        onSubmit({email});
+    };
+
+    return (
+        <form onSubmit={handleSubmit} className="space-y-6">
+            <div>
+                <div className="relative">
+                    <Mail className="absolute left-3 top-1/2 -translate-y-1/2 h-5 w-5 text-gray-400" />
+                    <Input
+                        name="email"
+                        type="email"
+                        placeholder="Enter your email address"
+                        required
+                        className="pl-10 placeholder:text-muted-foreground focus:placeholder:text-transparent"
+                    />
+                </div>
+            </div>
+            <Button type="submit" className="w-full bg-gradient-to-r from-pink-500 to-orange-500 py-3 text-white font-semibold shadow-lg hover:scale-105 transition-transform" disabled={isLoading}>
+                 {isLoading && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
+                Send Reset Link
+            </Button>
+             <p className="text-center text-sm text-gray-600 dark:text-gray-300">
+                Remember your password?{' '}
+                <button type="button" onClick={onBackToLogin} className="font-medium text-pink-600 hover:text-pink-500 dark:text-white dark:hover:text-gray-300">
+                    Back to Login
+                </button>
+            </p>
+        </form>
+    );
+};
+
+    
