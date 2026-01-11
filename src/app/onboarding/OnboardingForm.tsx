@@ -25,6 +25,7 @@ import { nigerianStates } from '@/lib/data';
 import { Slider } from '@/components/ui/slider';
 import Link from 'next/link';
 import { parse, isValid as isValidDate } from 'date-fns';
+import { validateProfilePhoto } from '@/ai/flows/validate-profile-photo';
 
 
 const step1Schema = z.object({
@@ -107,6 +108,7 @@ const formatDobInput = (value: string) => {
 export function OnboardingForm() {
   const [currentStep, setCurrentStep] = useState(0);
   const [direction, setDirection] = useState(1);
+  const [validatingPhotoIndex, setValidatingPhotoIndex] = useState<number | null>(null);
   const { toast } = useToast();
   const router = useRouter();
   const { user: authUser } = useUser();
@@ -228,7 +230,16 @@ export function OnboardingForm() {
     setValue('interests', newInterests, { shouldValidate: true });
   };
 
-  const handlePhotoUpload = (e: React.ChangeEvent<HTMLInputElement>) => {
+  const fileToDataUri = (file: File): Promise<string> => {
+    return new Promise((resolve, reject) => {
+        const reader = new FileReader();
+        reader.onload = () => resolve(reader.result as string);
+        reader.onerror = reject;
+        reader.readAsDataURL(file);
+    });
+  }
+
+  const handlePhotoUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
     if (e.target.files) {
       const files = Array.from(e.target.files);
       const currentPhotos = getValues('photos');
@@ -236,8 +247,38 @@ export function OnboardingForm() {
         toast({ title: "You can upload a maximum of 6 photos.", variant: 'destructive' });
         return;
       }
-      // TODO: Add compression and progress bar logic
+      
+      const newlyAddedIndex = currentPhotos.length;
       setValue('photos', [...currentPhotos, ...files], { shouldValidate: true });
+
+      for (let i = 0; i < files.length; i++) {
+        const file = files[i];
+        const photoIndex = newlyAddedIndex + i;
+        setValidatingPhotoIndex(photoIndex);
+
+        try {
+            const photoDataUri = await fileToDataUri(file);
+            const result = await validateProfilePhoto({ photoDataUri });
+            
+            if (!result.isValid) {
+                toast({
+                    title: "Invalid Photo",
+                    description: result.reason,
+                    variant: "destructive"
+                });
+                // Remove the invalid photo
+                const updatedPhotos = getValues('photos').filter((_, idx) => idx !== photoIndex);
+                setValue('photos', updatedPhotos, { shouldValidate: true });
+            }
+        } catch (error) {
+            console.error("Photo validation failed", error);
+            toast({ title: "Photo validation failed", description: "Please try again.", variant: 'destructive' });
+            const updatedPhotos = getValues('photos').filter((_, idx) => idx !== photoIndex);
+            setValue('photos', updatedPhotos, { shouldValidate: true });
+        } finally {
+            setValidatingPhotoIndex(null);
+        }
+      }
     }
   };
 
@@ -388,6 +429,11 @@ export function OnboardingForm() {
                  <div className="grid grid-cols-2 md:grid-cols-3 gap-4">
                     {Array.from({ length: 6 }).map((_, i) => (
                         <div key={i} className="aspect-square rounded-xl border-dashed border-2 flex items-center justify-center relative bg-muted/50">
+                        {validatingPhotoIndex === i && (
+                            <div className="absolute inset-0 flex items-center justify-center bg-black/50 rounded-xl">
+                                <Loader2 className="w-8 h-8 animate-spin text-white"/>
+                            </div>
+                        )}
                         {photos[i] ? (
                             <>
                                 <img src={URL.createObjectURL(photos[i])} alt={`upload-preview-${i}`} className="w-full h-full object-cover rounded-xl" />
