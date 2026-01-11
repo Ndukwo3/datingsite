@@ -6,7 +6,7 @@ import * as React from "react";
 import { useState } from "react";
 import { useRouter, useSearchParams } from "next/navigation";
 import { motion, AnimatePresence } from "framer-motion";
-import { Heart, Mail, KeyRound, User, Phone } from "lucide-react";
+import { Heart, Mail, KeyRound, User, Phone, Eye, EyeOff } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { Button } from "./ui/button";
 import { Input } from "./ui/input";
@@ -140,6 +140,8 @@ export function AuthPage({ defaultTab }: { defaultTab: "login" | "signup" }) {
 }
 
 const LoginForm = ({ onSubmit, isLoading, onSwitch }: { onSubmit: () => void; isLoading: boolean; onSwitch: () => void; }) => {
+    const [showPassword, setShowPassword] = useState(false);
+    
     const handleSubmit = (e: React.FormEvent<HTMLFormElement>) => {
         e.preventDefault();
         onSubmit();
@@ -163,11 +165,20 @@ const LoginForm = ({ onSubmit, isLoading, onSwitch }: { onSubmit: () => void; is
                 <div className="relative">
                     <KeyRound className="absolute left-3 top-1/2 -translate-y-1/2 h-5 w-5 text-gray-400" />
                     <Input
-                        type="password"
+                        type={showPassword ? 'text' : 'password'}
                         placeholder="Password"
                         required
-                        className="pl-10 placeholder:text-muted-foreground focus:placeholder:text-transparent"
+                        className="pl-10 pr-10 placeholder:text-muted-foreground focus:placeholder:text-transparent"
                     />
+                     <Button
+                        type="button"
+                        variant="ghost"
+                        size="icon"
+                        className="absolute right-1 top-1/2 h-8 w-8 -translate-y-1/2 text-gray-400 hover:bg-transparent"
+                        onClick={() => setShowPassword(prev => !prev)}
+                    >
+                        {showPassword ? <EyeOff className="h-5 w-5" /> : <Eye className="h-5 w-5" />}
+                    </Button>
                 </div>
             </div>
             <div className="flex items-center justify-between text-sm">
@@ -195,6 +206,8 @@ const LoginForm = ({ onSubmit, isLoading, onSwitch }: { onSubmit: () => void; is
 
 const SignUpForm = ({ onSubmit, isLoading, onSwitch }: { onSubmit: (data: UserData) => void; isLoading: boolean; onSwitch: () => void; }) => {
     const { toast } = useToast();
+    const [showPassword, setShowPassword] = useState(false);
+    const [showConfirmPassword, setShowConfirmPassword] = useState(false);
     
     const handleNameInputChange = (e: React.ChangeEvent<HTMLInputElement>) => {
         e.target.value = e.target.value.replace(/[^a-zA-Z\s]/g, '');
@@ -260,21 +273,39 @@ const SignUpForm = ({ onSubmit, isLoading, onSwitch }: { onSubmit: (data: UserDa
                 <KeyRound className="absolute left-3 top-1/2 -translate-y-1/2 h-5 w-5 text-gray-400" />
                 <Input
                     name="password"
-                    type="password"
+                    type={showPassword ? 'text' : 'password'}
                     placeholder="Password"
                     required
-                    className="pl-10 placeholder:text-muted-foreground focus:placeholder:text-transparent"
+                    className="pl-10 pr-10 placeholder:text-muted-foreground focus:placeholder:text-transparent"
                 />
+                 <Button
+                    type="button"
+                    variant="ghost"
+                    size="icon"
+                    className="absolute right-1 top-1/2 h-8 w-8 -translate-y-1/2 text-gray-400 hover:bg-transparent"
+                    onClick={() => setShowPassword(prev => !prev)}
+                >
+                    {showPassword ? <EyeOff className="h-5 w-5" /> : <Eye className="h-5 w-5" />}
+                </Button>
             </div>
              <div className="relative">
                 <KeyRound className="absolute left-3 top-1/2 -translate-y-1/2 h-5 w-5 text-gray-400" />
                 <Input
                     name="confirmPassword"
-                    type="password"
+                    type={showConfirmPassword ? 'text' : 'password'}
                     placeholder="Confirm Password"
                     required
-                    className="pl-10 placeholder:text-muted-foreground focus:placeholder:text-transparent"
+                    className="pl-10 pr-10 placeholder:text-muted-foreground focus:placeholder:text-transparent"
                 />
+                 <Button
+                    type="button"
+                    variant="ghost"
+                    size="icon"
+                    className="absolute right-1 top-1/2 h-8 w-8 -translate-y-1/2 text-gray-400 hover:bg-transparent"
+                    onClick={() => setShowConfirmPassword(prev => !prev)}
+                >
+                    {showConfirmPassword ? <EyeOff className="h-5 w-5" /> : <Eye className="h-5 w-5" />}
+                </Button>
             </div>
             <Button type="submit" className="w-full bg-gradient-to-r from-pink-500 to-orange-500 py-3 text-white font-semibold shadow-lg hover:scale-105 transition-transform" disabled={isLoading}>
                  {isLoading && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
@@ -289,3 +320,5 @@ const SignUpForm = ({ onSubmit, isLoading, onSwitch }: { onSubmit: (data: UserDa
         </form>
     );
 };
+
+    
