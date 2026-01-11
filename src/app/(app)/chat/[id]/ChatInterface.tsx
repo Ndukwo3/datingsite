@@ -19,7 +19,6 @@ import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, 
 import { Dialog, DialogTrigger, DialogContent, DialogHeader, DialogTitle, DialogDescription, DialogFooter, DialogClose } from '@/components/ui/dialog';
 import { Label } from '@/components/ui/label';
 import { RadioGroup, RadioGroupItem } from '@/components/ui/radio-group';
-import { Textarea } from '@/components/ui/textarea';
 
 type ChatInterfaceProps = {
   conversation: Conversation;
@@ -47,7 +46,6 @@ export function ChatInterface({ conversation, initialMessages, currentUser }: Ch
   
   const [isReportDialogOpen, setIsReportDialogOpen] = useState(false);
   const [reportReason, setReportReason] = useState('');
-  const [reportDetails, setReportDetails] = useState('');
 
 
   const participant = conversation.participant;
@@ -115,7 +113,6 @@ export function ChatInterface({ conversation, initialMessages, currentUser }: Ch
         description: "Thank you for helping keep our community safe. Our team will review your report.",
     });
     setReportReason('');
-    setReportDetails('');
     setIsReportDialogOpen(false);
      // Here you would add logic to actually report the user
   }
@@ -173,18 +170,6 @@ export function ChatInterface({ conversation, initialMessages, currentUser }: Ch
                                     </div>
                                 ))}
                             </RadioGroup>
-                            {reportReason && (
-                                <div className="space-y-2">
-                                    <Label htmlFor="report-details">Please provide more details (optional)</Label>
-                                    <Textarea 
-                                        id="report-details" 
-                                        value={reportDetails}
-                                        onChange={(e) => setReportDetails(e.target.value)}
-                                        placeholder={`Tell us more about the ${reportReason} issue...`}
-                                        className="min-h-[100px]"
-                                    />
-                                </div>
-                            )}
                         </div>
                         <DialogFooter>
                             <DialogClose asChild>
