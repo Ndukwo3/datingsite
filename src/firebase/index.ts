@@ -2,7 +2,6 @@
 import { initializeApp, getApps, getApp, type FirebaseApp } from "firebase/app";
 import { getAuth, type Auth } from "firebase/auth";
 import { getFirestore, type Firestore } from "firebase/firestore";
-import { getStorage, type FirebaseStorage } from "firebase/storage";
 import { firebaseConfig } from "./config";
 
 // --- Firebase App Initialization ---
@@ -20,7 +19,6 @@ if (!getApps().length) {
 
 let auth: Auth | null = null;
 let firestore: Firestore | null = null;
-let storage: FirebaseStorage | null = null;
 
 /**
  * Lazily gets the Firebase Auth instance.
@@ -42,17 +40,6 @@ export function getFirebaseFirestore(): Firestore {
     firestore = getFirestore(firebaseApp);
   }
   return firestore;
-}
-
-/**
- * Lazily gets the Firebase Storage instance.
- * @returns The Firebase Storage instance.
- */
-export function getFirebaseStorage(): FirebaseStorage {
-    if (!storage) {
-        storage = getStorage(firebaseApp);
-    }
-    return storage;
 }
 
 /**

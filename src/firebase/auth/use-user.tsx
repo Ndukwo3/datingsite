@@ -1,7 +1,7 @@
 
 "use client";
 
-import { useEffect, useState } from "react";
+import { useEffect, useState, useCallback } from "react";
 import { onAuthStateChanged, type User as FirebaseUser } from "firebase/auth";
 import { useAuth, useFirestore, useDoc } from "@/firebase";
 import { doc } from "firebase/firestore";
@@ -28,11 +28,18 @@ export function useUser() {
   }, [auth]);
 
   const userDocRef = user ? doc(firestore, "users", user.uid) : null;
-  const { data: userData, loading: userDataLoading } = useDoc<User>(userDocRef);
+  const { data: userData, loading: userDataLoading, refetch } = useDoc<User>(userDocRef);
+
+  const refreshUserData = useCallback(() => {
+    if (refetch) {
+      refetch();
+    }
+  }, [refetch]);
 
   return {
     user,
     userData,
     loading: loading || userDataLoading,
+    refreshUserData
   };
 }

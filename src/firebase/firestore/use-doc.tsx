@@ -1,9 +1,10 @@
 
 "use client";
 
-import { useState, useEffect } from "react";
+import { useState, useEffect, useCallback } from "react";
 import {
   onSnapshot,
+  getDoc,
   type DocumentReference,
   type DocumentData,
 } from "firebase/firestore";
@@ -19,6 +20,29 @@ export function useDoc<T = DocumentData>(
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<Error | null>(null);
   const firestore = useFirestore();
+
+  const refetch = useCallback(async () => {
+    if (!ref || !firestore) return;
+    setLoading(true);
+    try {
+      const snapshot = await getDoc(ref);
+      if (snapshot.exists()) {
+        setData({ ...snapshot.data(), id: snapshot.id });
+      } else {
+        setData(null);
+      }
+      setError(null);
+    } catch (err: any) {
+        const permissionError = new FirestorePermissionError({
+          path: ref.path,
+          operation: 'get'
+        });
+        errorEmitter.emit('permission-error', permissionError);
+        setError(err);
+    } finally {
+        setLoading(false);
+    }
+  }, [ref, firestore]);
 
   useEffect(() => {
     if (!ref || !firestore) {
@@ -56,5 +80,5 @@ export function useDoc<T = DocumentData>(
   // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [ref?.path]);
 
-  return { data, loading, error };
+  return { data, loading, error, refetch };
 }

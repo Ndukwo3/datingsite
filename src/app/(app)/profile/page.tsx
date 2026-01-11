@@ -17,7 +17,6 @@ import { useEffect, useState, useRef } from 'react';
 import { useToast } from '@/hooks/use-toast';
 import imageCompression from 'browser-image-compression';
 import { validateProfilePhoto } from '@/ai/flows/validate-profile-photo';
-import { uploadFile } from '@/lib/storage';
 import { cn } from '@/lib/utils';
 import {
   AlertDialog,
@@ -32,7 +31,7 @@ import {
 } from "@/components/ui/alert-dialog"
 
 export default function ProfilePage() {
-    const { user: authUser, loading: authLoading, userData } = useUser();
+    const { user: authUser, loading: authLoading, userData, refreshUserData } = useUser();
     const router = useRouter();
     const { toast } = useToast();
     const firestore = useFirestore();
@@ -71,7 +70,7 @@ export default function ProfilePage() {
         }
     
         setUploading(true);
-        const newPhotoUrls: string[] = [];
+        const newPhotoBase64s: string[] = [];
     
         try {
             for (const file of files) {
@@ -88,16 +87,16 @@ export default function ProfilePage() {
                     throw new Error(validation.reason || "A selected photo is not valid.");
                 }
     
-                const url = await uploadFile(compressedFile, `users/${authUser.uid}/photos`);
-                newPhotoUrls.push(url);
+                newPhotoBase64s.push(photoDataUri);
             }
     
-            if (newPhotoUrls.length > 0) {
+            if (newPhotoBase64s.length > 0) {
                 const userDocRef = doc(firestore, 'users', authUser.uid);
                 await updateDoc(userDocRef, {
-                    photos: [...currentUser.photos, ...newPhotoUrls]
+                    photos: [...currentUser.photos, ...newPhotoBase64s]
                 });
-                toast({ title: `${newPhotoUrls.length} photo(s) uploaded successfully!` });
+                await refreshUserData();
+                toast({ title: `${newPhotoBase64s.length} photo(s) uploaded successfully!` });
             }
     
         } catch (error: any) {
@@ -122,6 +121,7 @@ export default function ProfilePage() {
 
         try {
             await updateDoc(userDocRef, { photos: updatedPhotos });
+            await refreshUserData();
             toast({ title: "Photo removed." });
         } catch (error) {
             toast({ title: "Error", description: "Could not remove photo.", variant: "destructive" });
@@ -137,6 +137,7 @@ export default function ProfilePage() {
 
         try {
             await updateDoc(userDocRef, { photos: newPhotoOrder });
+            await refreshUserData();
             toast({ title: "Main photo updated." });
         } catch (error) {
             toast({ title: "Error", description: "Could not update main photo.", variant: "destructive" });

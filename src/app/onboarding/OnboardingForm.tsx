@@ -14,7 +14,6 @@ import { doc, setDoc, serverTimestamp } from 'firebase/firestore';
 import imageCompression from 'browser-image-compression';
 import { errorEmitter } from '@/firebase/error-emitter';
 import { FirestorePermissionError } from '@/firebase/errors';
-import { uploadFile } from '@/lib/storage';
 
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -109,6 +108,15 @@ const formatDobInput = (value: string) => {
     return input;
 };
 
+const fileToDataUri = (file: File): Promise<string> => {
+  return new Promise((resolve, reject) => {
+      const reader = new FileReader();
+      reader.onload = () => resolve(reader.result as string);
+      reader.onerror = reject;
+      reader.readAsDataURL(file);
+  });
+}
+
 export function OnboardingForm() {
   const [currentStep, setCurrentStep] = useState(0);
   const [direction, setDirection] = useState(1);
@@ -186,9 +194,12 @@ export function OnboardingForm() {
     const userDocRef = doc(firestore, 'users', authUser.uid);
     const age = getAge(data.dob);
 
-    const photoFiles = data.photos.filter(p => p instanceof File);
-    const photoUploadPromises = photoFiles.map(photo => uploadFile(photo, `users/${authUser.uid}/photos`));
-    const photoURLs = await Promise.all(photoUploadPromises);
+    const photoBase64Promises = data.photos.map(photo => {
+      if (typeof photo === 'string') return Promise.resolve(photo);
+      return fileToDataUri(photo);
+    });
+
+    const photoBase64s = await Promise.all(photoBase64Promises);
 
     const finalUserData = {
         name: data.fullName,
@@ -197,8 +208,11 @@ export function OnboardingForm() {
         location: `${data.city}, ${data.state}`,
         bio: data.bio,
         interests: data.interests,
-        photos: photoURLs,
+        photos: photoBase64s,
         onboardingComplete: true,
+        createdAt: serverTimestamp(),
+        email: authUser.email,
+        id: authUser.uid
     };
 
     setDoc(userDocRef, finalUserData, { merge: true })
@@ -232,15 +246,6 @@ export function OnboardingForm() {
     }
     setValue('interests', newInterests, { shouldValidate: true });
   };
-
-  const fileToDataUri = (file: File): Promise<string> => {
-    return new Promise((resolve, reject) => {
-        const reader = new FileReader();
-        reader.onload = () => resolve(reader.result as string);
-        reader.onerror = reject;
-        reader.readAsDataURL(file);
-    });
-  }
 
   const handlePhotoUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
     if (e.target.files) {
