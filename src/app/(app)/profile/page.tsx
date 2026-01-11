@@ -48,7 +48,7 @@ export default function ProfilePage() {
                 <CardContent className="p-6">
                     <div className="flex flex-col items-center gap-6 sm:flex-row">
                         <Avatar className="h-24 w-24 border-4 border-primary">
-                            {userImage && <AvatarImage src={userImage} alt={currentUser.name} />}
+                            {userImage && typeof userImage === 'string' && <AvatarImage src={userImage} alt={currentUser.name} />}
                             <AvatarFallback>{currentUser.name.charAt(0)}</AvatarFallback>
                         </Avatar>
                         <div className="flex-1 text-center sm:text-left">
@@ -96,12 +96,14 @@ export default function ProfilePage() {
               <div className="grid grid-cols-2 gap-4 md:grid-cols-4">
                 {currentUser.photos.map((photoUrl, index) => (
                   <div key={index} className="group relative aspect-square">
-                      <Image
-                        src={photoUrl}
-                        alt={`Profile photo ${index + 1}`}
-                        fill
-                        className="rounded-lg object-cover"
-                      />
+                      {photoUrl && typeof photoUrl === 'string' && (
+                        <Image
+                            src={photoUrl}
+                            alt={`Profile photo ${index + 1}`}
+                            fill
+                            className="rounded-lg object-cover"
+                        />
+                      )}
                     {index === 0 && <Badge className="absolute top-2 left-2">Main</Badge>}
                   </div>
                 ))}

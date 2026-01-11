@@ -52,7 +52,7 @@ export default function UserProfilePage() {
 
       {/* Left side: Photo Gallery */}
       <div className="relative h-96 md:w-2/5 md:h-screen md:sticky md:top-0 bg-black overflow-hidden md:rounded-xl">
-        {userImage && (
+        {userImage && typeof userImage === 'string' && (
             <Image
             src={userImage}
             alt={`${user.name}'s photo`}
