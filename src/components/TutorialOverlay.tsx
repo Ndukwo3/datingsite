@@ -5,6 +5,7 @@ import { useState } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import { Heart, X, Star, MessageSquare } from "lucide-react";
 import Link from "next/link";
+import { useRouter } from "next/navigation";
 import { Button } from "./ui/button";
 import { ProfileCard } from "./ProfileCard";
 import { potentialMatches } from "@/lib/data";
@@ -57,6 +58,7 @@ const tutorialSlides = [
 export function TutorialOverlay() {
   const [currentSlide, setCurrentSlide] = useState(0);
   const [direction, setDirection] = useState(1);
+  const router = useRouter();
   const user1 = PlaceHolderImages.find(p => p.id === 'tutorial-1');
   const user2 = PlaceHolderImages.find(p => p.id === 'tutorial-2');
 
@@ -72,6 +74,10 @@ export function TutorialOverlay() {
     if (currentSlide > 0) {
       setCurrentSlide(currentSlide - 1);
     }
+  };
+
+  const handleFinish = () => {
+    router.push('/');
   };
 
   const slideVariants = {
@@ -182,8 +188,8 @@ export function TutorialOverlay() {
                         Next &rarr;
                     </Button>
                 ) : (
-                    <Button asChild className="bg-primary-gradient rounded-full px-8">
-                        <Link href="/">Start Discovering 🔥</Link>
+                    <Button onClick={handleFinish} className="bg-primary-gradient rounded-full px-8">
+                        Start Discovering 🔥
                     </Button>
                 )}
                  {currentSlide < tutorialSlides.length - 1 ? (
@@ -197,6 +203,7 @@ export function TutorialOverlay() {
     </div>
   );
 }
+
 
 
 
