@@ -1,0 +1,86 @@
+{
+  "entities": {
+    "User": {
+      "title": "User",
+      "description": "A user of the application.",
+      "type": "object",
+      "properties": {
+        "id": { "type": "string", "description": "The unique identifier for the user." },
+        "name": { "type": "string", "description": "The user's full name." },
+        "email": { "type": "string", "format": "email", "description": "The user's email address." },
+        "phone": { "type": "string", "description": "The user's phone number." },
+        "createdAt": { "type": "string", "format": "date-time", "description": "The timestamp when the user account was created." },
+        "age": { "type": "number", "description": "The user's age." },
+        "bio": { "type": "string", "description": "A short biography of the user." },
+        "location": { "type": "string", "description": "The user's location." },
+        "job": { "type": "string", "description": "The user's job title." },
+        "education": { "type": "string", "description": "The user's educational background." },
+        "interests": { "type": "array", "items": { "type": "string" }, "description": "A list of the user's interests." },
+        "photos": { "type": "array", "items": { "type": "string" }, "description": "A list of IDs for the user's photos." },
+        "isVerified": { "type": "boolean", "description": "Indicates if the user's profile is verified." },
+        "lastSeen": { "type": "string", "description": "Indicates when the user was last active." }
+      },
+      "required": ["id", "name", "email", "createdAt"]
+    },
+    "Conversation": {
+      "title": "Conversation",
+      "description": "A chat conversation between two or more users.",
+      "type": "object",
+      "properties": {
+        "id": { "type": "string", "description": "The unique identifier for the conversation." },
+        "participants": { "type": "array", "items": { "type": "string" }, "description": "A list of user IDs participating in the conversation." },
+        "participantDetails": { "type": "object", "description": "Embedded details of the participants for easy access." },
+        "createdAt": { "type": "string", "format": "date-time", "description": "The timestamp when the conversation was created." },
+        "lastMessage": { "$ref": "#/entities/Message" }
+      },
+      "required": ["id", "participants", "createdAt"]
+    },
+    "Message": {
+      "title": "Message",
+      "description": "A single message within a conversation.",
+      "type": "object",
+      "properties": {
+        "id": { "type": "string", "description": "The unique identifier for the message." },
+        "senderId": { "type": "string", "description": "The ID of the user who sent the message." },
+        "receiverId": { "type": "string", "description": "The ID of the user who received the message." },
+        "text": { "type": "string", "description": "The content of the message." },
+        "timestamp": { "type": "string", "format": "date-time", "description": "The timestamp when the message was sent." }
+      },
+      "required": ["id", "senderId", "text", "timestamp"]
+    },
+    "Swipe": {
+      "title": "Swipe",
+      "description": "Represents a swipe action (like or dislike) from one user to another.",
+      "type": "object",
+      "properties": {
+        "id": { "type": "string" },
+        "swiperId": { "type": "string" },
+        "swipedId": { "type": "string" },
+        "direction": { "type": "string", "enum": ["left", "right", "up"] },
+        "timestamp": { "type": "string", "format": "date-time" }
+      },
+      "required": ["swiperId", "swipedId", "direction", "timestamp"]
+    }
+  },
+  "auth": {
+    "providers": ["email"]
+  },
+  "firestore": {
+    "/users/{userId}": {
+      "schema": { "$ref": "#/entities/User" },
+      "description": "Stores individual user profiles."
+    },
+    "/conversations/{conversationId}": {
+      "schema": { "$ref": "#/entities/Conversation" },
+      "description": "Stores chat conversations between users."
+    },
+    "/conversations/{conversationId}/messages/{messageId}": {
+      "schema": { "$ref": "#/entities/Message" },
+      "description": "Stores messages within a specific conversation."
+    },
+    "/swipes/{swipeId}": {
+      "schema": { "$ref": "#/entities/Swipe" },
+      "description": "Stores individual swipe actions."
+    }
+  }
+}

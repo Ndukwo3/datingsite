@@ -3,9 +3,9 @@ import { FirebaseOptions } from 'firebase/app';
 
 // The following fields are sourced from your Firebase project.
 export const firebaseConfig: FirebaseOptions = {
-  apiKey: "AIzaSyDzdFVeAZ9y8ThHMAmSR3qXka01m1J9yJs",
-  authDomain: "studio-8177975468-5ff33.firebaseapp.com",
-  projectId: "studio-8177975468-5ff33",
-  appId: "1:636084667049:web:2b5dec9a22b5a280131fb8",
-  messagingSenderId: "636084667049"
+  apiKey: process.env.NEXT_PUBLIC_FIREBASE_API_KEY!,
+  authDomain: process.env.NEXT_PUBLIC_FIREBASE_AUTH_DOMAIN!,
+  projectId: process.env.NEXT_PUBLIC_FIREBASE_PROJECT_ID!,
+  appId: process.env.NEXT_PUBLIC_FIREBASE_APP_ID!,
+  messagingSenderId: process.env.NEXT_PUBLIC_FIREBASE_MESSAGING_SENDER_ID!
 };
