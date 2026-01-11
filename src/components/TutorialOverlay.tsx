@@ -99,7 +99,7 @@ export function TutorialOverlay() {
         
         <div className="flex-1 flex flex-col items-center justify-center text-center">
             {/* Visual Element */}
-            <div className="relative w-64 h-[22rem] mb-6">
+            <div className="relative w-64 h-[22rem] mb-12">
                  <AnimatePresence>
                      {currentAnimation && currentAnimation.action !== 'match' && (
                        <motion.div
