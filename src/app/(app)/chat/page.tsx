@@ -1,6 +1,7 @@
 
 'use client';
 
+import { useMemo } from 'react';
 import Link from 'next/link';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
@@ -16,12 +17,13 @@ export default function ChatListPage() {
   const { user } = useUser();
 
   // Query for conversations where the current user is a participant
-  const conversationsQuery = firestore && user
-    ? query(
-        collection(firestore, 'conversations'),
-        where('participants', 'array-contains', user.uid)
-      )
-    : null;
+  const conversationsQuery = useMemo(() => {
+    if (!firestore || !user) return null;
+    return query(
+      collection(firestore, 'conversations'),
+      where('participants', 'array-contains', user.uid)
+    );
+  }, [firestore, user]);
 
   const { data: conversations, loading } = useCollection<Conversation>(conversationsQuery);
 

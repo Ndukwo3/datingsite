@@ -61,7 +61,7 @@ export function useCollection<T = DocumentData>(
 
     return () => unsubscribe();
   // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [query]);
+  }, [JSON.stringify(query)]);
 
   return { data, loading, error };
 }
