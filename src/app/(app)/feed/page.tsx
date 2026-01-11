@@ -1,3 +1,4 @@
+
 import Image from 'next/image';
 import Link from 'next/link';
 import { Card, CardContent } from '@/components/ui/card';
@@ -5,6 +6,7 @@ import { users } from '@/lib/data';
 import { PlaceHolderImages } from '@/lib/placeholder-images';
 import { formatActivity } from '@/lib/utils';
 import { cn } from '@/lib/utils';
+import { MapPin } from 'lucide-react';
 
 export default function FeedPage() {
   // Sort users by activity: online first, then by most recent activity
@@ -44,9 +46,12 @@ export default function FeedPage() {
                       data-ai-hint={userImage.imageHint}
                     />
                   )}
-                  <div className="absolute inset-x-0 bottom-0 bg-gradient-to-t from-black/80 to-transparent p-3">
-                    <p className="font-semibold text-primary-foreground">{user.name}, {user.age}</p>
-                    <div className="flex items-center gap-1.5 text-xs text-primary-foreground/80">
+                  <div className="absolute inset-x-0 bottom-0 bg-gradient-to-t from-black/80 to-transparent p-3 text-primary-foreground">
+                    <p className="font-semibold">{user.name}, {user.age}</p>
+                     <p className="mt-0.5 flex items-center gap-1 text-xs text-primary-foreground/80">
+                      <MapPin className="h-3 w-3" /> {user.location.split(',')[0]}
+                    </p>
+                    <div className="mt-1.5 flex items-center gap-1.5 text-xs">
                         <div className={cn("h-2 w-2 rounded-full", isOnline ? "bg-green-400" : "bg-gray-400")} />
                         <span>{formatActivity(user.lastSeen)}</span>
                     </div>
