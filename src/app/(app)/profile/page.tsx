@@ -11,7 +11,6 @@ import { Badge } from '@/components/ui/badge';
 import { Switch } from '@/components/ui/switch';
 import { useUser, useFirestore } from '@/firebase';
 import { doc, updateDoc } from 'firebase/firestore';
-import type { User } from '@/lib/types';
 import { useRouter } from 'next/navigation';
 import { isValidHttpUrl } from '@/lib/is-valid-url';
 import { useEffect, useState, useRef } from 'react';
@@ -40,15 +39,13 @@ export default function ProfilePage() {
     const fileInputRef = useRef<HTMLInputElement>(null);
     const [uploading, setUploading] = useState(false);
 
-    const loading = authLoading;
-
     useEffect(() => {
-      if (!loading && (!authUser || (userData && userData.onboardingComplete === false))) {
+      if (!authLoading && (!authUser || (userData && userData.onboardingComplete === false))) {
           router.push('/onboarding');
       }
-    }, [loading, authUser, userData, router]);
+    }, [authLoading, authUser, userData, router]);
 
-    if (loading || !userData) {
+    if (authLoading || !userData) {
         return <div className="flex h-full items-center justify-center"><Loader2 className="h-8 w-8 animate-spin" /></div>;
     }
     
@@ -88,7 +85,6 @@ export default function ProfilePage() {
     
                 const validation = await validateProfilePhoto({ photoDataUri });
                 if (!validation.isValid) {
-                    // Stop the upload process and show the specific error
                     throw new Error(validation.reason || "A selected photo is not valid.");
                 }
     
@@ -112,7 +108,6 @@ export default function ProfilePage() {
             });
         } finally {
             setUploading(false);
-            // Reset the file input so the user can select the same file again if needed
             if (fileInputRef.current) {
                 fileInputRef.current.value = "";
             }
@@ -416,5 +411,3 @@ export default function ProfilePage() {
       </div>
     </div>
   );
-
-    
