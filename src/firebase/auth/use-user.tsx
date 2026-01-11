@@ -1,3 +1,4 @@
+
 "use client";
 
 import { useEffect, useState } from "react";
@@ -32,6 +33,6 @@ export function useUser() {
   return {
     user,
     userData,
-    loading: loading || (user && userDataLoading),
+    loading: loading || (user ? userDataLoading : false),
   };
 }
