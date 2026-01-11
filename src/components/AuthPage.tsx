@@ -34,6 +34,7 @@ export function AuthPage({ defaultTab }: { defaultTab: "login" | "signup" }) {
 
     const fromNav = searchParams.get('fromNav');
     const [showSplash, setShowSplash] = useState(!!fromNav);
+    const [showAuthSplash, setShowAuthSplash] = useState(false);
     const [isLoading, setIsLoading] = useState(false);
 
     React.useEffect(() => {
@@ -42,6 +43,13 @@ export function AuthPage({ defaultTab }: { defaultTab: "login" | "signup" }) {
             return () => clearTimeout(timer);
         }
     }, [showSplash]);
+
+    const handleAuthSuccess = (redirectUrl: string) => {
+        setShowAuthSplash(true);
+        setTimeout(() => {
+            router.push(redirectUrl);
+        }, 2000); // Match splash screen duration
+    };
 
     const handleSignupSubmit = async (data: UserData & {password: string}) => {
         if (!firebaseApp) {
@@ -77,7 +85,7 @@ export function AuthPage({ defaultTab }: { defaultTab: "login" | "signup" }) {
                 onboardingComplete: false,
             });
             
-            router.push('/onboarding');
+            handleAuthSuccess('/onboarding');
         } catch (error: any) {
              if (error.code === 'auth/email-already-in-use') {
                 toast({
@@ -113,9 +121,9 @@ export function AuthPage({ defaultTab }: { defaultTab: "login" | "signup" }) {
             await signInWithEmailAndPassword(auth, data.email, data.password);
             const userDoc = await getDoc(doc(firestore, 'users', auth.currentUser!.uid));
             if (userDoc.exists() && userDoc.data().onboardingComplete) {
-                router.push('/feed');
+                handleAuthSuccess('/feed');
             } else {
-                router.push('/onboarding');
+                handleAuthSuccess('/onboarding');
             }
         } catch (error: any) {
             let description = "An unexpected error occurred. Please try again.";
@@ -172,11 +180,11 @@ export function AuthPage({ defaultTab }: { defaultTab: "login" | "signup" }) {
     
     return (
         <div className="relative flex min-h-screen items-center justify-center overflow-hidden bg-gradient-to-br from-pink-100 via-red-50 to-yellow-50 p-6 dark:from-pink-900/80 dark:via-red-800/70 dark:to-purple-900/80 md:p-8 font-body">
-             <AnimatePresence>
-                {showSplash && <SplashScreen key="splash-screen" />}
+            <AnimatePresence>
+                {(showSplash || showAuthSplash) && <SplashScreen key="splash-screen" />}
             </AnimatePresence>
 
-            {!showSplash && (
+            {!(showSplash || showAuthSplash) && (
                 <>
                 <div className="absolute inset-0 z-0">
                     <motion.div 
