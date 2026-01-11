@@ -44,13 +44,13 @@ export default function UserProfilePage({ params }: ProfilePageProps) {
        </Button>
 
       {/* Left side: Photo Gallery */}
-      <div className="relative md:w-2/5 md:h-screen md:sticky md:top-0 bg-black">
+      <div className="relative h-96 md:w-2/5 md:h-screen md:sticky md:top-0 bg-black overflow-hidden md:rounded-xl">
         {userImage && (
             <Image
             src={userImage.imageUrl}
             alt={`${user.name}'s photo`}
             fill
-            className="object-cover md:rounded-xl"
+            className="object-cover"
             />
         )}
       </div>
