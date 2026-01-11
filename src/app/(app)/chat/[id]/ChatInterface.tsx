@@ -11,7 +11,7 @@ import { Separator } from '@/components/ui/separator';
 import { cn } from '@/lib/utils';
 import type { Conversation, Message, User } from '@/lib/types';
 import { PlaceHolderImages } from '@/lib/placeholder-images';
-import { ArrowLeft, Loader2, MoreVertical, SendHorizontal } from 'lucide-react';
+import { ArrowLeft, Loader2, MoreVertical, SendHorizontal, Smile } from 'lucide-react';
 import { useToast } from '@/hooks/use-toast';
 import { detectHarassment } from '@/ai/flows/harassment-detection';
 
@@ -132,17 +132,23 @@ export function ChatInterface({ conversation, initialMessages, currentUser }: Ch
       <Separator />
 
       <footer className="p-4">
-        <form onSubmit={handleSendMessage} className="flex items-center gap-2">
-          <Input
-            value={newMessage}
-            onChange={(e) => setNewMessage(e.target.value)}
-            placeholder="Type a message..."
-            autoComplete="off"
-            disabled={isSending}
-          />
-          <Button type="submit" size="icon" disabled={isSending || !newMessage.trim()}>
-            {isSending ? <Loader2 className="h-5 w-5 animate-spin" /> : <SendHorizontal className="h-5 w-5" />}
-          </Button>
+        <form onSubmit={handleSendMessage} className="relative flex items-center">
+            <Input
+                value={newMessage}
+                onChange={(e) => setNewMessage(e.target.value)}
+                placeholder="Type a message..."
+                autoComplete="off"
+                disabled={isSending}
+                className="pr-20"
+            />
+            <div className="absolute right-2 flex items-center">
+                <Button type="button" variant="ghost" size="icon" disabled={isSending} className="text-muted-foreground">
+                    <Smile className="h-5 w-5" />
+                </Button>
+                <Button type="submit" size="icon" disabled={isSending || !newMessage.trim()} className="text-muted-foreground" variant="ghost">
+                    {isSending ? <Loader2 className="h-5 w-5 animate-spin" /> : <SendHorizontal className="h-5 w-5" />}
+                </Button>
+            </div>
         </form>
       </footer>
     </div>
