@@ -17,6 +17,7 @@ export default function ChatListPage() {
           <div className="space-y-2">
             {conversations.map((convo) => {
               const userImage = PlaceHolderImages.find(p => p.id === convo.participant.photos[0]);
+              const firstName = convo.participant.name.split(' ')[0];
               return (
                 <Link
                   href={`/chat/${convo.id}`}
@@ -26,11 +27,11 @@ export default function ChatListPage() {
                   <div className="flex items-center gap-4">
                     <Avatar className="h-12 w-12">
                       {userImage && <AvatarImage src={userImage.imageUrl} alt={convo.participant.name} />}
-                      <AvatarFallback>{convo.participant.name.charAt(0)}</AvatarFallback>
+                      <AvatarFallback>{firstName.charAt(0)}</AvatarFallback>
                     </Avatar>
                     <div className="flex-1">
                       <div className="flex items-baseline justify-between">
-                        <p className="font-semibold">{convo.participant.name}</p>
+                        <p className="font-semibold">{firstName}</p>
                         <p className="text-xs text-muted-foreground">
                           {formatDistanceToNow(convo.lastMessage.timestamp, { addSuffix: true })}
                         </p>
