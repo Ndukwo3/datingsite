@@ -94,7 +94,10 @@ export function ChatInterface({ conversation, initialMessages, currentUser }: Ch
         </Avatar>
         <div className="flex-1">
           <p className="font-semibold">{participant.name}</p>
-          <p className="text-sm text-muted-foreground">Online</p>
+          <div className="flex items-center gap-1.5">
+            <div className="h-2 w-2 rounded-full bg-green-400" />
+            <p className="text-sm text-muted-foreground">Online</p>
+          </div>
         </div>
         <Button variant="ghost" size="icon">
           <MoreVertical className="h-5 w-5" />
