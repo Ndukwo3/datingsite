@@ -55,8 +55,10 @@ export default function ProfilePage() {
                                 </div>
                             </div>
                         </div>
-                        <Button className="w-full sm:w-auto">
-                            <Edit className="mr-2 h-4 w-4" /> Edit Profile
+                        <Button asChild className="w-full sm:w-auto">
+                            <Link href="/profile/edit">
+                                <Edit className="mr-2 h-4 w-4" /> Edit Profile
+                            </Link>
                         </Button>
                     </div>
                 </CardContent>

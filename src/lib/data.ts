@@ -82,3 +82,5 @@ export const nigerianStates = [
   "Kebbi", "Kogi", "Kwara", "Lagos", "Nasarawa", "Niger", "Ogun", "Ondo", 
   "Osun", "Oyo", "Plateau", "Rivers", "Sokoto", "Taraba", "Yobe", "Zamfara"
 ];
+
+export const interestOptions = [ "🎵 Afrobeats", "⚽ Football", "🍛 Jollof Rice", "🎬 Nollywood", "💃 Dancing", "🎉 Owambe", "✈️ Travel", "📸 Photography", "🎭 Comedy", "📚 Reading", "💪 Fitness", "🎨 Art", "👗 Fashion", "💻 Tech", "🍳 Cooking", "🎮 Gaming", "⛪ Church", "🏀 Basketball", "🎸 Music", "📱 Social Media", "🌍 Volunteering", "💼 Business", "🎤 Karaoke", "🏖️ Beach Life", "🚗 Road Trips", "🍕 Food Explorer", "📺 Netflix", "🏋️ Gym", "🧘 Yoga", "🎪 Events" ];
