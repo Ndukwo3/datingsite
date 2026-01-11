@@ -6,11 +6,11 @@ import { useForm, FormProvider, Controller } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import * as z from 'zod';
 import { motion, AnimatePresence } from 'framer-motion';
-import { Loader2, Sparkles, Upload, Camera, ArrowLeft, Info, ChevronDown, Check, Star, X, PartyPopper } from 'lucide-react';
+import { Loader2, Sparkles, Upload, Camera, ArrowLeft, Info, ChevronDown, Check, Star, X, PartyPopper, MapPin } from 'lucide-react';
 import { cn } from "@/lib/utils";
 import { useRouter } from 'next/navigation';
 import { useUser, useFirestore } from '@/firebase';
-import { doc, setDoc } from 'firebase/firestore';
+import { doc, setDoc, serverTimestamp } from 'firebase/firestore';
 
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -111,6 +111,7 @@ export function OnboardingForm() {
   const router = useRouter();
   const { user: authUser } = useUser();
   const firestore = useFirestore();
+  const [isGettingLocation, setIsGettingLocation] = useState(false);
 
   const methods = useForm<FormData>({
     resolver: zodResolver(steps[currentStep].schema),
@@ -246,6 +247,35 @@ export function OnboardingForm() {
     const newPhotos = currentPhotos.filter((_, i) => i !== index);
     setValue('photos', newPhotos, { shouldValidate: true });
   };
+
+  const handleUseLocation = () => {
+    if (!navigator.geolocation) {
+        toast({ title: "Geolocation is not supported by your browser", variant: "destructive" });
+        return;
+    }
+
+    setIsGettingLocation(true);
+    navigator.geolocation.getCurrentPosition(
+        (position) => {
+            const { latitude, longitude } = position.coords;
+            toast({
+                title: "Location fetched!",
+                description: `Coordinates: ${latitude.toFixed(4)}, ${longitude.toFixed(4)}`,
+            });
+            // Here you would use the Google Maps Geocoding API to get city/state
+            // For now, we'll just show the success toast.
+            setIsGettingLocation(false);
+        },
+        (error) => {
+            let message = "Could not get your location.";
+            if (error.code === error.PERMISSION_DENIED) {
+                message = "You denied location access. Please enable it in your browser settings.";
+            }
+            toast({ title: "Location Error", description: message, variant: "destructive" });
+            setIsGettingLocation(false);
+        }
+    );
+  };
   
   const progress = ((currentStep + 1) / (steps.length - 1)) * 100;
   const slideVariants = {
@@ -341,7 +371,17 @@ export function OnboardingForm() {
                 </div>
                  <div className="space-y-6">
                     <div>
-                        <Label htmlFor="state" className="mb-2 block">Your State</Label>
+                        <div className="flex justify-between items-center mb-2">
+                             <Label htmlFor="state">Your State</Label>
+                             <Button type="button" variant="outline" size="sm" onClick={handleUseLocation} disabled={isGettingLocation}>
+                                {isGettingLocation ? (
+                                    <Loader2 className="mr-2 h-4 w-4 animate-spin"/>
+                                ) : (
+                                    <MapPin className="mr-2 h-4 w-4"/>
+                                )}
+                                Use My Location
+                             </Button>
+                        </div>
                         <Controller
                             name="state"
                             control={control}
@@ -580,3 +620,5 @@ export function OnboardingForm() {
     </FormProvider>
   );
 }
+
+    
