@@ -133,8 +133,8 @@ export function AuthPage({ defaultTab }: { defaultTab: "login" | "signup" }) {
         try {
             await sendPasswordResetEmail(auth, data.email);
             toast({
-                title: "Password Reset Email Sent",
-                description: "Check your inbox for a link to reset your password.",
+                title: "Check Your Email",
+                description: "If an account with that email exists, a password reset link has been sent.",
             });
             setAuthStep('login');
         } catch (error: any) {
