@@ -155,34 +155,34 @@ export default function SwipePage() {
         </AnimatePresence>
       </div>
 
-      <div className="flex items-center gap-6">
+      <div className="flex items-center justify-center gap-4">
         <Button
-          onClick={() => triggerSwipe('left')}
-          variant="outline"
-          size="icon"
-          className="h-20 w-20 rounded-full border-2 border-yellow-500 text-yellow-500 shadow-lg transition-transform duration-300 hover:scale-110 hover:bg-yellow-500/10"
-          aria-label="Dislike"
-          disabled={swipeDirection !== null || showMatch}
+            onClick={() => triggerSwipe('left')}
+            variant="outline"
+            size="icon"
+            className="h-20 w-20 rounded-full border-2 border-yellow-500 text-yellow-500 shadow-lg transition-transform duration-300 hover:scale-110 hover:bg-yellow-500/10"
+            aria-label="Dislike"
+            disabled={swipeDirection !== null || showMatch}
         >
-          <X className="h-10 w-10" />
-        </Button>
-         <Button
-          onClick={() => triggerSwipe('up')}
-          size="icon"
-          className="h-16 w-16 rounded-full bg-blue-500 text-white shadow-xl transition-transform duration-300 hover:scale-110"
-          aria-label="Super Like"
-          disabled={swipeDirection !== null || showMatch}
-        >
-          <Star className="h-8 w-8 fill-current" />
+            <X className="h-10 w-10" />
         </Button>
         <Button
-          onClick={() => triggerSwipe('right')}
-          size="icon"
-          className="h-24 w-24 rounded-full bg-primary text-primary-foreground shadow-xl transition-transform duration-300 hover:scale-110"
-          aria-label="Like"
-          disabled={swipeDirection !== null || showMatch}
+            onClick={() => triggerSwipe('right')}
+            size="icon"
+            className="h-24 w-24 rounded-full bg-primary text-primary-foreground shadow-xl transition-transform duration-300 hover:scale-110"
+            aria-label="Like"
+            disabled={swipeDirection !== null || showMatch}
         >
-          <Heart className="h-12 w-12 fill-current" />
+            <Heart className="h-12 w-12 fill-current" />
+        </Button>
+        <Button
+            onClick={() => triggerSwipe('up')}
+            size="icon"
+            className="h-20 w-20 rounded-full bg-blue-500 text-white shadow-xl transition-transform duration-300 hover:scale-110"
+            aria-label="Super Like"
+            disabled={swipeDirection !== null || showMatch}
+        >
+            <Star className="h-10 w-10 fill-current" />
         </Button>
       </div>
     </div>
