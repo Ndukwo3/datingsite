@@ -1,3 +1,4 @@
+
 "use client";
 
 import { useState, useEffect } from "react";
@@ -59,7 +60,8 @@ export function useCollection<T = DocumentData>(
     );
 
     return () => unsubscribe();
-  }, [JSON.stringify(query)]); // Simple serialization for dependency array
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [query]);
 
   return { data, loading, error };
 }
