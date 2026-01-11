@@ -50,7 +50,7 @@ export default function UserProfilePage({ params }: ProfilePageProps) {
             src={userImage.imageUrl}
             alt={`${user.name}'s photo`}
             fill
-            className="object-cover"
+            className="object-cover md:rounded-xl"
             />
         )}
       </div>
