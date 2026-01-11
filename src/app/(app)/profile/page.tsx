@@ -103,7 +103,9 @@ export default function ProfilePage() {
           <Card>
             <CardHeader className="flex-row items-center justify-between">
               <CardTitle>About Me</CardTitle>
-              <Button variant="ghost" size="icon"><Edit className="h-4 w-4" /></Button>
+              <Button variant="ghost" size="icon" asChild>
+                <Link href="/profile/edit"><Edit className="h-4 w-4" /></Link>
+              </Button>
             </CardHeader>
             <CardContent>
               <p className="text-muted-foreground">{currentUser.bio}</p>
@@ -114,7 +116,9 @@ export default function ProfilePage() {
            <Card>
             <CardHeader className="flex-row items-center justify-between">
               <CardTitle>Basics</CardTitle>
-               <Button variant="ghost" size="icon"><Edit className="h-4 w-4" /></Button>
+               <Button variant="ghost" size="icon" asChild>
+                <Link href="/profile/edit"><Edit className="h-4 w-4" /></Link>
+              </Button>
             </CardHeader>
             <CardContent className="space-y-4">
                 <div className="flex items-center gap-3 text-muted-foreground">
@@ -137,7 +141,9 @@ export default function ProfilePage() {
           <Card>
             <CardHeader className="flex-row items-center justify-between">
               <CardTitle>Interests</CardTitle>
-              <Button variant="ghost" size="icon"><Edit className="h-4 w-4" /></Button>
+              <Button variant="ghost" size="icon" asChild>
+                <Link href="/profile/edit"><Edit className="h-4 w-4" /></Link>
+              </Button>
             </CardHeader>
             <CardContent>
               <div className="flex flex-wrap gap-2">
