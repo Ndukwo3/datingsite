@@ -178,7 +178,7 @@ export default function SwipePage() {
         <Button
             onClick={() => triggerSwipe('up')}
             size="icon"
-            className="h-20 w-20 rounded-full bg-blue-500 text-white shadow-xl transition-transform duration-300 hover:scale-110"
+            className="h-20 w-20 rounded-full bg-blue-500 text-white shadow-xl transition-transform duration-300 hover:scale-110 hover:bg-blue-500/80"
             aria-label="Super Like"
             disabled={swipeDirection !== null || showMatch}
         >
