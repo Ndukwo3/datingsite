@@ -17,13 +17,17 @@ import { FirestorePermissionError } from '@/firebase/errors';
 type SwipeDirection = 'left' | 'right' | 'up' | null;
 
 export default function SwipePage() {
-  const { user: currentUser } = useUser();
+  const { user: currentUser, userData } = useUser();
   const firestore = useFirestore();
 
-  // Fetch users that are not the current user
+  // Fetch users that are not the current user and have completed onboarding
   const usersQuery = useMemo(() => {
     if (!firestore || !currentUser) return null;
-    return query(collection(firestore, 'users'), where('id', '!=', currentUser.uid));
+    return query(
+        collection(firestore, 'users'), 
+        where('id', '!=', currentUser.uid),
+        where('onboardingComplete', '==', true)
+    );
   }, [firestore, currentUser]);
 
   const { data: potentialMatches, loading } = useCollection<User>(usersQuery);
@@ -41,7 +45,7 @@ export default function SwipePage() {
   const opacityStar = useTransform(y, [-100, -20, 0], [1, 0, 0]);
 
   const handleSwipe = async (swipedUser: User, direction: 'left' | 'right' | 'up') => {
-      if (!currentUser || !firestore) return;
+      if (!currentUser || !firestore || !userData) return;
 
       const swipeData = {
           swiperId: currentUser.uid,
@@ -84,8 +88,8 @@ export default function SwipePage() {
                 createdAt: serverTimestamp(),
                 // Embed participant details for easier display in chat lists
                 participantDetails: {
-                  [currentUser.uid]: { id: currentUser.uid, name: currentUser.displayName, photos: [currentUser.photoURL] },
-                  [swipedUser.id]: { id: swipedUser.id, name: swipedUser.name, photos: swipedUser.photos }
+                  [currentUser.uid]: { ...userData, id: currentUser.uid },
+                  [swipedUser.id]: { ...swipedUser, id: swipedUser.id }
                 }
               };
 
@@ -265,3 +269,5 @@ export default function SwipePage() {
     </>
   );
 }
+
+    

@@ -1,7 +1,7 @@
 
 "use client";
 
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useMemo } from 'react';
 import Image from 'next/image';
 import Link from 'next/link';
 import { Card, CardContent } from '@/components/ui/card';
@@ -10,7 +10,7 @@ import { cn } from '@/lib/utils';
 import { Loader2, MapPin, User as UserIcon } from 'lucide-react';
 import type { User } from '@/lib/types';
 import { useCollection, useFirestore } from '@/firebase';
-import { collection } from 'firebase/firestore';
+import { collection, query, where } from 'firebase/firestore';
 import { isValidHttpUrl } from '@/lib/is-valid-url';
 
 // Fisher-Yates shuffle algorithm
@@ -27,7 +27,12 @@ const shuffleArray = (array: User[]) => {
 
 export default function FeedPage() {
   const firestore = useFirestore();
-  const { data: users, loading } = useCollection<User>(firestore ? collection(firestore, 'users') : null);
+  const usersQuery = useMemo(() => {
+    if (!firestore) return null;
+    return query(collection(firestore, 'users'), where('onboardingComplete', '==', true));
+  }, [firestore]);
+
+  const { data: users, loading } = useCollection<User>(usersQuery);
   const [shuffledUsers, setShuffledUsers] = useState<User[]>([]);
 
   useEffect(() => {
@@ -95,3 +100,5 @@ export default function FeedPage() {
     </div>
   );
 }
+
+    
