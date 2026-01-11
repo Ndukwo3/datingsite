@@ -15,7 +15,7 @@ import { SplashScreen } from "./SplashScreen";
 import { ThemeToggle } from "./ThemeToggle";
 import { useToast } from "@/hooks/use-toast";
 import { useFirebaseApp } from "@/firebase";
-import { getAuth, createUserWithEmailAndPassword, signInWithEmailAndPassword, updateProfile, sendPasswordResetEmail } from "firebase/auth";
+import { getAuth, createUserWithEmailAndPassword, signInWithEmailAndPassword, updateProfile, sendPasswordResetEmail, setPersistence, browserSessionPersistence, browserLocalPersistence } from "firebase/auth";
 import { getFirestore, doc, setDoc, getDoc, serverTimestamp } from "firebase/firestore";
 
 type AuthStep = "login" | "signup" | "forgot-password";
@@ -105,7 +105,7 @@ export function AuthPage({ defaultTab }: { defaultTab: "login" | "signup" }) {
         }
     };
     
-    const handleLoginSubmit = async (data: {email: string, password: string}) => {
+    const handleLoginSubmit = async (data: {email: string, password: string, rememberMe: boolean}) => {
          if (!firebaseApp) {
             toast({ title: "Initialization error", description: "Firebase is not ready.", variant: "destructive" });
             return;
@@ -115,6 +115,7 @@ export function AuthPage({ defaultTab }: { defaultTab: "login" | "signup" }) {
         const firestore = getFirestore(firebaseApp);
 
         try {
+            await setPersistence(auth, data.rememberMe ? browserLocalPersistence : browserSessionPersistence);
             const userCredential = await signInWithEmailAndPassword(auth, data.email, data.password);
             const user = userCredential.user;
 
@@ -250,7 +251,7 @@ export function AuthPage({ defaultTab }: { defaultTab: "login" | "signup" }) {
     );
 }
 
-const LoginForm = ({ onSubmit, isLoading, onSwitch, onForgotPassword }: { onSubmit: (data: {email: string, password: string}) => void; isLoading: boolean; onSwitch: () => void; onForgotPassword: () => void; }) => {
+const LoginForm = ({ onSubmit, isLoading, onSwitch, onForgotPassword }: { onSubmit: (data: {email: string, password: string, rememberMe: boolean}) => void; isLoading: boolean; onSwitch: () => void; onForgotPassword: () => void; }) => {
     const [showPassword, setShowPassword] = useState(false);
     
     const handleSubmit = (e: React.FormEvent<HTMLFormElement>) => {
@@ -258,7 +259,8 @@ const LoginForm = ({ onSubmit, isLoading, onSwitch, onForgotPassword }: { onSubm
         const formData = new FormData(e.currentTarget);
         const email = formData.get("email") as string;
         const password = formData.get("password") as string;
-        onSubmit({email, password});
+        const rememberMe = formData.get("remember-me") === "on";
+        onSubmit({email, password, rememberMe});
     };
 
     return (
@@ -297,8 +299,8 @@ const LoginForm = ({ onSubmit, isLoading, onSwitch, onForgotPassword }: { onSubm
                 </div>
             </div>
             <div className="flex items-center justify-between text-sm">
-                <label className="flex items-center gap-2 text-gray-600 dark:text-gray-300">
-                    <Checkbox id="remember-me" />
+                <label className="flex items-center gap-2 text-gray-600 dark:text-gray-300 cursor-pointer">
+                    <Checkbox id="remember-me" name="remember-me" />
                     Remember me
                 </label>
                 <button type="button" onClick={onForgotPassword} className="font-medium text-pink-600 hover:text-pink-500 dark:text-white dark:hover:text-gray-300">
