@@ -9,14 +9,6 @@ import { Button } from '@/components/ui/button';
 import { BadgeCheck, Heart, MapPin, X, Star, Briefcase, GraduationCap, Instagram, Share2, Flag, ArrowLeft } from 'lucide-react';
 import Link from 'next/link';
 
-import {
-  Carousel,
-  CarouselContent,
-  CarouselItem,
-  CarouselNext,
-  CarouselPrevious,
-} from "@/components/ui/carousel"
-
 function SpotifyIcon(props: React.SVGProps<SVGSVGElement>) {
     return (
         <svg
@@ -43,7 +35,7 @@ export default function UserProfilePage({ params }: ProfilePageProps) {
     notFound();
   }
 
-  const userImages = user.photos.map(photoId => PlaceHolderImages.find(p => p.id === photoId)).filter(img => img !== undefined);
+  const userImages = user.photos.map(photoId => PlaceHolderImages.find(p => p.id === photoId)).filter(Boolean);
 
   return (
     <div className="relative flex h-full min-h-screen flex-col md:flex-row">
@@ -53,30 +45,20 @@ export default function UserProfilePage({ params }: ProfilePageProps) {
 
       {/* Left side: Photo Gallery */}
       <div className="md:w-2/5 md:h-screen md:sticky md:top-0 bg-black">
-        <Carousel className="w-full h-full">
-            <CarouselContent className="h-full">
-                {userImages.map((image, index) => (
-                    <CarouselItem key={index} className="h-full">
-                        <div className="relative h-full w-full">
-                            {image && (
-                                <Image
-                                src={image.imageUrl}
-                                alt={`${user.name}'s photo ${index + 1}`}
-                                fill
-                                className="object-cover"
-                                />
-                            )}
-                        </div>
-                    </CarouselItem>
-                ))}
-            </CarouselContent>
-             {userImages.length > 1 && (
-                <>
-                    <CarouselPrevious className="absolute left-4 top-1/2 -translate-y-1/2 z-10 text-white bg-black/30 hover:bg-black/50 hover:text-white border-white/50" />
-                    <CarouselNext className="absolute right-4 top-1/2 -translate-y-1/2 z-10 text-white bg-black/30 hover:bg-black/50 hover:text-white border-white/50" />
-                </>
-            )}
-        </Carousel>
+        <div className="grid grid-cols-2 grid-rows-2 gap-1 h-full">
+            {userImages.slice(0, 4).map((image, index) => (
+                <div key={image!.id} className="relative w-full h-full">
+                    {image && (
+                        <Image
+                        src={image.imageUrl}
+                        alt={`${user.name}'s photo ${index + 1}`}
+                        fill
+                        className="object-cover"
+                        />
+                    )}
+                </div>
+            ))}
+        </div>
       </div>
 
       {/* Right side: Profile Details */}
