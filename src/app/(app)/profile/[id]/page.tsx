@@ -43,7 +43,7 @@ export default function UserProfilePage({ params }: ProfilePageProps) {
     notFound();
   }
 
-  const userImages = user.photos.map(photoId => PlaceHolderImages.find(p => p.id === photoId)).filter(Boolean);
+  const userImages = user.photos.map(photoId => PlaceHolderImages.find(p => p.id === photoId)).filter(img => img !== undefined);
 
   return (
     <div className="relative flex h-full min-h-screen flex-col md:flex-row">
