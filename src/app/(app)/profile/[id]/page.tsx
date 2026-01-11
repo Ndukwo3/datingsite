@@ -150,13 +150,7 @@ export default function UserProfilePage({ params }: ProfilePageProps) {
             </div>
         )}
        
-
-        {/* Spacer for bottom action bar */}
-        <div className="h-24" /> 
-      </div>
-
-       {/* Bottom Action Bar (Sticky) */}
-       <div className="fixed bottom-0 left-0 right-0 z-10 border-t bg-background/90 p-4 backdrop-blur-sm">
+        <div className="py-6">
             <div className="mx-auto flex max-w-sm items-center justify-evenly gap-4">
                 <Button variant="ghost" size="icon" className='text-muted-foreground h-12 w-12'><Share2/></Button>
                 <Button variant="outline" size="icon" className="h-16 w-16 rounded-full border-2 border-yellow-500 text-yellow-500 shadow-lg hover:bg-yellow-500/10" aria-label="Dislike">
@@ -171,6 +165,9 @@ export default function UserProfilePage({ params }: ProfilePageProps) {
                 <Button variant="ghost" size="icon" className='text-muted-foreground h-12 w-12'><Flag/></Button>
             </div>
         </div>
+
+      </div>
     </div>
   );
 }
+
