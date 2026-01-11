@@ -43,10 +43,6 @@ export function AuthPage({ defaultTab }: { defaultTab: "login" | "signup" }) {
         }
     }, [showSplash]);
 
-    if (showSplash) {
-        return <SplashScreen />;
-    }
-
     const handleSignupSubmit = async (data: UserData & {password: string}) => {
         if (!firebaseApp) {
             toast({ title: "Initialization error", description: "Firebase is not ready.", variant: "destructive" });
@@ -115,7 +111,12 @@ export function AuthPage({ defaultTab }: { defaultTab: "login" | "signup" }) {
         try {
             await setPersistence(auth, data.rememberMe ? browserLocalPersistence : browserSessionPersistence);
             await signInWithEmailAndPassword(auth, data.email, data.password);
-            router.push('/feed');
+            const userDoc = await getDoc(doc(firestore, 'users', auth.currentUser!.uid));
+            if (userDoc.exists() && userDoc.data().onboardingComplete) {
+                router.push('/feed');
+            } else {
+                router.push('/onboarding');
+            }
         } catch (error: any) {
             let description = "An unexpected error occurred. Please try again.";
             if (error.code === 'auth/invalid-credential' || error.code === 'auth/user-not-found' || error.code === 'auth/wrong-password') {
@@ -171,71 +172,79 @@ export function AuthPage({ defaultTab }: { defaultTab: "login" | "signup" }) {
     
     return (
         <div className="relative flex min-h-screen items-center justify-center overflow-hidden bg-gradient-to-br from-pink-100 via-red-50 to-yellow-50 p-6 dark:from-pink-900/80 dark:via-red-800/70 dark:to-purple-900/80 md:p-8 font-body">
-            <div className="absolute inset-0 z-0">
-                <motion.div 
-                    className="absolute top-[10%] left-[10%] h-48 w-48 rounded-full bg-white/10 dark:bg-white/5"
-                    animate={{ y: [-20, 20], x: [-20, 20] }}
-                    transition={{ duration: 15, repeat: Infinity, repeatType: "reverse", ease: "easeInOut" }}
-                />
-                <motion.div 
-                    className="absolute bottom-[15%] right-[15%] h-64 w-64 rounded-full bg-white/10 dark:bg-white/5"
-                    animate={{ y: [30, -30], x: [30, -30] }}
-                    transition={{ duration: 20, repeat: Infinity, repeatType: "reverse", ease: "easeInOut" }}
-                />
-            </div>
+             <AnimatePresence>
+                {showSplash && <SplashScreen key="splash-screen" />}
+            </AnimatePresence>
 
-            <ThemeToggle className="absolute top-4 right-4 md:top-6 md:right-6 text-foreground bg-black/10 hover:bg-black/20 hover:text-white" />
-            
-            <motion.div 
-                className="relative z-10 w-full max-w-sm rounded-2xl bg-white/20 p-8 shadow-2xl backdrop-blur-lg"
-                initial={{ opacity: 0, scale: 0.9 }}
-                animate={{ opacity: 1, scale: 1 }}
-                transition={{ duration: 0.5, ease: "easeOut" }}
-            >
-                <div className="mb-8 flex flex-col items-center text-center">
-                    <div className="mb-4 flex h-16 w-16 items-center justify-center rounded-2xl bg-gradient-to-br from-pink-500 to-orange-400">
-                        <Heart className="h-8 w-8 text-white" />
-                    </div>
-                    <h1 className="font-headline text-3xl font-bold text-gray-800 dark:text-white">
-                        {authStep === 'forgot-password' ? 'Reset Password' : 'LinkUp9ja'}
-                    </h1>
-                    <p className="mt-2 text-gray-600 dark:text-gray-200">
-                         {authStep === 'forgot-password' ? 'Enter your email to get a reset link' : 'Find your perfect match in Nigeria'}
-                    </p>
+            {!showSplash && (
+                <>
+                <div className="absolute inset-0 z-0">
+                    <motion.div 
+                        className="absolute top-[10%] left-[10%] h-48 w-48 rounded-full bg-white/10 dark:bg-white/5"
+                        animate={{ y: [-20, 20], x: [-20, 20] }}
+                        transition={{ duration: 15, repeat: Infinity, repeatType: "reverse", ease: "easeInOut" }}
+                    />
+                    <motion.div 
+                        className="absolute bottom-[15%] right-[15%] h-64 w-64 rounded-full bg-white/10 dark:bg-white/5"
+                        animate={{ y: [30, -30], x: [30, -30] }}
+                        transition={{ duration: 20, repeat: Infinity, repeatType: "reverse", ease: "easeInOut" }}
+                    />
                 </div>
 
-                {authStep !== 'forgot-password' && (
-                    <div className="relative mt-4 flex rounded-lg bg-gray-100/70 p-1">
-                        <motion.div 
-                            className="absolute inset-0.5 w-1/2 rounded-md bg-white shadow"
-                            animate={{ x: authStep === 'login' ? '0%' : '100%' }}
-                            transition={{ type: 'spring', stiffness: 300, damping: 30 }}
-                        />
-                        <button onClick={() => setAuthStep('login')} className={cn("relative z-10 w-1/2 py-2 text-sm font-medium transition-colors", authStep === 'login' ? 'text-pink-600' : 'text-gray-500')}>
-                            Login
-                        </button>
-                        <button onClick={() => setAuthStep('signup')} className={cn("relative z-10 w-1/2 py-2 text-sm font-medium transition-colors", authStep === 'signup' ? 'text-pink-600' : 'text-gray-500')}>
-                            Sign Up
-                        </button>
+                <ThemeToggle className="absolute top-4 right-4 md:top-6 md:right-6 text-foreground bg-black/10 hover:bg-black/20 hover:text-white" />
+                
+                <motion.div 
+                    className="relative z-10 w-full max-w-sm rounded-2xl bg-white/20 p-8 shadow-2xl backdrop-blur-lg"
+                    initial={{ opacity: 0, scale: 0.9 }}
+                    animate={{ opacity: 1, scale: 1 }}
+                    transition={{ duration: 0.5, ease: "easeOut" }}
+                >
+                    <div className="mb-8 flex flex-col items-center text-center">
+                        <div className="mb-4 flex h-16 w-16 items-center justify-center rounded-2xl bg-gradient-to-br from-pink-500 to-orange-400">
+                            <Heart className="h-8 w-8 text-white" />
+                        </div>
+                        <h1 className="font-headline text-3xl font-bold text-gray-800 dark:text-white">
+                            {authStep === 'forgot-password' ? 'Reset Password' : 'LinkUp9ja'}
+                        </h1>
+                        <p className="mt-2 text-gray-600 dark:text-gray-200">
+                            {authStep === 'forgot-password' ? 'Enter your email to get a reset link' : 'Find your perfect match in Nigeria'}
+                        </p>
                     </div>
-                )}
+
+                    {authStep !== 'forgot-password' && (
+                        <div className="relative mt-4 flex rounded-lg bg-gray-100/70 p-1">
+                            <motion.div 
+                                className="absolute inset-0.5 w-1/2 rounded-md bg-white shadow"
+                                animate={{ x: authStep === 'login' ? '0%' : '100%' }}
+                                transition={{ type: 'spring', stiffness: 300, damping: 30 }}
+                            />
+                            <button onClick={() => setAuthStep('login')} className={cn("relative z-10 w-1/2 py-2 text-sm font-medium transition-colors", authStep === 'login' ? 'text-pink-600' : 'text-gray-500')}>
+                                Login
+                            </button>
+                            <button onClick={() => setAuthStep('signup')} className={cn("relative z-10 w-1/2 py-2 text-sm font-medium transition-colors", authStep === 'signup' ? 'text-pink-600' : 'text-gray-500')}>
+                                Sign Up
+                            </button>
+                        </div>
+                    )}
 
 
-                <div className="relative mt-6 h-[400px] overflow-hidden">
-                    <AnimatePresence mode="wait">
-                        <motion.div
-                            key={authStep}
-                            initial={{ opacity: 0, x: authStep === 'login' ? -50 : 50 }}
-                            animate={{ opacity: 1, x: 0 }}
-                            exit={{ opacity: 0, x: authStep === 'login' ? 50 : -50 }}
-                            transition={{ duration: 0.4, ease: "easeInOut" }}
-                            className="absolute w-full"
-                        >
-                            {renderForm()}
-                        </motion.div>
-                    </AnimatePresence>
-                </div>
-            </motion.div>
+                    <div className="relative mt-6 h-[400px] overflow-hidden">
+                        <AnimatePresence mode="wait">
+                            <motion.div
+                                key={authStep}
+                                initial={{ opacity: 0, x: authStep === 'login' ? -50 : 50 }}
+                                animate={{ opacity: 1, x: 0 }}
+                                exit={{ opacity: 0, x: authStep === 'login' ? 50 : -50 }}
+                                transition={{ duration: 0.4, ease: "easeInOut" }}
+                                className="absolute w-full"
+                            >
+                                {renderForm()}
+                            </motion.div>
+                        </AnimatePresence>
+                    </div>
+                </motion.div>
+                </>
+            )}
         </div>
     );
 }
@@ -474,3 +483,5 @@ const ForgotPasswordForm = ({ onSubmit, isLoading, onBackToLogin }: { onSubmit: 
         </form>
     );
 };
+
+    
