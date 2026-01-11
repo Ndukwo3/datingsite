@@ -56,7 +56,7 @@ export function AuthPage({ defaultTab }: { defaultTab: "login" | "signup" }) {
         // Simulate a network request
         setTimeout(() => {
             setIsLoading(false);
-            router.push('/discover');
+            router.push('/feed');
         }, 1000);
     };
 
