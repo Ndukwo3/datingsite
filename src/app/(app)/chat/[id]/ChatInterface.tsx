@@ -12,8 +12,10 @@ import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover
 import { cn } from '@/lib/utils';
 import type { Conversation, Message, User } from '@/lib/types';
 import { PlaceHolderImages } from '@/lib/placeholder-images';
-import { ArrowLeft, Loader2, MoreVertical, SendHorizontal, Smile } from 'lucide-react';
+import { ArrowLeft, Loader2, MoreVertical, SendHorizontal, Smile, ShieldAlert, User as UserIcon, XCircle } from 'lucide-react';
 import { useToast } from '@/hooks/use-toast';
+import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuSeparator, DropdownMenuTrigger } from '@/components/ui/dropdown-menu';
+import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle, AlertDialogTrigger } from '@/components/ui/alert-dialog';
 
 type ChatInterfaceProps = {
   conversation: Conversation;
@@ -51,7 +53,6 @@ export function ChatInterface({ conversation, initialMessages, currentUser }: Ch
     setIsSending(true);
 
     try {
-        // AI Harassment detection removed
         const messageToSend: Message = {
             id: `msg-${Date.now()}`,
             senderId: currentUser.id,
@@ -59,6 +60,9 @@ export function ChatInterface({ conversation, initialMessages, currentUser }: Ch
             text: newMessage,
             timestamp: new Date(),
         };
+
+        // Simulate sending message
+        await new Promise(resolve => setTimeout(resolve, 500));
 
         setMessages(prev => [...prev, messageToSend]);
         setNewMessage('');
@@ -78,6 +82,22 @@ export function ChatInterface({ conversation, initialMessages, currentUser }: Ch
   const handleEmojiSelect = (emoji: string) => {
     setNewMessage(prev => prev + emoji);
   }
+  
+  const handleBlockUser = () => {
+    toast({
+        title: `User ${participantFirstName} blocked`,
+        description: "You will no longer see their profile or receive messages from them.",
+    });
+    // Here you would add logic to actually block the user
+  };
+
+  const handleReportUser = () => {
+     toast({
+        title: `User ${participantFirstName} reported`,
+        description: "Thank you for helping keep our community safe. Our team will review your report.",
+    });
+     // Here you would add logic to actually report the user
+  }
 
   return (
     <div className="flex h-[calc(100vh-8rem)] flex-col rounded-xl border bg-card">
@@ -96,9 +116,59 @@ export function ChatInterface({ conversation, initialMessages, currentUser }: Ch
             <p className="text-sm text-muted-foreground">Online</p>
           </div>
         </div>
-        <Button variant="ghost" size="icon">
-          <MoreVertical className="h-5 w-5" />
-        </Button>
+        <DropdownMenu>
+            <DropdownMenuTrigger asChild>
+                <Button variant="ghost" size="icon">
+                    <MoreVertical className="h-5 w-5" />
+                </Button>
+            </DropdownMenuTrigger>
+            <DropdownMenuContent align="end">
+                <DropdownMenuItem asChild>
+                    <Link href={`/profile/${participant.id}`}>
+                        <UserIcon className="mr-2" /> View Profile
+                    </Link>
+                </DropdownMenuItem>
+                <DropdownMenuSeparator />
+                 <AlertDialog>
+                    <AlertDialogTrigger asChild>
+                        <DropdownMenuItem onSelect={(e) => e.preventDefault()} className="text-destructive focus:text-destructive">
+                             <ShieldAlert className="mr-2" /> Report User
+                        </DropdownMenuItem>
+                    </AlertDialogTrigger>
+                    <AlertDialogContent>
+                        <AlertDialogHeader>
+                            <AlertDialogTitle>Report {participantFirstName}?</AlertDialogTitle>
+                            <AlertDialogDescription>
+                                Reporting this user will submit their profile for review by our safety team. Are you sure you want to proceed?
+                            </AlertDialogDescription>
+                        </AlertDialogHeader>
+                        <AlertDialogFooter>
+                            <AlertDialogCancel>Cancel</AlertDialogCancel>
+                            <AlertDialogAction onClick={handleReportUser} className={cn(buttonVariants({variant: 'destructive'}))}>Report</AlertDialogAction>
+                        </AlertDialogFooter>
+                    </AlertDialogContent>
+                </AlertDialog>
+                 <AlertDialog>
+                    <AlertDialogTrigger asChild>
+                         <DropdownMenuItem onSelect={(e) => e.preventDefault()} className="text-destructive focus:text-destructive">
+                             <XCircle className="mr-2" /> Block User
+                        </DropdownMenuItem>
+                    </AlertDialogTrigger>
+                    <AlertDialogContent>
+                        <AlertDialogHeader>
+                            <AlertDialogTitle>Block {participantFirstName}?</AlertDialogTitle>
+                            <AlertDialogDescription>
+                                You will not be able to send or receive messages from this user, and you won't see their profile. Are you sure?
+                            </AlertDialogDescription>
+                        </AlertDialogHeader>
+                        <AlertDialogFooter>
+                            <AlertDialogCancel>Cancel</AlertDialogCancel>
+                            <AlertDialogAction onClick={handleBlockUser} className={cn(buttonVariants({variant: 'destructive'}))}>Block</AlertDialogAction>
+                        </AlertDialogFooter>
+                    </AlertDialogContent>
+                </AlertDialog>
+            </DropdownMenuContent>
+        </DropdownMenu>
       </header>
       
       <ScrollArea className="flex-1" ref={scrollAreaRef}>
