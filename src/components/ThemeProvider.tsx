@@ -79,6 +79,10 @@ export function ThemeProvider({
     },
   }
 
+  if (!isMounted) {
+    return null;
+  }
+
   return (
     <ThemeProviderContext.Provider {...props} value={value}>
       {children}
