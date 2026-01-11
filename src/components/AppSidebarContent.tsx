@@ -1,3 +1,4 @@
+
 "use client";
 
 import Link from "next/link";
@@ -56,12 +57,12 @@ export function AppSidebarContent() {
            <SidebarMenuItem>
               <SidebarMenuButton
                 asChild
-                className="mt-4 bg-accent/50 text-accent-foreground hover:bg-accent"
+                className="mt-4 bg-yellow-400/20 text-yellow-600 hover:bg-yellow-400/30 dark:text-yellow-400 dark:bg-yellow-400/10 dark:hover:bg-yellow-400/20"
                 isActive={isActive('/premium')}
                 tooltip={{children: 'Upgrade to Premium'}}
               >
                 <Link href="/premium">
-                  <Crown className="h-5 w-5 text-accent-foreground" />
+                  <Crown className="h-5 w-5" />
                   <span>Upgrade</span>
                 </Link>
               </SidebarMenuButton>
