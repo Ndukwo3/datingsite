@@ -14,6 +14,7 @@ import { doc } from 'firebase/firestore';
 import type { User } from '@/lib/types';
 import { useRouter } from 'next/navigation';
 import { isValidHttpUrl } from '@/lib/is-valid-url';
+import { useEffect } from 'react';
 
 export default function ProfilePage() {
     const { user: authUser, loading: authLoading } = useUser();
@@ -25,12 +26,13 @@ export default function ProfilePage() {
 
     const loading = authLoading || userLoading;
 
-    if (loading) {
-        return <div className="flex h-full items-center justify-center"><Loader2 className="h-8 w-8 animate-spin" /></div>;
-    }
-
-    if (!currentUser) {
+    useEffect(() => {
+      if (!loading && !currentUser) {
         router.push('/onboarding');
+      }
+    }, [loading, currentUser, router]);
+
+    if (loading || !currentUser) {
         return <div className="flex h-full items-center justify-center"><Loader2 className="h-8 w-8 animate-spin" /></div>;
     }
 
