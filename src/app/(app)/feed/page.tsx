@@ -7,7 +7,7 @@ import Link from 'next/link';
 import { Card, CardContent } from '@/components/ui/card';
 import { formatActivity } from '@/lib/utils';
 import { cn } from '@/lib/utils';
-import { Loader2, MapPin } from 'lucide-react';
+import { Loader2, MapPin, User as UserIcon } from 'lucide-react';
 import type { User } from '@/lib/types';
 import { useCollection, useFirestore } from '@/firebase';
 import { collection } from 'firebase/firestore';
@@ -63,13 +63,17 @@ export default function FeedPage() {
             <Link href={`/profile/${user.id}`} key={user.id}>
               <Card className="overflow-hidden transition-transform duration-300 hover:scale-105 hover:shadow-lg">
                 <CardContent className="relative aspect-[3/4.5] p-0">
-                  {userImage && typeof userImage === 'string' && (
+                  {userImage && typeof userImage === 'string' ? (
                     <Image
                       src={userImage}
                       alt={user.name}
                       fill
                       className="object-cover"
                     />
+                  ) : (
+                    <div className="w-full h-full bg-muted flex items-center justify-center">
+                      <UserIcon className="w-16 h-16 text-muted-foreground" />
+                    </div>
                   )}
                   <div className="absolute inset-x-0 bottom-0 bg-gradient-to-t from-black/80 to-transparent p-3 text-primary-foreground">
                     <p className="font-semibold">{user.name}, {user.age}</p>

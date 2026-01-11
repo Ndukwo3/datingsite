@@ -6,7 +6,7 @@ import Image from 'next/image';
 import { Card } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
-import { BadgeCheck, Heart, MapPin, X, Star, Briefcase, GraduationCap, Instagram, Share2, Flag, ArrowLeft, Loader2 } from 'lucide-react';
+import { BadgeCheck, Heart, MapPin, X, Star, Briefcase, GraduationCap, Instagram, Share2, Flag, ArrowLeft, Loader2, User as UserIcon } from 'lucide-react';
 import Link from 'next/link';
 import { useDoc, useFirestore } from '@/firebase';
 import { doc } from 'firebase/firestore';
@@ -52,13 +52,17 @@ export default function UserProfilePage() {
 
       {/* Left side: Photo Gallery */}
       <div className="relative h-96 md:w-2/5 md:h-screen md:sticky md:top-0 bg-black overflow-hidden md:rounded-xl">
-        {userImage && typeof userImage === 'string' && (
+        {userImage && typeof userImage === 'string' ? (
             <Image
             src={userImage}
             alt={`${user.name}'s photo`}
             fill
             className="object-cover"
             />
+        ) : (
+             <div className="w-full h-full bg-muted flex items-center justify-center">
+                <UserIcon className="w-24 h-24 text-muted-foreground" />
+            </div>
         )}
       </div>
 

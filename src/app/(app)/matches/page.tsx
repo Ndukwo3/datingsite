@@ -4,7 +4,7 @@
 import Image from 'next/image';
 import Link from 'next/link';
 import { Card, CardContent } from '@/components/ui/card';
-import { BadgeCheck, MessageSquare, Sparkles, Loader2 } from 'lucide-react';
+import { BadgeCheck, MessageSquare, Sparkles, Loader2, User as UserIcon } from 'lucide-react';
 import { cn, formatMatchTime } from '@/lib/utils';
 import { Badge } from '@/components/ui/badge';
 import { useCollection, useFirestore, useUser } from '@/firebase';
@@ -55,13 +55,17 @@ export default function MatchesPage() {
             <Link href={`/chat/${participant.id}`} key={match.id} className="group">
               <Card className="overflow-hidden transition-all duration-300 hover:scale-105 hover:shadow-lg border-transparent hover:border-primary">
                 <CardContent className="relative aspect-square p-0">
-                  {userImage && typeof userImage === 'string' && (
+                  {userImage && typeof userImage === 'string' ? (
                     <Image
                       src={userImage}
                       alt={participant.name}
                       fill
                       className="object-cover"
                     />
+                  ) : (
+                     <div className="w-full h-full bg-muted flex items-center justify-center">
+                      <UserIcon className="w-16 h-16 text-muted-foreground" />
+                    </div>
                   )}
                   {isNewMatch && (
                      <Badge className="absolute top-2 right-2 bg-accent text-accent-foreground border-none">

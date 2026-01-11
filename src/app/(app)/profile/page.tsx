@@ -4,7 +4,7 @@
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import Image from 'next/image';
-import { Briefcase, ChevronRight, Crown, Edit, Eye, GraduationCap, HelpCircle, KeyRound, Loader2, MapPin, Bell, ShieldCheck, Trash2, Upload } from 'lucide-react';
+import { Briefcase, ChevronRight, Crown, Edit, Eye, GraduationCap, HelpCircle, KeyRound, Loader2, MapPin, Bell, ShieldCheck, Trash2, Upload, User as UserIcon } from 'lucide-react';
 import Link from 'next/link';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { Badge } from '@/components/ui/badge';
@@ -48,8 +48,11 @@ export default function ProfilePage() {
                 <CardContent className="p-6">
                     <div className="flex flex-col items-center gap-6 sm:flex-row">
                         <Avatar className="h-24 w-24 border-4 border-primary">
-                            {userImage && typeof userImage === 'string' && <AvatarImage src={userImage} alt={currentUser.name} />}
-                            <AvatarFallback>{currentUser.name.charAt(0)}</AvatarFallback>
+                            {userImage && typeof userImage === 'string' ? (
+                               <AvatarImage src={userImage} alt={currentUser.name} />
+                            ) : (
+                                <AvatarFallback>{currentUser.name.charAt(0)}</AvatarFallback>
+                            )}
                         </Avatar>
                         <div className="flex-1 text-center sm:text-left">
                             <div className="flex items-center justify-center sm:justify-start gap-2">
@@ -96,13 +99,17 @@ export default function ProfilePage() {
               <div className="grid grid-cols-2 gap-4 md:grid-cols-4">
                 {currentUser.photos.map((photoUrl, index) => (
                   <div key={index} className="group relative aspect-square">
-                      {photoUrl && typeof photoUrl === 'string' && (
+                      {photoUrl && typeof photoUrl === 'string' ? (
                         <Image
                             src={photoUrl}
                             alt={`Profile photo ${index + 1}`}
                             fill
                             className="rounded-lg object-cover"
                         />
+                      ) : (
+                         <div className="w-full h-full bg-muted rounded-lg flex items-center justify-center">
+                           <UserIcon className="w-10 h-10 text-muted-foreground" />
+                         </div>
                       )}
                     {index === 0 && <Badge className="absolute top-2 left-2">Main</Badge>}
                   </div>
