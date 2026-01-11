@@ -13,6 +13,7 @@ export type User = {
   photos: string[]; // Array of image URLs from Firebase Storage
   isVerified: boolean;
   lastSeen: Date | 'online';
+  onboardingComplete?: boolean;
   socials?: {
     instagram?: string;
     spotify?: string;

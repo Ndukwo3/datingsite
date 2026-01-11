@@ -17,25 +17,29 @@ import { isValidHttpUrl } from '@/lib/is-valid-url';
 import { useEffect } from 'react';
 
 export default function ProfilePage() {
-    const { user: authUser, loading: authLoading } = useUser();
-    const firestore = useFirestore();
+    const { user: authUser, loading: authLoading, userData } = useUser();
     const router = useRouter();
 
-    const userDocRef = authUser ? doc(firestore, 'users', authUser.uid) : null;
-    const { data: currentUser, loading: userLoading } = useDoc<User>(userDocRef);
-
-    const loading = authLoading || userLoading;
+    const loading = authLoading;
 
     useEffect(() => {
-      if (!loading && !currentUser) {
-        router.push('/onboarding');
+      // Wait until loading is finished to make a decision.
+      if (!loading) {
+        // If there's no authenticated user, or if the user data exists but onboarding is not complete, redirect.
+        if (!authUser || (userData && userData.onboardingComplete === false)) {
+          router.push('/onboarding');
+        }
       }
-    }, [loading, currentUser, router]);
+    }, [loading, authUser, userData, router]);
 
-    if (loading || !currentUser) {
+    // Show a loading spinner while we check auth and user data.
+    // Also show loading if userData is not yet available, which prevents showing a partially rendered page.
+    if (loading || !userData) {
         return <div className="flex h-full items-center justify-center"><Loader2 className="h-8 w-8 animate-spin" /></div>;
     }
-
+    
+    // If we've passed the loading and effect checks, it's safe to render the profile.
+    const currentUser = userData;
     const userImage = currentUser.photos?.[0];
 
   return (
