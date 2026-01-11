@@ -8,6 +8,7 @@ import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { ScrollArea } from '@/components/ui/scroll-area';
 import { Separator } from '@/components/ui/separator';
+import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover';
 import { cn } from '@/lib/utils';
 import type { Conversation, Message, User } from '@/lib/types';
 import { PlaceHolderImages } from '@/lib/placeholder-images';
@@ -20,6 +21,8 @@ type ChatInterfaceProps = {
   initialMessages: Message[];
   currentUser: User;
 };
+
+const popularEmojis = ['😀', '😂', '❤️', '👍', '🙏', '😍', '🤔', '😎', '🔥', '🎉', '😊', '😭'];
 
 export function ChatInterface({ conversation, initialMessages, currentUser }: ChatInterfaceProps) {
   const [messages, setMessages] = useState(initialMessages);
@@ -84,6 +87,10 @@ export function ChatInterface({ conversation, initialMessages, currentUser }: Ch
     }
   };
 
+  const handleEmojiSelect = (emoji: string) => {
+    setNewMessage(prev => prev + emoji);
+  }
+
   return (
     <div className="flex h-[calc(100vh-8rem)] flex-col rounded-xl border bg-card">
       <header className="flex items-center gap-4 border-b p-4">
@@ -142,9 +149,29 @@ export function ChatInterface({ conversation, initialMessages, currentUser }: Ch
                 className="pr-20"
             />
             <div className="absolute right-2 flex items-center">
-                <Button type="button" variant="ghost" size="icon" disabled={isSending} className="text-muted-foreground">
-                    <Smile className="h-5 w-5" />
-                </Button>
+                <Popover>
+                    <PopoverTrigger asChild>
+                        <Button type="button" variant="ghost" size="icon" disabled={isSending} className="text-muted-foreground">
+                            <Smile className="h-5 w-5" />
+                        </Button>
+                    </PopoverTrigger>
+                    <PopoverContent className="w-auto border-none bg-transparent shadow-none">
+                        <div className="grid grid-cols-6 gap-2 rounded-lg border bg-popover p-2">
+                        {popularEmojis.map(emoji => (
+                            <Button
+                            key={emoji}
+                            variant="ghost"
+                            size="icon"
+                            className="text-xl"
+                            onClick={() => handleEmojiSelect(emoji)}
+                            >
+                            {emoji}
+                            </Button>
+                        ))}
+                        </div>
+                    </PopoverContent>
+                </Popover>
+
                 <Button type="submit" size="icon" disabled={isSending || !newMessage.trim()} className="text-muted-foreground" variant="ghost">
                     {isSending ? <Loader2 className="h-5 w-5 animate-spin" /> : <SendHorizontal className="h-5 w-5" />}
                 </Button>
