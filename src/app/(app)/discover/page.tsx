@@ -11,6 +11,8 @@ import { ProfileCard } from '@/components/ProfileCard';
 import { MatchNotification } from '@/components/MatchNotification';
 import type { User } from '@/lib/types';
 import { useUser, useFirestore, useCollection } from '@/firebase';
+import { errorEmitter } from '@/firebase/error-emitter';
+import { FirestorePermissionError } from '@/firebase/errors';
 
 type SwipeDirection = 'left' | 'right' | 'up' | null;
 
@@ -27,7 +29,7 @@ export default function SwipePage() {
   const { data: potentialMatches, loading } = useCollection<User>(usersQuery);
 
   const [currentIndex, setCurrentIndex] = useState(0);
-  const [swipeDirection, setSwipeDirection] = useState<SwipeDirection>(null);
+  const [swipeDirection, setSwipeDirection] = useState<SwipeDirection | null>(null);
   const [lastSwipedUser, setLastSwipedUser] = useState<User | null>(null);
   const [showMatch, setShowMatch] = useState(false);
 
@@ -48,8 +50,16 @@ export default function SwipePage() {
           timestamp: serverTimestamp(),
       };
       
-      const swipeDocRef = doc(collection(firestore, 'swipes'));
-      await setDoc(swipeDocRef, swipeData);
+      const swipeCollectionRef = collection(firestore, 'swipes');
+      const swipeDocRef = doc(swipeCollectionRef);
+      setDoc(swipeDocRef, swipeData).catch(error => {
+        const permissionError = new FirestorePermissionError({
+            path: swipeDocRef.path,
+            operation: 'create',
+            requestResourceData: swipeData
+        });
+        errorEmitter.emit('permission-error', permissionError);
+      });
 
       if (direction === 'right' || direction === 'up') {
           // Check for a match
@@ -68,9 +78,8 @@ export default function SwipePage() {
 
               const conversationId = [currentUser.uid, swipedUser.id].sort().join('_');
               const conversationRef = doc(firestore, 'conversations', conversationId);
-
-              const batch = writeBatch(firestore);
-              batch.set(conversationRef, {
+              
+              const conversationData = {
                 participants: [currentUser.uid, swipedUser.id],
                 createdAt: serverTimestamp(),
                 // Embed participant details for easier display in chat lists
@@ -78,9 +87,19 @@ export default function SwipePage() {
                   [currentUser.uid]: { id: currentUser.uid, name: currentUser.displayName, photos: [currentUser.photoURL] },
                   [swipedUser.id]: { id: swipedUser.id, name: swipedUser.name, photos: swipedUser.photos }
                 }
-              }, { merge: true });
+              };
 
-              await batch.commit();
+              const batch = writeBatch(firestore);
+              batch.set(conversationRef, conversationData, { merge: true });
+
+              batch.commit().catch(error => {
+                const permissionError = new FirestorePermissionError({
+                    path: conversationRef.path,
+                    operation: 'write',
+                    requestResourceData: conversationData
+                });
+                errorEmitter.emit('permission-error', permissionError);
+              });
           }
       }
   };
