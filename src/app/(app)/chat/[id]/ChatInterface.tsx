@@ -16,6 +16,10 @@ import { ArrowLeft, Loader2, MoreVertical, SendHorizontal, Smile, ShieldAlert, U
 import { useToast } from '@/hooks/use-toast';
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuSeparator, DropdownMenuTrigger } from '@/components/ui/dropdown-menu';
 import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle, AlertDialogTrigger } from '@/components/ui/alert-dialog';
+import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription, DialogFooter, DialogClose } from '@/components/ui/dialog';
+import { Label } from '@/components/ui/label';
+import { RadioGroup, RadioGroupItem } from '@/components/ui/radio-group';
+import { Textarea } from '@/components/ui/textarea';
 
 type ChatInterfaceProps = {
   conversation: Conversation;
@@ -25,12 +29,26 @@ type ChatInterfaceProps = {
 
 const popularEmojis = ['😀', '😂', '❤️', '👍', '🙏', '😍', '🤔', '😎', '🔥', '🎉', '😊', '😭'];
 
+const reportReasons = [
+    { id: 'spam', label: 'Spam or Scam' },
+    { id: 'inappropriate', label: 'Inappropriate Content' },
+    { id: 'harassment', label: 'Harassment or Hate Speech' },
+    { id: 'underage', label: 'Underage User' },
+    { id: 'other', label: 'Other' },
+];
+
+
 export function ChatInterface({ conversation, initialMessages, currentUser }: ChatInterfaceProps) {
   const [messages, setMessages] = useState(initialMessages);
   const [newMessage, setNewMessage] = useState('');
   const [isSending, setIsSending] = useState(false);
   const { toast } = useToast();
   const scrollAreaRef = useRef<HTMLDivElement>(null);
+  
+  const [isReportDialogOpen, setIsReportDialogOpen] = useState(false);
+  const [reportReason, setReportReason] = useState('');
+  const [reportDetails, setReportDetails] = useState('');
+
 
   const participant = conversation.participant;
   const participantImage = PlaceHolderImages.find(p => p.id === participant.photos[0]);
@@ -91,11 +109,14 @@ export function ChatInterface({ conversation, initialMessages, currentUser }: Ch
     // Here you would add logic to actually block the user
   };
 
-  const handleReportUser = () => {
+  const handleReportSubmit = () => {
      toast({
         title: `User ${participantFirstName} reported`,
         description: "Thank you for helping keep our community safe. Our team will review your report.",
     });
+    setReportReason('');
+    setReportDetails('');
+    setIsReportDialogOpen(false);
      // Here you would add logic to actually report the user
   }
 
@@ -129,25 +150,56 @@ export function ChatInterface({ conversation, initialMessages, currentUser }: Ch
                     </Link>
                 </DropdownMenuItem>
                 <DropdownMenuSeparator />
-                 <AlertDialog>
-                    <AlertDialogTrigger asChild>
+                 <Dialog open={isReportDialogOpen} onOpenChange={setIsReportDialogOpen}>
+                    <DialogTrigger asChild>
                         <DropdownMenuItem onSelect={(e) => e.preventDefault()} className="text-destructive focus:text-destructive">
                              <ShieldAlert className="mr-2" /> Report User
                         </DropdownMenuItem>
-                    </AlertDialogTrigger>
-                    <AlertDialogContent>
-                        <AlertDialogHeader>
-                            <AlertDialogTitle>Report {participantFirstName}?</AlertDialogTitle>
-                            <AlertDialogDescription>
-                                Reporting this user will submit their profile for review by our safety team. Are you sure you want to proceed?
-                            </AlertDialogDescription>
-                        </AlertDialogHeader>
-                        <AlertDialogFooter>
-                            <AlertDialogCancel>Cancel</AlertDialogCancel>
-                            <AlertDialogAction onClick={handleReportUser} className={cn(buttonVariants({variant: 'destructive'}))}>Report</AlertDialogAction>
-                        </AlertDialogFooter>
-                    </AlertDialogContent>
-                </AlertDialog>
+                    </DialogTrigger>
+                    <DialogContent>
+                        <DialogHeader>
+                            <DialogTitle>Report {participantFirstName}</DialogTitle>
+                            <DialogDescription>
+                                Help us understand what's happening. Your safety is our priority.
+                            </DialogDescription>
+                        </DialogHeader>
+                        <div className="space-y-4 py-2">
+                             <p className="font-medium">What is the reason for this report?</p>
+                             <RadioGroup value={reportReason} onValueChange={setReportReason}>
+                                {reportReasons.map((reason) => (
+                                    <div key={reason.id} className="flex items-center space-x-2">
+                                        <RadioGroupItem value={reason.id} id={reason.id} />
+                                        <Label htmlFor={reason.id}>{reason.label}</Label>
+                                    </div>
+                                ))}
+                            </RadioGroup>
+                            {reportReason && (
+                                <div className="space-y-2">
+                                    <Label htmlFor="report-details">Please provide more details (optional)</Label>
+                                    <Textarea 
+                                        id="report-details" 
+                                        value={reportDetails}
+                                        onChange={(e) => setReportDetails(e.target.value)}
+                                        placeholder={`Tell us more about the ${reportReason} issue...`}
+                                        className="min-h-[100px]"
+                                    />
+                                </div>
+                            )}
+                        </div>
+                        <DialogFooter>
+                            <DialogClose asChild>
+                                <Button variant="ghost">Cancel</Button>
+                            </DialogClose>
+                            <Button
+                                onClick={handleReportSubmit}
+                                disabled={!reportReason}
+                                className={cn(buttonVariants({variant: 'destructive'}))}
+                            >
+                                Submit Report
+                            </Button>
+                        </DialogFooter>
+                    </DialogContent>
+                </Dialog>
                  <AlertDialog>
                     <AlertDialogTrigger asChild>
                          <DropdownMenuItem onSelect={(e) => e.preventDefault()} className="text-destructive focus:text-destructive">
