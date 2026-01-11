@@ -42,7 +42,14 @@ export default function EditProfilePage() {
   });
 
   const onSubmit = (data: ProfileFormData) => {
-    console.log(data);
+    // In a real app, you'd send this data to your backend.
+    // For now, we'll just update the mock data directly to see the change.
+    currentUser.name = data.name;
+    currentUser.job = data.job;
+    currentUser.education = data.education;
+    currentUser.bio = data.bio;
+    currentUser.interests = data.interests;
+    
     toast({
       title: 'Profile Updated!',
       description: 'Your changes have been saved successfully.',
