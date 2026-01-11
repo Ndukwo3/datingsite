@@ -141,6 +141,7 @@ export function AuthPage({ defaultTab }: { defaultTab: "login" | "signup" }) {
 
 const LoginForm = ({ onSubmit, isLoading, onSwitch }: { onSubmit: () => void; isLoading: boolean; onSwitch: () => void; }) => {
     const [showPassword, setShowPassword] = useState(false);
+    const [rememberMe, setRememberMe] = useState(false);
     
     const handleSubmit = (e: React.FormEvent<HTMLFormElement>) => {
         e.preventDefault();
@@ -183,14 +184,14 @@ const LoginForm = ({ onSubmit, isLoading, onSwitch }: { onSubmit: () => void; is
             </div>
             <div className="flex items-center justify-between text-sm">
                 <label className="flex items-center gap-2 text-gray-600 dark:text-gray-300">
-                    <Checkbox id="remember-me" />
+                    <Checkbox id="remember-me" checked={rememberMe} onCheckedChange={(checked) => setRememberMe(checked as boolean)} />
                     Remember me
                 </label>
                 <Link href="#" className="font-medium text-pink-600 hover:text-pink-500 dark:text-white dark:hover:text-gray-300">
                     Forgot Password?
                 </Link>
             </div>
-            <Button type="submit" className="w-full bg-gradient-to-r from-pink-500 to-orange-500 py-3 text-white font-semibold shadow-lg hover:scale-105 transition-transform" disabled={isLoading}>
+            <Button type="submit" className="w-full bg-gradient-to-r from-pink-500 to-orange-500 py-3 text-white font-semibold shadow-lg hover:scale-105 transition-transform" disabled={isLoading || !rememberMe}>
                  {isLoading && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
                 Log In
             </Button>
