@@ -77,7 +77,7 @@ export function TutorialOverlay() {
   };
 
   const handleFinish = () => {
-    router.push('/discover');
+    router.push('/feed');
   };
 
   const slideVariants = {
@@ -205,3 +205,5 @@ export function TutorialOverlay() {
     </div>
   );
 }
+
+    
