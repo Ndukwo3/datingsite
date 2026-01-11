@@ -23,8 +23,8 @@ export default function SwipePage() {
   const x = useMotionValue(0);
   const y = useMotionValue(0);
   const rotate = useTransform(x, [-200, 200], [-30, 30]);
-  const opacityX = useTransform(x, [-100, -20, 0, 20, 100], [1, 0, 0, 0, 1]);
-  const opacityHeart = useTransform(x, [-100, -20, 0, 20, 100], [0, 0, 0, 0, 1]);
+  const opacityX = useTransform(x, [-100, -20, 0], [1, 0, 0]);
+  const opacityHeart = useTransform(x, [0, 20, 100], [0, 0, 1]);
   const opacityStar = useTransform(y, [-100, -20, 0], [1, 0, 0]);
 
   const triggerSwipe = (direction: 'left' | 'right' | 'up') => {
