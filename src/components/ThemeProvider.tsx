@@ -26,26 +26,27 @@ export function ThemeProvider({
   defaultTheme?: Theme
   storageKey?: string
 }) {
-  const [theme, setTheme] = React.useState<Theme>(
-    () => (typeof window !== 'undefined' ? (localStorage.getItem(storageKey) as Theme) || defaultTheme : defaultTheme)
-  )
+  const [theme, setTheme] = React.useState<Theme>(defaultTheme)
+
+  React.useEffect(() => {
+    const storedTheme = (localStorage.getItem(storageKey) as Theme) || defaultTheme
+    setTheme(storedTheme)
+  }, [storageKey, defaultTheme]);
 
   React.useEffect(() => {
     const root = window.document.documentElement
 
     root.classList.remove("light", "dark")
 
+    let effectiveTheme = theme;
     if (theme === "system") {
-      const systemTheme = window.matchMedia("(prefers-color-scheme: dark)")
+      effectiveTheme = window.matchMedia("(prefers-color-scheme: dark)")
         .matches
         ? "dark"
         : "light"
-
-      root.classList.add(systemTheme)
-      return
     }
 
-    root.classList.add(theme)
+    root.classList.add(effectiveTheme)
   }, [theme])
 
   const value = {
