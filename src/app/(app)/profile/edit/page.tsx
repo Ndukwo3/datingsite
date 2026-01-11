@@ -4,7 +4,6 @@
 import { useForm, Controller } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import * as z from 'zod';
-import { currentUser } from '@/lib/data';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
@@ -12,10 +11,13 @@ import { Textarea } from '@/components/ui/textarea';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { useToast } from '@/hooks/use-toast';
 import Link from 'next/link';
-import { ArrowLeft } from 'lucide-react';
+import { ArrowLeft, Loader2 } from 'lucide-react';
 import { Badge } from '@/components/ui/badge';
 import { interestOptions } from '@/lib/data';
 import { useRouter } from 'next/navigation';
+import { useUser, useFirestore, useDoc } from '@/firebase';
+import { doc, setDoc } from 'firebase/firestore';
+import type { User } from '@/lib/types';
 
 const profileSchema = z.object({
   name: z.string().min(2, 'Name must be at least 2 characters.'),
@@ -30,31 +32,54 @@ type ProfileFormData = z.infer<typeof profileSchema>;
 export default function EditProfilePage() {
   const { toast } = useToast();
   const router = useRouter();
-  const { control, handleSubmit, formState: { errors }, getValues, setValue, watch } = useForm<ProfileFormData>({
+  const { user: authUser } = useUser();
+  const firestore = useFirestore();
+
+  const userDocRef = authUser ? doc(firestore, 'users', authUser.uid) : null;
+  const { data: currentUser, loading } = useDoc<User>(userDocRef);
+
+  const { control, handleSubmit, formState: { errors, isSubmitting }, getValues, setValue, watch, reset } = useForm<ProfileFormData>({
     resolver: zodResolver(profileSchema),
     defaultValues: {
-      name: currentUser.name,
-      job: currentUser.job,
-      education: currentUser.education,
-      bio: currentUser.bio,
-      interests: currentUser.interests,
+      name: '',
+      job: '',
+      education: '',
+      bio: '',
+      interests: [],
     },
   });
+  
+  // When currentUser data loads, reset the form with the fetched data.
+  React.useEffect(() => {
+    if (currentUser) {
+      reset({
+        name: currentUser.name,
+        job: currentUser.job,
+        education: currentUser.education,
+        bio: currentUser.bio,
+        interests: currentUser.interests,
+      });
+    }
+  }, [currentUser, reset]);
 
-  const onSubmit = (data: ProfileFormData) => {
-    // In a real app, you'd send this data to your backend.
-    // For now, we'll just update the mock data directly to see the change.
-    currentUser.name = data.name;
-    currentUser.job = data.job;
-    currentUser.education = data.education;
-    currentUser.bio = data.bio;
-    currentUser.interests = data.interests;
+  const onSubmit = async (data: ProfileFormData) => {
+    if (!userDocRef) return;
     
-    toast({
-      title: 'Profile Updated!',
-      description: 'Your changes have been saved successfully.',
-    });
-    router.push('/profile');
+    try {
+      await setDoc(userDocRef, data, { merge: true });
+      toast({
+        title: 'Profile Updated!',
+        description: 'Your changes have been saved successfully.',
+      });
+      router.push('/profile');
+    } catch (error) {
+      console.error("Error updating profile: ", error);
+      toast({
+        title: 'Update Failed',
+        description: 'Could not save your changes. Please try again.',
+        variant: 'destructive',
+      });
+    }
   };
 
   const interests = watch('interests', []);
@@ -75,6 +100,9 @@ export default function EditProfilePage() {
     setValue('interests', newInterests, { shouldValidate: true });
   };
 
+  if (loading) {
+    return <div className="flex h-full items-center justify-center"><Loader2 className="h-8 w-8 animate-spin" /></div>;
+  }
 
   return (
     <div className="max-w-3xl mx-auto">
@@ -161,7 +189,10 @@ export default function EditProfilePage() {
           <Button variant="ghost" asChild>
             <Link href="/profile">Cancel</Link>
           </Button>
-          <Button type="submit">Save Changes</Button>
+          <Button type="submit" disabled={isSubmitting}>
+            {isSubmitting && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
+            Save Changes
+          </Button>
         </div>
       </form>
     </div>

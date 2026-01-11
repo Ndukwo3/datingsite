@@ -1,20 +1,31 @@
 
 "use client";
 
-import { useState } from 'react';
+import { useState, useMemo } from 'react';
 import { motion, AnimatePresence, useMotionValue, useTransform, animate } from 'framer-motion';
-import { Heart, X, RotateCcw, Star } from 'lucide-react';
+import { Heart, X, RotateCcw, Star, Loader2 } from 'lucide-react';
+import { doc, setDoc, collection, getDocs, writeBatch, serverTimestamp, where, query } from 'firebase/firestore';
 
 import { Button } from '@/components/ui/button';
 import { ProfileCard } from '@/components/ProfileCard';
-import { potentialMatches } from '@/lib/data';
 import { MatchNotification } from '@/components/MatchNotification';
 import type { User } from '@/lib/types';
+import { useUser, useFirestore, useCollection } from '@/firebase';
 
 type SwipeDirection = 'left' | 'right' | 'up' | null;
 
 export default function SwipePage() {
-  const [profiles, setProfiles] = useState(potentialMatches);
+  const { user: currentUser } = useUser();
+  const firestore = useFirestore();
+
+  // Fetch users that are not the current user
+  const usersQuery = useMemo(() => {
+    if (!firestore || !currentUser) return null;
+    return query(collection(firestore, 'users'), where('id', '!=', currentUser.uid));
+  }, [firestore, currentUser]);
+
+  const { data: potentialMatches, loading } = useCollection<User>(usersQuery);
+
   const [currentIndex, setCurrentIndex] = useState(0);
   const [swipeDirection, setSwipeDirection] = useState<SwipeDirection>(null);
   const [lastSwipedUser, setLastSwipedUser] = useState<User | null>(null);
@@ -27,12 +38,62 @@ export default function SwipePage() {
   const opacityHeart = useTransform(x, [0, 20, 100], [0, 0, 1]);
   const opacityStar = useTransform(y, [-100, -20, 0], [1, 0, 0]);
 
+  const handleSwipe = async (swipedUser: User, direction: 'left' | 'right' | 'up') => {
+      if (!currentUser || !firestore) return;
+
+      const swipeData = {
+          swiperId: currentUser.uid,
+          swipedId: swipedUser.id,
+          direction: direction,
+          timestamp: serverTimestamp(),
+      };
+      
+      const swipeDocRef = doc(collection(firestore, 'swipes'));
+      await setDoc(swipeDocRef, swipeData);
+
+      if (direction === 'right' || direction === 'up') {
+          // Check for a match
+          const theirSwipeQuery = query(
+              collection(firestore, 'swipes'),
+              where('swiperId', '==', swipedUser.id),
+              where('swipedId', '==', currentUser.uid),
+              where('direction', 'in', ['right', 'up'])
+          );
+
+          const theirSwipeSnapshot = await getDocs(theirSwipeQuery);
+          if (!theirSwipeSnapshot.empty) {
+              // It's a match!
+              setLastSwipedUser(swipedUser);
+              setShowMatch(true);
+
+              const conversationId = [currentUser.uid, swipedUser.id].sort().join('_');
+              const conversationRef = doc(firestore, 'conversations', conversationId);
+
+              const batch = writeBatch(firestore);
+              batch.set(conversationRef, {
+                participants: [currentUser.uid, swipedUser.id],
+                createdAt: serverTimestamp(),
+                // Embed participant details for easier display in chat lists
+                participantDetails: {
+                  [currentUser.uid]: { id: currentUser.uid, name: currentUser.displayName, photos: [currentUser.photoURL] },
+                  [swipedUser.id]: { id: swipedUser.id, name: swipedUser.name, photos: swipedUser.photos }
+                }
+              }, { merge: true });
+
+              await batch.commit();
+          }
+      }
+  };
+
+
   const triggerSwipe = (direction: 'left' | 'right' | 'up') => {
-    if (currentIndex >= profiles.length) return;
+    if (!potentialMatches || currentIndex >= potentialMatches.length) return;
     
     setSwipeDirection(direction);
-    const swipedUser = profiles[currentIndex];
+    const swipedUser = potentialMatches[currentIndex];
     setLastSwipedUser(swipedUser);
+
+    handleSwipe(swipedUser, direction);
     
     // Animate card away
     const exitX = direction === 'left' ? -300 : direction === 'right' ? 300 : 0;
@@ -41,15 +102,8 @@ export default function SwipePage() {
     animate(x, exitX, { duration: 0.3 });
     animate(y, exitY, { duration: 0.3 });
 
-    // Simulate a match on every 3rd right swipe for demo purposes
-    const shouldMatch = direction === 'right' && (currentIndex + 1) % 3 === 0;
-
     setTimeout(() => {
         setCurrentIndex(currentIndex + 1);
-        if (shouldMatch) {
-            setShowMatch(true);
-        }
-        // Reset motion values for the next card
         x.set(0);
         y.set(0);
         setSwipeDirection(null);
@@ -72,7 +126,6 @@ export default function SwipePage() {
 
   const resetSwipes = () => {
     setCurrentIndex(0);
-    setProfiles(potentialMatches); // Reshuffle or refetch if needed
     setShowMatch(false);
   }
 
@@ -80,7 +133,7 @@ export default function SwipePage() {
     setShowMatch(false);
   }
   
-  const currentProfile = profiles[currentIndex];
+  const currentProfile = potentialMatches?.[currentIndex];
   
   const variants = {
     initial: { scale: 0.8, opacity: 0, y: 50 },
@@ -96,6 +149,10 @@ export default function SwipePage() {
     }
   };
 
+  if (loading) {
+    return <div className="flex h-full items-center justify-center"><Loader2 className="h-8 w-8 animate-spin" /></div>;
+  }
+
   return (
     <>
     <AnimatePresence>
@@ -110,7 +167,7 @@ export default function SwipePage() {
     <div className="flex h-full flex-col items-center justify-center gap-8">
       <div className="relative w-full max-w-sm h-[60vh]">
         <AnimatePresence custom={swipeDirection}>
-          {currentIndex < profiles.length ? (
+          {currentProfile ? (
             <motion.div
               key={currentIndex}
               drag
@@ -162,7 +219,7 @@ export default function SwipePage() {
             size="icon"
             className="h-20 w-20 rounded-full border-2 border-yellow-500 text-yellow-500 shadow-lg transition-transform duration-300 hover:scale-110 hover:bg-yellow-500/10"
             aria-label="Dislike"
-            disabled={swipeDirection !== null || showMatch}
+            disabled={swipeDirection !== null || showMatch || !currentProfile}
         >
             <X className="h-10 w-10" />
         </Button>
@@ -171,7 +228,7 @@ export default function SwipePage() {
             size="icon"
             className="h-24 w-24 rounded-full bg-primary text-primary-foreground shadow-xl transition-transform duration-300 hover:scale-110"
             aria-label="Like"
-            disabled={swipeDirection !== null || showMatch}
+            disabled={swipeDirection !== null || showMatch || !currentProfile}
         >
             <Heart className="h-12 w-12 fill-current" />
         </Button>
@@ -180,7 +237,7 @@ export default function SwipePage() {
             size="icon"
             className="h-20 w-20 rounded-full bg-blue-500 text-white shadow-xl transition-transform duration-300 hover:scale-110 hover:bg-blue-500/80"
             aria-label="Super Like"
-            disabled={swipeDirection !== null || showMatch}
+            disabled={swipeDirection !== null || showMatch || !currentProfile}
         >
             <Star className="h-10 w-10 fill-current" />
         </Button>

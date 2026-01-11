@@ -1,12 +1,11 @@
 
-
 "use client";
 
 import * as React from "react";
 import { useState } from "react";
 import { useRouter, useSearchParams } from "next/navigation";
 import { motion, AnimatePresence } from "framer-motion";
-import { Heart, Mail, KeyRound, User, Phone, Eye, EyeOff } from "lucide-react";
+import { Heart, Mail, KeyRound, User as UserIcon, Phone, Eye, EyeOff, Loader2 } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { Button } from "./ui/button";
 import { Input } from "./ui/input";
@@ -15,7 +14,9 @@ import Link from "next/link";
 import { SplashScreen } from "./SplashScreen";
 import { ThemeToggle } from "./ThemeToggle";
 import { useToast } from "@/hooks/use-toast";
-import { Loader2 } from "lucide-react";
+import { useFirebaseApp } from "@/firebase";
+import { getAuth, createUserWithEmailAndPassword, signInWithEmailAndPassword, updateProfile } from "firebase/auth";
+import { getFirestore, doc, setDoc, serverTimestamp } from "firebase/firestore";
 
 type AuthStep = "login" | "signup";
 type UserData = {
@@ -28,6 +29,9 @@ export function AuthPage({ defaultTab }: { defaultTab: "login" | "signup" }) {
     const [authStep, setAuthStep] = useState<AuthStep>(defaultTab);
     const router = useRouter();
     const searchParams = useSearchParams();
+    const { toast } = useToast();
+    const firebaseApp = useFirebaseApp();
+
     const fromNav = searchParams.get('fromNav');
     const [showSplash, setShowSplash] = useState(!!fromNav);
     const [isLoading, setIsLoading] = useState(false);
@@ -43,21 +47,74 @@ export function AuthPage({ defaultTab }: { defaultTab: "login" | "signup" }) {
         return <SplashScreen />;
     }
 
-    const handleSignupSubmit = (data: UserData) => {
+    const handleSignupSubmit = async (data: UserData & {password: string}) => {
+        if (!firebaseApp) {
+            toast({ title: "Initialization error", description: "Firebase is not ready.", variant: "destructive" });
+            return;
+        }
         setIsLoading(true);
-        setTimeout(() => {
-            setIsLoading(false);
+        const auth = getAuth(firebaseApp);
+        const firestore = getFirestore(firebaseApp);
+
+        try {
+            const userCredential = await createUserWithEmailAndPassword(auth, data.email, data.password);
+            const user = userCredential.user;
+
+            await updateProfile(user, { displayName: data.name });
+
+            // Create a user document in Firestore
+            const userDocRef = doc(firestore, "users", user.uid);
+            await setDoc(userDocRef, {
+                id: user.uid,
+                name: data.name,
+                email: data.email,
+                phone: data.phone,
+                createdAt: serverTimestamp(),
+                // Add default empty values for profile fields
+                age: 18,
+                bio: '',
+                location: '',
+                job: '',
+                education: '',
+                interests: [],
+                photos: ['user-1'], // Default photo
+                isVerified: false,
+                lastSeen: 'online',
+            });
+            
             router.push('/onboarding');
-        }, 1000);
+        } catch (error: any) {
+            console.error(error);
+            toast({
+                title: "Sign up failed",
+                description: error.message || "An unexpected error occurred.",
+                variant: "destructive"
+            });
+        } finally {
+            setIsLoading(false);
+        }
     };
     
-    const handleLoginSubmit = () => {
+    const handleLoginSubmit = async (data: {email: string, password: string}) => {
+         if (!firebaseApp) {
+            toast({ title: "Initialization error", description: "Firebase is not ready.", variant: "destructive" });
+            return;
+        }
         setIsLoading(true);
-        // Simulate a network request
-        setTimeout(() => {
-            setIsLoading(false);
+        const auth = getAuth(firebaseApp);
+        try {
+            await signInWithEmailAndPassword(auth, data.email, data.password);
             router.push('/feed');
-        }, 1000);
+        } catch (error: any) {
+            console.error(error);
+            toast({
+                title: "Login failed",
+                description: error.message || "Invalid credentials.",
+                variant: "destructive"
+            });
+        } finally {
+            setIsLoading(false);
+        }
     };
 
     const renderForm = () => {
@@ -139,13 +196,15 @@ export function AuthPage({ defaultTab }: { defaultTab: "login" | "signup" }) {
     );
 }
 
-const LoginForm = ({ onSubmit, isLoading, onSwitch }: { onSubmit: () => void; isLoading: boolean; onSwitch: () => void; }) => {
+const LoginForm = ({ onSubmit, isLoading, onSwitch }: { onSubmit: (data: {email: string, password: string}) => void; isLoading: boolean; onSwitch: () => void; }) => {
     const [showPassword, setShowPassword] = useState(false);
-    const [rememberMe, setRememberMe] = useState(false);
     
     const handleSubmit = (e: React.FormEvent<HTMLFormElement>) => {
         e.preventDefault();
-        onSubmit();
+        const formData = new FormData(e.currentTarget);
+        const email = formData.get("email") as string;
+        const password = formData.get("password") as string;
+        onSubmit({email, password});
     };
 
     return (
@@ -166,6 +225,7 @@ const LoginForm = ({ onSubmit, isLoading, onSwitch }: { onSubmit: () => void; is
                 <div className="relative">
                     <KeyRound className="absolute left-3 top-1/2 -translate-y-1/2 h-5 w-5 text-gray-400" />
                     <Input
+                        name="password"
                         type={showPassword ? 'text' : 'password'}
                         placeholder="Password"
                         required
@@ -184,14 +244,14 @@ const LoginForm = ({ onSubmit, isLoading, onSwitch }: { onSubmit: () => void; is
             </div>
             <div className="flex items-center justify-between text-sm">
                 <label className="flex items-center gap-2 text-gray-600 dark:text-gray-300">
-                    <Checkbox id="remember-me" checked={rememberMe} onCheckedChange={(checked) => setRememberMe(checked as boolean)} />
+                    <Checkbox id="remember-me" />
                     Remember me
                 </label>
                 <Link href="#" className="font-medium text-pink-600 hover:text-pink-500 dark:text-white dark:hover:text-gray-300">
                     Forgot Password?
                 </Link>
             </div>
-            <Button type="submit" className="w-full bg-gradient-to-r from-pink-500 to-orange-500 py-3 text-white font-semibold shadow-lg hover:scale-105 transition-transform" disabled={isLoading || !rememberMe}>
+            <Button type="submit" className="w-full bg-gradient-to-r from-pink-500 to-orange-500 py-3 text-white font-semibold shadow-lg hover:scale-105 transition-transform" disabled={isLoading}>
                  {isLoading && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
                 Log In
             </Button>
@@ -205,7 +265,7 @@ const LoginForm = ({ onSubmit, isLoading, onSwitch }: { onSubmit: () => void; is
     );
 };
 
-const SignUpForm = ({ onSubmit, isLoading, onSwitch }: { onSubmit: (data: UserData) => void; isLoading: boolean; onSwitch: () => void; }) => {
+const SignUpForm = ({ onSubmit, isLoading, onSwitch }: { onSubmit: (data: UserData & {password: string}) => void; isLoading: boolean; onSwitch: () => void; }) => {
     const { toast } = useToast();
     const [showPassword, setShowPassword] = useState(false);
     const [showConfirmPassword, setShowConfirmPassword] = useState(false);
@@ -233,6 +293,7 @@ const SignUpForm = ({ onSubmit, isLoading, onSwitch }: { onSubmit: (data: UserDa
             name: formData.get('name') as string,
             phone: formData.get('phone') as string,
             email: formData.get('email') as string,
+            password: password,
         };
         onSubmit(data);
     };
@@ -240,7 +301,7 @@ const SignUpForm = ({ onSubmit, isLoading, onSwitch }: { onSubmit: (data: UserDa
     return (
         <form onSubmit={handleSubmit} className="space-y-4">
              <div className="relative">
-                <User className="absolute left-3 top-1/2 -translate-y-1/2 h-5 w-5 text-gray-400" />
+                <UserIcon className="absolute left-3 top-1/2 -translate-y-1/2 h-5 w-5 text-gray-400" />
                 <Input
                     name="name"
                     type="text"
@@ -321,5 +382,3 @@ const SignUpForm = ({ onSubmit, isLoading, onSwitch }: { onSubmit: (data: UserDa
         </form>
     );
 };
-
-    

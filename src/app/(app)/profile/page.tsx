@@ -1,19 +1,41 @@
 
 'use client';
 
-import { currentUser } from '@/lib/data';
 import { PlaceHolderImages } from '@/lib/placeholder-images';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import Image from 'next/image';
-import { Briefcase, ChevronRight, CircleUser, Crown, Edit, Eye, GraduationCap, Heart, HelpCircle, KeyRound, MapPin, MessageSquare, Bell, ShieldCheck, Trash2, Upload, User, UserCheck } from 'lucide-react';
+import { Briefcase, ChevronRight, Crown, Edit, Eye, GraduationCap, HelpCircle, KeyRound, Loader2, MapPin, Bell, ShieldCheck, Trash2, Upload } from 'lucide-react';
 import Link from 'next/link';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { Badge } from '@/components/ui/badge';
 import { Switch } from '@/components/ui/switch';
-import { Separator } from '@/components/ui/separator';
+import { useUser, useFirestore, useDoc } from '@/firebase';
+import { doc } from 'firebase/firestore';
+import type { User } from '@/lib/types';
+import { useRouter } from 'next/navigation';
 
 export default function ProfilePage() {
+    const { user: authUser, loading: authLoading } = useUser();
+    const firestore = useFirestore();
+    const router = useRouter();
+
+    const userDocRef = authUser ? doc(firestore, 'users', authUser.uid) : null;
+    const { data: currentUser, loading: userLoading } = useDoc<User>(userDocRef);
+
+    const loading = authLoading || userLoading;
+
+    if (loading) {
+        return <div className="flex h-full items-center justify-center"><Loader2 className="h-8 w-8 animate-spin" /></div>;
+    }
+
+    if (!currentUser) {
+        // This case might happen briefly or if the user doc doesn't exist.
+        // You might want to redirect to an error page or onboarding.
+        router.push('/onboarding');
+        return <div className="flex h-full items-center justify-center"><Loader2 className="h-8 w-8 animate-spin" /></div>;
+    }
+
     const userImage = PlaceHolderImages.find(p => p.id === currentUser.photos[0]);
 
   return (

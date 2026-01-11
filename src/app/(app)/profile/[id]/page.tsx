@@ -1,13 +1,17 @@
 
-import { notFound } from 'next/navigation';
+'use client';
+
+import { notFound, useParams } from 'next/navigation';
 import Image from 'next/image';
-import { users } from '@/lib/data';
 import { PlaceHolderImages } from '@/lib/placeholder-images';
 import { Card, CardContent } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
-import { BadgeCheck, Heart, MapPin, X, Star, Briefcase, GraduationCap, Instagram, Share2, Flag, ArrowLeft } from 'lucide-react';
+import { BadgeCheck, Heart, MapPin, X, Star, Briefcase, GraduationCap, Instagram, Share2, Flag, ArrowLeft, Loader2 } from 'lucide-react';
 import Link from 'next/link';
+import { useDoc, useFirestore } from '@/firebase';
+import { doc } from 'firebase/firestore';
+import type { User } from '@/lib/types';
 
 function SpotifyIcon(props: React.SVGProps<SVGSVGElement>) {
     return (
@@ -22,14 +26,18 @@ function SpotifyIcon(props: React.SVGProps<SVGSVGElement>) {
     );
 }
 
-type ProfilePageProps = {
-  params: {
-    id: string;
-  };
-};
+export default function UserProfilePage() {
+  const params = useParams();
+  const firestore = useFirestore();
+  const userId = Array.isArray(params.id) ? params.id[0] : params.id;
 
-export default function UserProfilePage({ params }: ProfilePageProps) {
-  const user = users.find(u => u.id === params.id);
+  const { data: user, loading } = useDoc<User>(
+    firestore && userId ? doc(firestore, 'users', userId) : null
+  );
+
+  if (loading) {
+    return <div className="flex h-full items-center justify-center"><Loader2 className="h-8 w-8 animate-spin" /></div>;
+  }
 
   if (!user) {
     notFound();

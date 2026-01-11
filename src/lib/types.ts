@@ -1,4 +1,6 @@
 
+import { Timestamp } from 'firebase/firestore';
+
 export type User = {
   id: string;
   name: string;
@@ -21,7 +23,7 @@ export type Match = {
   id: string;
   userId: string;
   matchedUserId: string;
-  timestamp: Date;
+  timestamp: Timestamp;
 };
 
 export type Message = {
@@ -29,11 +31,13 @@ export type Message = {
   senderId: string;
   receiverId: string;
   text: string;
-  timestamp: Date;
+  timestamp: Timestamp;
 };
 
 export type Conversation = {
   id: string;
-  participant: User;
+  participants: string[];
+  participantDetails: { [key: string]: User };
   lastMessage: Message;
+  createdAt: Timestamp;
 };

@@ -1,16 +1,36 @@
 
+'use client';
+
 import Image from 'next/image';
 import Link from 'next/link';
 import { Card, CardContent } from '@/components/ui/card';
-import { conversations, users } from '@/lib/data';
 import { PlaceHolderImages } from '@/lib/placeholder-images';
-import { BadgeCheck, MessageSquare, Sparkles } from 'lucide-react';
-import { formatDistanceToNow } from 'date-fns';
+import { BadgeCheck, MessageSquare, Sparkles, Loader2 } from 'lucide-react';
 import { cn, formatMatchTime } from '@/lib/utils';
 import { Badge } from '@/components/ui/badge';
+import { useCollection, useFirestore, useUser } from '@/firebase';
+import { collection, query, where } from 'firebase/firestore';
+import type { Conversation, User } from '@/lib/types';
+
 
 export default function MatchesPage() {
     const twentyFourHoursAgo = new Date(Date.now() - 24 * 60 * 60 * 1000);
+    const firestore = useFirestore();
+    const { user: currentUser } = useUser();
+
+    // Query for conversations where the current user is a participant
+    const matchesQuery = firestore && currentUser
+        ? query(
+            collection(firestore, 'conversations'),
+            where('participants', 'array-contains', currentUser.uid)
+        )
+        : null;
+
+    const { data: matches, loading } = useCollection<Conversation>(matchesQuery);
+
+    if (loading) {
+      return <div className="flex h-full items-center justify-center"><Loader2 className="h-8 w-8 animate-spin" /></div>;
+    }
 
   return (
     <div className="space-y-6">
@@ -22,12 +42,21 @@ export default function MatchesPage() {
       </div>
 
       <div className="grid grid-cols-2 gap-4 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 xl:grid-cols-6">
-        {conversations.map(({ id, participant, lastMessage }) => {
+        {matches && matches.map((match) => {
+          const participantId = match.participants.find(p => p !== currentUser?.uid);
+          if (!participantId) return null;
+
+          // Assuming participant details are embedded. If not, a separate fetch is needed.
+          const participant = match.participantDetails[participantId] as User;
+          if (!participant) return null;
+
           const userImage = PlaceHolderImages.find(p => p.id === participant.photos[0]);
-          const isNewMatch = lastMessage.timestamp > twentyFourHoursAgo;
+          // Use createdAt for match time, assuming lastMessage might not exist initially
+          const matchTimestamp = match.createdAt ? new Date(match.createdAt.seconds * 1000) : new Date();
+          const isNewMatch = matchTimestamp > twentyFourHoursAgo;
           
           return (
-            <Link href={`/chat/${id}`} key={id} className="group">
+            <Link href={`/chat/${participant.id}`} key={match.id} className="group">
               <Card className="overflow-hidden transition-all duration-300 hover:scale-105 hover:shadow-lg border-transparent hover:border-primary">
                 <CardContent className="relative aspect-square p-0">
                   {userImage && (
@@ -52,7 +81,7 @@ export default function MatchesPage() {
                       {participant.isVerified && <BadgeCheck className="h-4 w-4 text-blue-400 fill-primary-foreground" />}
                     </div>
                      <p className="text-xs text-primary-foreground/80 mt-1">
-                        Matched {formatMatchTime(lastMessage.timestamp)}
+                        Matched {formatMatchTime(matchTimestamp)}
                     </p>
                   </div>
                    <div className="absolute inset-0 flex items-center justify-center bg-black/50 opacity-0 transition-opacity group-hover:opacity-100">
@@ -63,6 +92,9 @@ export default function MatchesPage() {
             </Link>
           );
         })}
+        {matches?.length === 0 && (
+          <p className="col-span-full text-center text-muted-foreground p-8">No matches yet. Keep swiping!</p>
+        )}
       </div>
     </div>
   );

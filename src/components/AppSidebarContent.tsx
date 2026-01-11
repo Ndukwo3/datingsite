@@ -12,10 +12,12 @@ import {
   SidebarFooter,
 } from "@/components/ui/sidebar";
 import { Logo } from "@/components/Logo";
-import { Button } from "./ui/button";
 import { Flame, MessageSquareText, Users, CircleUser, Crown, LogOut, Settings, Rss } from "lucide-react";
-import { cn } from "@/lib/utils";
 import { ThemeToggle } from "./ThemeToggle";
+import { getAuth, signOut } from "firebase/auth";
+import { useFirebaseApp } from "@/firebase";
+import { useRouter } from "next/navigation";
+import { useToast } from "@/hooks/use-toast";
 
 const menuItems = [
   { href: "/feed", label: "Feed", icon: Rss },
@@ -27,10 +29,27 @@ const menuItems = [
 
 export function AppSidebarContent() {
   const pathname = usePathname();
+  const firebaseApp = useFirebaseApp();
+  const router = useRouter();
+  const { toast } = useToast();
   
   const isActive = (href: string) => {
     if (href === '/discover') return pathname === '/discover' || pathname === '/';
     return pathname.startsWith(href);
+  };
+
+  const handleLogout = async () => {
+    if (firebaseApp) {
+      const auth = getAuth(firebaseApp);
+      try {
+        await signOut(auth);
+        toast({ title: "Logged out successfully." });
+        router.push('/login');
+      } catch (error) {
+        console.error("Logout error:", error);
+        toast({ title: "Logout failed", description: "Please try again.", variant: "destructive" });
+      }
+    }
   };
 
   return (
@@ -84,11 +103,9 @@ export function AppSidebarContent() {
                 </SidebarMenuButton>
             </SidebarMenuItem>
             <SidebarMenuItem>
-                <SidebarMenuButton asChild tooltip={{children: 'Logout'}}>
-                    <Link href="/login?fromNav=true">
-                        <LogOut className="h-5 w-5" />
-                        <span>Logout</span>
-                    </Link>
+                <SidebarMenuButton onClick={handleLogout} tooltip={{children: 'Logout'}}>
+                  <LogOut className="h-5 w-5" />
+                  <span>Logout</span>
                 </SidebarMenuButton>
             </SidebarMenuItem>
         </SidebarMenu>

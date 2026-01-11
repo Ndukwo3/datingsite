@@ -10,7 +10,7 @@ import { ScrollArea } from '@/components/ui/scroll-area';
 import { Separator } from '@/components/ui/separator';
 import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover';
 import { cn } from '@/lib/utils';
-import type { Conversation, Message, User } from '@/lib/types';
+import type { Message, User } from '@/lib/types';
 import { PlaceHolderImages } from '@/lib/placeholder-images';
 import { ArrowLeft, Loader2, MoreVertical, SendHorizontal, Smile, ShieldAlert, User as UserIcon } from 'lucide-react';
 import { useToast } from '@/hooks/use-toast';
@@ -18,11 +18,12 @@ import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuSepara
 import { Dialog, DialogTrigger, DialogContent, DialogHeader, DialogTitle, DialogDescription, DialogFooter, DialogClose } from '@/components/ui/dialog';
 import { Label } from '@/components/ui/label';
 import { RadioGroup, RadioGroupItem } from '@/components/ui/radio-group';
+import { useUser, useFirestore, useCollection } from '@/firebase';
+import { collection, addDoc, serverTimestamp, query, orderBy } from 'firebase/firestore';
 
 type ChatInterfaceProps = {
-  conversation: Conversation;
-  initialMessages: Message[];
-  currentUser: User;
+  participant: User;
+  conversationId: string;
 };
 
 const popularEmojis = ['😀', '😂', '❤️', '👍', '🙏', '😍', '🤔', '😎', '🔥', '🎉', '😊', '😭'];
@@ -36,18 +37,20 @@ const reportReasons = [
 ];
 
 
-export function ChatInterface({ conversation, initialMessages, currentUser }: ChatInterfaceProps) {
-  const [messages, setMessages] = useState(initialMessages);
+export function ChatInterface({ participant, conversationId }: ChatInterfaceProps) {
   const [newMessage, setNewMessage] = useState('');
   const [isSending, setIsSending] = useState(false);
   const { toast } = useToast();
   const scrollAreaRef = useRef<HTMLDivElement>(null);
+  const { user: currentUser } = useUser();
+  const firestore = useFirestore();
+
+  const messagesQuery = firestore ? query(collection(firestore, 'conversations', conversationId, 'messages'), orderBy('timestamp', 'asc')) : null;
+  const { data: messages, loading } = useCollection<Message>(messagesQuery);
   
   const [isReportDialogOpen, setIsReportDialogOpen] = useState(false);
   const [reportReason, setReportReason] = useState('');
 
-
-  const participant = conversation.participant;
   const participantImage = PlaceHolderImages.find(p => p.id === participant.photos[0]);
   const participantFirstName = participant.name.split(' ')[0];
 
@@ -63,25 +66,20 @@ export function ChatInterface({ conversation, initialMessages, currentUser }: Ch
 
   const handleSendMessage = async (e: React.FormEvent) => {
     e.preventDefault();
-    if (!newMessage.trim()) return;
+    if (!newMessage.trim() || !currentUser || !firestore) return;
 
     setIsSending(true);
 
     try {
-        const messageToSend: Message = {
-            id: `msg-${Date.now()}`,
-            senderId: currentUser.id,
-            receiverId: participant.id,
-            text: newMessage,
-            timestamp: new Date(),
-        };
+      const messagesCol = collection(firestore, 'conversations', conversationId, 'messages');
+      await addDoc(messagesCol, {
+        senderId: currentUser.uid,
+        receiverId: participant.id,
+        text: newMessage,
+        timestamp: serverTimestamp(),
+      });
 
-        // Simulate sending message
-        await new Promise(resolve => setTimeout(resolve, 500));
-
-        setMessages(prev => [...prev, messageToSend]);
-        setNewMessage('');
-
+      setNewMessage('');
     } catch (error) {
         console.error("Failed to send message:", error);
         toast({
@@ -182,8 +180,9 @@ export function ChatInterface({ conversation, initialMessages, currentUser }: Ch
       
       <ScrollArea className="flex-1" ref={scrollAreaRef}>
         <div className="p-6 space-y-6">
-            {messages.map((msg) => {
-            const isCurrentUser = msg.senderId === currentUser.id;
+            {loading && <div className="flex justify-center"><Loader2 className="h-6 w-6 animate-spin" /></div>}
+            {messages?.map((msg) => {
+            const isCurrentUser = msg.senderId === currentUser?.uid;
             return (
                 <div
                 key={msg.id}

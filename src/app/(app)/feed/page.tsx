@@ -5,12 +5,13 @@ import { useState, useEffect } from 'react';
 import Image from 'next/image';
 import Link from 'next/link';
 import { Card, CardContent } from '@/components/ui/card';
-import { users } from '@/lib/data';
 import { PlaceHolderImages } from '@/lib/placeholder-images';
 import { formatActivity } from '@/lib/utils';
 import { cn } from '@/lib/utils';
-import { MapPin } from 'lucide-react';
+import { Loader2, MapPin } from 'lucide-react';
 import type { User } from '@/lib/types';
+import { useCollection, useFirestore } from '@/firebase';
+import { collection } from 'firebase/firestore';
 
 // Fisher-Yates shuffle algorithm
 const shuffleArray = (array: User[]) => {
@@ -25,20 +26,28 @@ const shuffleArray = (array: User[]) => {
 };
 
 export default function FeedPage() {
+  const firestore = useFirestore();
+  const { data: users, loading } = useCollection<User>(firestore ? collection(firestore, 'users') : null);
   const [shuffledUsers, setShuffledUsers] = useState<User[]>([]);
 
   useEffect(() => {
-    // Separate online users from offline users
-    const onlineUsers = users.filter(u => u.lastSeen === 'online');
-    const offlineUsers = users.filter(u => u.lastSeen !== 'online');
+    if (users) {
+      // Separate online users from offline users
+      const onlineUsers = users.filter(u => u.lastSeen === 'online');
+      const offlineUsers = users.filter(u => u.lastSeen !== 'online');
 
-    // Shuffle both lists
-    const shuffledOnline = shuffleArray(onlineUsers);
-    const shuffledOffline = shuffleArray(offlineUsers);
+      // Shuffle both lists
+      const shuffledOnline = shuffleArray(onlineUsers);
+      const shuffledOffline = shuffleArray(offlineUsers);
 
-    // Combine them back, with online users first
-    setShuffledUsers([...shuffledOnline, ...shuffledOffline]);
-  }, []);
+      // Combine them back, with online users first
+      setShuffledUsers([...shuffledOnline, ...shuffledOffline]);
+    }
+  }, [users]);
+  
+  if (loading) {
+    return <div className="flex h-full items-center justify-center"><Loader2 className="h-8 w-8 animate-spin" /></div>;
+  }
 
   return (
     <div className="space-y-6">
