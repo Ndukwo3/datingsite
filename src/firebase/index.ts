@@ -4,24 +4,52 @@ import { getAuth, type Auth } from "firebase/auth";
 import { getFirestore, type Firestore } from "firebase/firestore";
 import { firebaseConfig } from "./config";
 
-// --- Primary Firebase App Initialization ---
+// --- Firebase App Initialization ---
 
 let firebaseApp: FirebaseApp;
-let auth: Auth;
-let firestore: Firestore;
 
-export function initializeFirebase() {
-  if (!getApps().length) {
-    firebaseApp = initializeApp(firebaseConfig);
+// Initialize Firebase app if it hasn't been already
+if (!getApps().length) {
+  firebaseApp = initializeApp(firebaseConfig);
+} else {
+  firebaseApp = getApp();
+}
+
+// --- Lazy-loaded Service Getters ---
+
+let auth: Auth | null = null;
+let firestore: Firestore | null = null;
+
+/**
+ * Lazily gets the Firebase Auth instance.
+ * @returns The Firebase Auth instance.
+ */
+export function getFirebaseAuth(): Auth {
+  if (!auth) {
     auth = getAuth(firebaseApp);
-    firestore = getFirestore(firebaseApp);
-  } else {
-    firebaseApp = getApp();
-    auth = getAuth(firebaseApp);
+  }
+  return auth;
+}
+
+/**
+ * Lazily gets the Firestore instance.
+ * @returns The Firestore instance.
+ */
+export function getFirebaseFirestore(): Firestore {
+  if (!firestore) {
     firestore = getFirestore(firebaseApp);
   }
-  return { app: firebaseApp, auth, firestore };
+  return firestore;
 }
+
+/**
+ * Returns the initialized Firebase App instance.
+ * @returns The FirebaseApp instance.
+ */
+export function getFirebaseAppInstance(): FirebaseApp {
+    return firebaseApp;
+}
+
 
 // --- Exports from other files ---
 
