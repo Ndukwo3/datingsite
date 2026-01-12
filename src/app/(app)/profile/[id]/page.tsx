@@ -56,21 +56,24 @@ export default function UserProfilePage() {
   }, [currentUser, userId]);
 
   const { data: conversation, loading: conversationLoading } = useDoc<Conversation>(
-    firestore && conversationId ? doc(collection(firestore, 'conversations'), conversationId) : null
+    firestore && conversationId ? doc(firestore, 'conversations', conversationId) : null
   );
 
   const hasMatched = !!conversation;
   const loading = userLoading || conversationLoading;
 
-  const distance =
-    currentUserData?.coordinates && user?.coordinates
-      ? getDistanceFromLatLonInKm(
+  const distance = useMemo(() => {
+      if (currentUserData?.coordinates && user?.coordinates) {
+        return getDistanceFromLatLonInKm(
           currentUserData.coordinates.lat,
           currentUserData.coordinates.lng,
           user.coordinates.lat,
           user.coordinates.lng
-        )
-      : null;
+        );
+      }
+      return null;
+  }, [currentUserData, user]);
+
 
   if (loading) {
     return <div className="flex h-full items-center justify-center"><Loader2 className="h-8 w-8 animate-spin" /></div>;
@@ -201,4 +204,3 @@ export default function UserProfilePage() {
     </div>
   );
 }
-
