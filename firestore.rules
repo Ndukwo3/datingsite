@@ -29,7 +29,9 @@ service cloud.firestore {
     // Participants of a conversation can read/write to it.
     // Users can list conversations they are a part of.
     match /conversations/{conversationId} {
+       // Allow reading/writing a single document if the user is a participant.
        allow get, write: if isAuthenticated() && request.auth.uid in resource.data.participants;
+       // Allow querying the collection only if filtering for the user's own conversations.
        allow list: if isAuthenticated() && request.query.where.get('participants').get('array-contains') == request.auth.uid;
       
        // Messages can be read/written by participants of the parent conversation.
