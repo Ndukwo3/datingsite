@@ -11,7 +11,7 @@ import { Separator } from '@/components/ui/separator';
 import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover';
 import { cn } from '@/lib/utils';
 import type { Message, User } from '@/lib/types';
-import { ArrowLeft, Loader2, MoreVertical, SendHorizontal, Smile, ShieldAlert, User as UserIcon } from 'lucide-react';
+import { ArrowLeft, Loader2, MoreVertical, SendHorizontal, Smile, ShieldAlert, User as UserIcon, Sparkles } from 'lucide-react';
 import { useToast } from '@/hooks/use-toast';
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuSeparator, DropdownMenuTrigger } from '@/components/ui/dropdown-menu';
 import { Dialog, DialogTrigger, DialogContent, DialogHeader, DialogTitle, DialogDescription, DialogFooter, DialogClose } from '@/components/ui/dialog';
@@ -22,6 +22,8 @@ import { collection, addDoc, serverTimestamp, query, orderBy } from 'firebase/fi
 import { errorEmitter } from '@/firebase/error-emitter';
 import { FirestorePermissionError } from '@/firebase/errors';
 import { isValidHttpUrl } from '@/lib/is-valid-url';
+import { suggestIcebreakers } from '@/ai/flows/suggest-icebreakers';
+import { Card } from '@/components/ui/card';
 
 type ChatInterfaceProps = {
   participant: User;
@@ -44,7 +46,7 @@ export function ChatInterface({ participant, conversationId }: ChatInterfaceProp
   const [isSending, setIsSending] = useState(false);
   const { toast } = useToast();
   const scrollAreaRef = useRef<HTMLDivElement>(null);
-  const { user: currentUser } = useUser();
+  const { user: currentUser, userData } = useUser();
   const firestore = useFirestore();
 
   const messagesQuery = firestore ? query(collection(firestore, 'conversations', conversationId, 'messages'), orderBy('timestamp', 'asc')) : null;
@@ -52,6 +54,9 @@ export function ChatInterface({ participant, conversationId }: ChatInterfaceProp
   
   const [isReportDialogOpen, setIsReportDialogOpen] = useState(false);
   const [reportReason, setReportReason] = useState('');
+  const [isGeneratingIcebreakers, setIsGeneratingIcebreakers] = useState(false);
+  const [icebreakers, setIcebreakers] = useState<string[]>([]);
+
 
   const participantImage = participant.photos?.[0];
   const participantFirstName = participant.name.split(' ')[0];
@@ -66,16 +71,15 @@ export function ChatInterface({ participant, conversationId }: ChatInterfaceProp
     }
   }, [messages]);
 
-  const handleSendMessage = async (e: React.FormEvent) => {
-    e.preventDefault();
-    if (!newMessage.trim() || !currentUser || !firestore) return;
+  const sendMessage = (text: string) => {
+    if (!text.trim() || !currentUser || !firestore) return;
 
     setIsSending(true);
 
     const messageData = {
       senderId: currentUser.uid,
       receiverId: participant.id,
-      text: newMessage,
+      text: text,
       timestamp: serverTimestamp(),
     };
 
@@ -93,6 +97,12 @@ export function ChatInterface({ participant, conversationId }: ChatInterfaceProp
     });
 
     setNewMessage('');
+    setIcebreakers([]); // Clear icebreakers after sending a message
+  };
+
+  const handleFormSubmit = async (e: React.FormEvent) => {
+    e.preventDefault();
+    sendMessage(newMessage);
   };
 
   const handleEmojiSelect = (emoji: string) => {
@@ -108,6 +118,35 @@ export function ChatInterface({ participant, conversationId }: ChatInterfaceProp
     setIsReportDialogOpen(false);
      // Here you would add logic to actually report the user
   }
+
+  const handleGenerateIcebreakers = async () => {
+    if (!userData || !participant) return;
+    setIsGeneratingIcebreakers(true);
+    try {
+        const result = await suggestIcebreakers({
+            currentUser: {
+                name: userData.name,
+                bio: userData.bio,
+                interests: userData.interests,
+                job: userData.job,
+            },
+            matchedUser: {
+                name: participant.name,
+                bio: participant.bio,
+                interests: participant.interests,
+                job: participant.job,
+            }
+        });
+        setIcebreakers(result.icebreakers);
+    } catch (error) {
+        console.error("Failed to generate icebreakers:", error);
+        toast({ title: "Could not generate icebreakers", description: "The AI is a bit shy right now. Please try again.", variant: 'destructive' });
+    } finally {
+        setIsGeneratingIcebreakers(false);
+    }
+  }
+  
+  const showIcebreakerUI = !loading && messages?.length === 0;
 
   return (
     <div className="flex h-[calc(100vh-8rem)] flex-col rounded-xl border bg-card">
@@ -187,6 +226,33 @@ export function ChatInterface({ participant, conversationId }: ChatInterfaceProp
       <ScrollArea className="flex-1" ref={scrollAreaRef}>
         <div className="p-6 space-y-6">
             {loading && <div className="flex justify-center"><Loader2 className="h-6 w-6 animate-spin" /></div>}
+            {showIcebreakerUI && (
+                <div className='text-center my-8'>
+                    <h3 className='font-headline text-lg font-semibold'>It's a Match!</h3>
+                    <p className='text-muted-foreground'>Break the ice with a clever opening line.</p>
+                     <Button 
+                        onClick={handleGenerateIcebreakers} 
+                        disabled={isGeneratingIcebreakers} 
+                        className='mt-4'
+                    >
+                        {isGeneratingIcebreakers ? <Loader2 className='mr-2 h-4 w-4 animate-spin'/> : <Sparkles className='mr-2 h-4 w-4'/>}
+                        Generate Icebreakers
+                    </Button>
+                    {icebreakers.length > 0 && (
+                        <div className='mt-6 space-y-2 text-left'>
+                            {icebreakers.map((icebreaker, i) => (
+                                <Card 
+                                    key={i} 
+                                    className='p-3 hover:bg-muted cursor-pointer'
+                                    onClick={() => sendMessage(icebreaker)}
+                                >
+                                    <p className='text-sm'>{icebreaker}</p>
+                                </Card>
+                            ))}
+                        </div>
+                    )}
+                </div>
+            )}
             {messages?.map((msg) => {
             const isCurrentUser = msg.senderId === currentUser?.uid;
             return (
@@ -211,7 +277,7 @@ export function ChatInterface({ participant, conversationId }: ChatInterfaceProp
       <Separator />
 
       <footer className="p-4">
-        <form onSubmit={handleSendMessage} className="relative flex items-center">
+        <form onSubmit={handleFormSubmit} className="relative flex items-center">
             <Input
                 value={newMessage}
                 onChange={(e) => setNewMessage(e.target.value)}
