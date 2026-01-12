@@ -45,6 +45,7 @@ export default function ProfilePage() {
     const firestore = useFirestore();
     const fileInputRef = useRef<HTMLInputElement>(null);
     const [uploading, setUploading] = useState(false);
+    const [isVisible, setIsVisible] = useState(true);
 
     useEffect(() => {
       if (!authLoading && (!authUser || (userData && userData.onboardingComplete === false))) {
@@ -357,9 +358,14 @@ export default function ProfilePage() {
                             <Eye className="h-5 w-5 text-muted-foreground" />
                             <span className="font-medium">Visible</span>
                         </div>
-                        <Switch defaultChecked />
+                        <Switch checked={isVisible} onCheckedChange={setIsVisible} />
                     </div>
-                    <p className="text-sm text-muted-foreground mt-2">Your profile is visible in discovery.</p>
+                    <p className="text-sm text-muted-foreground mt-2">
+                        {isVisible
+                          ? "Your profile is visible to other users in feed."
+                          : "Your profile is not visible to anyone in the feed."
+                        }
+                    </p>
                 </CardContent>
             </Card>
 
@@ -442,6 +448,8 @@ export default function ProfilePage() {
 
     
 
+
+    
 
     
 
