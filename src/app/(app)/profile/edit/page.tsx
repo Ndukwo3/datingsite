@@ -20,6 +20,8 @@ import { doc, setDoc } from 'firebase/firestore';
 import type { User } from '@/lib/types';
 import * as React from 'react';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
+import { errorEmitter } from '@/firebase/error-emitter';
+import { FirestorePermissionError } from '@/firebase/errors';
 
 const profileSchema = z.object({
   name: z.string().min(2, 'Name must be at least 2 characters.'),
@@ -81,21 +83,25 @@ export default function EditProfilePage() {
   const onSubmit = async (data: ProfileFormData) => {
     if (!userDocRef) return;
     
-    try {
-      await setDoc(userDocRef, data, { merge: true });
+    setDoc(userDocRef, data, { merge: true }).then(() => {
       toast({
         title: 'Profile Updated!',
         description: 'Your changes have been saved successfully.',
       });
       router.push('/profile');
-    } catch (error) {
-      console.error("Error updating profile: ", error);
+    }).catch(error => {
+      const permissionError = new FirestorePermissionError({
+          path: userDocRef.path,
+          operation: 'update',
+          requestResourceData: data
+      });
+      errorEmitter.emit('permission-error', permissionError);
       toast({
         title: 'Update Failed',
         description: 'Could not save your changes. Please try again.',
         variant: 'destructive',
       });
-    }
+    });
   };
 
   const interests = watch('interests', []);
@@ -299,3 +305,5 @@ export default function EditProfilePage() {
     </div>
   );
 }
+
+    
