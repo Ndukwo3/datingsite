@@ -2,7 +2,7 @@
 import { SidebarTrigger } from "@/components/ui/sidebar";
 import { UserNav } from "@/components/UserNav";
 import { Button } from "./ui/button";
-import { Bell, Heart, MessageSquareText } from "lucide-react";
+import { Bell, Heart, MessageSquareText, Sparkles } from "lucide-react";
 import { ThemeToggle } from "./ThemeToggle";
 import { Logo } from "./Logo";
 import {
@@ -19,6 +19,14 @@ import { buttonVariants } from "./ui/button";
 import { cn } from "@/lib/utils";
 
 const notifications = [
+    {
+        id: 'welcome',
+        type: 'welcome',
+        user: { name: 'LinkUp9ja', image: '' },
+        message: 'Welcome! Complete your profile to get better matches.',
+        time: 'Just now',
+        href: '/profile/edit'
+    },
     {
         id: '1',
         type: 'match',
@@ -67,18 +75,20 @@ export function AppHeader() {
                                 <div className="flex items-start gap-3">
                                     <div className="relative">
                                         <Avatar className="h-9 w-9">
-                                            <AvatarImage src={notif.user.image} alt={notif.user.name} />
-                                            <AvatarFallback>{notif.user.name.charAt(0)}</AvatarFallback>
+                                            {notif.user.image ? <AvatarImage src={notif.user.image} alt={notif.user.name} /> : <AvatarFallback><Sparkles className="h-5 w-5 text-primary"/></AvatarFallback>}
                                         </Avatar>
                                         <div className="absolute -bottom-1 -right-1 p-0.5 bg-background rounded-full">
                                             {notif.type === 'match' && <Heart className="h-4 w-4 text-primary fill-primary" />}
                                             {notif.type === 'message' && <MessageSquareText className="h-4 w-4 text-blue-500 fill-blue-500" />}
+                                            {notif.type === 'welcome' && <Sparkles className="h-4 w-4 text-yellow-500 fill-yellow-500" />}
                                         </div>
                                     </div>
                                     <div className="flex-1">
                                         <p className="text-sm">
                                             {notif.type === 'match' ? (
                                                 <>You matched with <span className="font-semibold">{notif.user.name}</span>!</>
+                                            ) : notif.type === 'welcome' ? (
+                                                <span className="font-semibold">{notif.message}</span>
                                             ) : (
                                                 <><span className="font-semibold">{notif.user.name}</span> sent a message</>
                                             )}
