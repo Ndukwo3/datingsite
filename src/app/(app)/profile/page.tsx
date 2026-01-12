@@ -10,7 +10,7 @@ import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { Badge } from '@/components/ui/badge';
 import { Switch } from '@/components/ui/switch';
 import { useUser, useFirestore } from '@/firebase';
-import { doc, updateDoc } from 'firebase/firestore';
+import { doc, updateDoc, deleteDoc } from 'firebase/firestore';
 import { useRouter } from 'next/navigation';
 import { isValidHttpUrl } from '@/lib/is-valid-url';
 import { useEffect, useState, useRef } from 'react';
@@ -149,13 +149,20 @@ export default function ProfilePage() {
     };
 
     const handleDeleteAccount = async () => {
-        if (!authUser) return;
+        if (!authUser || !firestore) return;
         const auth = getAuth();
+        const userDocRef = doc(firestore, 'users', authUser.uid);
         
         try {
+            // First, delete the user's document from Firestore
+            await deleteDoc(userDocRef);
+
+            // Then, delete the user from Firebase Authentication
             await deleteUser(auth.currentUser!);
+            
             toast({ title: "Account Deleted", description: "Your account has been permanently deleted." });
-            router.push('/signup');
+            router.push('/signup'); // Redirect to a public page
+
         } catch (error: any) {
             console.error("Account deletion error:", error);
             let description = "Could not delete your account. Please try again.";
@@ -487,3 +494,5 @@ export default function ProfilePage() {
     </div>
   );
 }
+
+    
