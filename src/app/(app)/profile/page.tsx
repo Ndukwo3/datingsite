@@ -449,9 +449,21 @@ export default function ProfilePage() {
                     </CardDescription>
                 </CardHeader>
                 <CardContent>
-                    <Button asChild className="w-full bg-primary-foreground text-primary font-bold hover:bg-primary-foreground/90">
-                        <Link href="/premium">Upgrade Now</Link>
-                    </Button>
+                    <Dialog>
+                        <DialogTrigger asChild>
+                           <Button className="w-full bg-primary-foreground text-primary font-bold hover:bg-primary-foreground/90">
+                             Upgrade Now
+                           </Button>
+                        </DialogTrigger>
+                        <DialogContent className="sm:max-w-md text-center">
+                            <DialogHeader>
+                            <DialogTitle className="font-headline text-2xl">Coming Soon!</DialogTitle>
+                            <DialogDescription>
+                                Premium features are just around the corner, offering you more ways to connect. Thanks for your patience!
+                            </DialogDescription>
+                            </DialogHeader>
+                        </DialogContent>
+                    </Dialog>
                 </CardContent>
             </Card>
 
