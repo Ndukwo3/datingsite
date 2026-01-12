@@ -20,12 +20,21 @@ export default function ChatListPage() {
     if (!firestore || !user) return null;
     return query(
       collection(firestore, 'conversations'),
-      where('participants', 'array-contains', user.uid),
-      orderBy('lastMessage.timestamp', 'asc')
+      where('participants', 'array-contains', user.uid)
     );
   }, [firestore, user]);
 
   const { data: conversations, loading } = useCollection<Conversation>(conversationsQuery);
+  
+  const sortedConversations = useMemo(() => {
+    if (!conversations) return [];
+    // Sort conversations by the timestamp of the last message, descending
+    return [...conversations].sort((a, b) => {
+        const timeA = a.lastMessage?.timestamp?.seconds || a.createdAt?.seconds || 0;
+        const timeB = b.lastMessage?.timestamp?.seconds || b.createdAt?.seconds || 0;
+        return timeB - timeA;
+    });
+  }, [conversations]);
 
   if (loading) {
     return <div className="flex h-full items-center justify-center"><Loader2 className="h-8 w-8 animate-spin" /></div>;
@@ -39,7 +48,7 @@ export default function ChatListPage() {
         </CardHeader>
         <CardContent>
           <div className="space-y-2">
-            {conversations && conversations.map((convo) => {
+            {sortedConversations && sortedConversations.map((convo) => {
               const participant = convo.participantDetails[convo.participants.find(p => p !== user?.uid) || ''];
               if (!participant) return null;
 
