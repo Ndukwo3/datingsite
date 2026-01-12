@@ -6,13 +6,13 @@ import Image from 'next/image';
 import { Card } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
-import { BadgeCheck, Heart, MapPin, X, Star, Briefcase, GraduationCap, Instagram, Share2, Flag, ArrowLeft, Loader2, User as UserIcon, Ruler, HeartHandshake, Dumbbell, GlassWater, Cigarette } from 'lucide-react';
+import { BadgeCheck, Heart, MapPin, X, Star, Briefcase, GraduationCap, Instagram, Share2, Flag, ArrowLeft, Loader2, User as UserIcon, Ruler, HeartHandshake, Dumbbell, GlassWater, Cigarette, MessageSquare } from 'lucide-react';
 import Link from 'next/link';
 import { useDoc, useFirestore, useUser } from '@/firebase';
-import { doc } from 'firebase/firestore';
-import type { User } from '@/lib/types';
+import { doc, collection } from 'firebase/firestore';
+import type { Conversation, User } from '@/lib/types';
 import { isValidHttpUrl } from '@/lib/is-valid-url';
-import { useEffect, useState } from 'react';
+import { useEffect, useState, useMemo } from 'react';
 import { getDistanceFromLatLonInKm } from '@/lib/utils';
 
 function SpotifyIcon(props: React.SVGProps<SVGSVGElement>) {
@@ -44,11 +44,23 @@ export default function UserProfilePage() {
   const params = useParams();
   const firestore = useFirestore();
   const userId = Array.isArray(params.id) ? params.id[0] : params.id;
-  const { userData: currentUserData } = useUser();
+  const { user: currentUser, userData: currentUserData } = useUser();
 
-  const { data: user, loading } = useDoc<User>(
+  const { data: user, loading: userLoading } = useDoc<User>(
     firestore && userId ? doc(firestore, 'users', userId) : null
   );
+
+  const conversationId = useMemo(() => {
+    if (!currentUser || !userId) return null;
+    return [currentUser.uid, userId].sort().join('_');
+  }, [currentUser, userId]);
+
+  const { data: conversation, loading: conversationLoading } = useDoc<Conversation>(
+    firestore && conversationId ? doc(collection(firestore, 'conversations'), conversationId) : null
+  );
+
+  const hasMatched = !!conversation;
+  const loading = userLoading || conversationLoading;
 
   const distance =
     currentUserData?.coordinates && user?.coordinates
@@ -159,22 +171,34 @@ export default function UserProfilePage() {
         )}
        
         <div className="py-6">
-            <div className="mx-auto flex max-w-sm items-center justify-evenly gap-4">
-                <Button variant="ghost" size="icon" className='text-muted-foreground h-12 w-12'><Share2/></Button>
-                <Button variant="outline" size="icon" className="h-16 w-16 rounded-full border-2 border-yellow-500 text-yellow-500 shadow-lg hover:bg-yellow-500/10" aria-label="Dislike">
-                    <X className="h-8 w-8" />
-                </Button>
-                <Button size="icon" className="h-20 w-20 rounded-full bg-primary text-primary-foreground shadow-xl" aria-label="Like">
-                    <Heart className="h-10 w-10 fill-current" />
-                </Button>
-                <Button size="icon" className="h-16 w-16 rounded-full bg-blue-500 text-white shadow-xl" aria-label="Super Like">
-                    <Star className="h-8 w-8 fill-current" />
-                </Button>
-                <Button variant="ghost" size="icon" className='text-muted-foreground h-12 w-12'><Flag/></Button>
-            </div>
+            {hasMatched ? (
+                 <div className="mx-auto flex max-w-sm flex-col items-center gap-4">
+                    <Button asChild size="lg" className="w-full bg-primary-gradient text-primary-foreground font-semibold">
+                         <Link href={`/chat/${user.id}`}>
+                            <MessageSquare className="mr-2" /> Send a Message
+                        </Link>
+                    </Button>
+                    <p className='text-sm text-muted-foreground'>You and {user.name.split(' ')[0]} have already matched.</p>
+                </div>
+            ) : (
+                <div className="mx-auto flex max-w-sm items-center justify-evenly gap-4">
+                    <Button variant="ghost" size="icon" className='text-muted-foreground h-12 w-12'><Share2/></Button>
+                    <Button variant="outline" size="icon" className="h-16 w-16 rounded-full border-2 border-yellow-500 text-yellow-500 shadow-lg hover:bg-yellow-500/10" aria-label="Dislike">
+                        <X className="h-8 w-8" />
+                    </Button>
+                    <Button size="icon" className="h-20 w-20 rounded-full bg-primary text-primary-foreground shadow-xl" aria-label="Like">
+                        <Heart className="h-10 w-10 fill-current" />
+                    </Button>
+                    <Button size="icon" className="h-16 w-16 rounded-full bg-blue-500 text-white shadow-xl" aria-label="Super Like">
+                        <Star className="h-8 w-8 fill-current" />
+                    </Button>
+                    <Button variant="ghost" size="icon" className='text-muted-foreground h-12 w-12'><Flag/></Button>
+                </div>
+            )}
         </div>
 
       </div>
     </div>
   );
 }
+
