@@ -13,10 +13,9 @@ service cloud.firestore {
 
     // Conversations collection rules
     match /conversations/{conversationId} {
-      // Allow read if user is authenticated and the conversation belongs to them
-      // The conversationId appears to contain the userId prefix
-      allow read: if request.auth != null && 
-                     conversationId.matches(request.auth.uid + '.*');
+      // Allow list/read if user is authenticated and the conversation ID starts with their UID.
+      allow list, read: if request.auth != null && 
+                           conversationId.matches(request.auth.uid + '.*');
       
       // Allow write if user is authenticated and creating their own conversation
       allow create: if request.auth != null && 
