@@ -1,4 +1,5 @@
 
+
 'use client';
 
 import { notFound, useParams } from 'next/navigation';
@@ -185,7 +186,9 @@ export default function UserProfilePage() {
                 </div>
             ) : (
                 <div className="mx-auto flex max-w-sm items-center justify-evenly gap-4">
-                    <Button variant="ghost" size="icon" className='text-muted-foreground h-12 w-12' disabled><MessageSquare/></Button>
+                    <Button asChild variant="ghost" size="icon" className='text-muted-foreground h-12 w-12'>
+                        <Link href={`/chat/${user.id}`}><MessageSquare/></Link>
+                    </Button>
                     <Button variant="outline" size="icon" className="h-16 w-16 rounded-full border-2 border-yellow-500 text-yellow-500 shadow-lg hover:bg-yellow-500/10" aria-label="Dislike">
                         <X className="h-8 w-8" />
                     </Button>
@@ -204,3 +207,4 @@ export default function UserProfilePage() {
     </div>
   );
 }
+
