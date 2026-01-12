@@ -36,6 +36,7 @@ import {
   DialogTitle,
   DialogTrigger,
 } from "@/components/ui/dialog"
+import { getAuth, deleteUser } from 'firebase/auth';
 
 
 export default function ProfilePage() {
@@ -144,6 +145,24 @@ export default function ProfilePage() {
             toast({ title: "Main photo updated." });
         } catch (error) {
             toast({ title: "Error", description: "Could not update main photo.", variant: "destructive" });
+        }
+    };
+
+    const handleDeleteAccount = async () => {
+        if (!authUser) return;
+        const auth = getAuth();
+        
+        try {
+            await deleteUser(auth.currentUser!);
+            toast({ title: "Account Deleted", description: "Your account has been permanently deleted." });
+            router.push('/signup');
+        } catch (error: any) {
+            console.error("Account deletion error:", error);
+            let description = "Could not delete your account. Please try again.";
+            if (error.code === 'auth/requires-recent-login') {
+                description = "This action requires you to have recently logged in. Please log out and log back in to delete your account."
+            }
+            toast({ title: "Deletion Failed", description, variant: 'destructive', duration: 7000 });
         }
     };
 
@@ -435,22 +454,36 @@ export default function ProfilePage() {
                     <CardTitle className="text-destructive">Danger Zone</CardTitle>
                 </CardHeader>
                 <CardContent>
-                    <Button variant="destructive" className="w-full" >
-                        <Trash2 className="mr-2 h-4 w-4" />
-                        Delete Account
-                    </Button>
+                     <AlertDialog>
+                        <AlertDialogTrigger asChild>
+                            <Button variant="destructive" className="w-full">
+                                <Trash2 className="mr-2 h-4 w-4" />
+                                Delete Account
+                            </Button>
+                        </AlertDialogTrigger>
+                        <AlertDialogContent>
+                            <AlertDialogHeader>
+                            <AlertDialogTitle>Are you absolutely sure?</AlertDialogTitle>
+                            <AlertDialogDescription>
+                                This action cannot be undone. This will permanently delete your
+                                account and remove your data from our servers.
+                            </AlertDialogDescription>
+                            </AlertDialogHeader>
+                            <AlertDialogFooter>
+                            <AlertDialogCancel>Cancel</AlertDialogCancel>
+                            <AlertDialogAction
+                                onClick={handleDeleteAccount}
+                                className={cn(buttonVariants({ variant: "destructive" }))}
+                            >
+                                Delete
+                            </AlertDialogAction>
+                            </AlertDialogFooter>
+                        </AlertDialogContent>
+                    </AlertDialog>
                 </CardContent>
             </Card>
         </div>
       </div>
     </div>
   );
-
-    
-
-
-    
-
-    
-
-    
+}
