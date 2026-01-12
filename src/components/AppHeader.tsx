@@ -1,11 +1,11 @@
 
 "use client";
 
-import { useMemo } from "react";
+import { useMemo, useState } from "react";
 import { SidebarTrigger } from "@/components/ui/sidebar";
 import { UserNav } from "@/components/UserNav";
-import { Button, buttonVariants } from "./ui/button";
-import { Bell, Heart, MessageSquareText, Sparkles } from "lucide-react";
+import { Button } from "./ui/button";
+import { Bell, Heart, MessageSquareText, Sparkles, Loader2 } from "lucide-react";
 import { ThemeToggle } from "./ThemeToggle";
 import { Logo } from "./Logo";
 import {
@@ -19,9 +19,9 @@ import {
 import { Avatar, AvatarFallback, AvatarImage } from "./ui/avatar";
 import Link from "next/link";
 import { cn } from "@/lib/utils";
-import { useCollection, useFirestore, useUser } from "@/firebase";
-import { collection, query, where, orderBy, Timestamp } from "firebase/firestore";
-import type { Conversation, Message, User } from "@/lib/types";
+import { useCollection, useFirestore, useUser, useDoc } from "@/firebase";
+import { collection, query, where, doc } from "firebase/firestore";
+import type { Conversation, User } from "@/lib/types";
 import { formatDistanceToNow } from "date-fns";
 
 type NotificationType = 'welcome' | 'match' | 'message';
@@ -33,7 +33,6 @@ type Notification = {
     message?: string;
     time: string;
     href: string;
-    timestamp: Date;
 };
 
 const welcomeNotification: Notification = {
@@ -43,8 +42,67 @@ const welcomeNotification: Notification = {
     message: 'Welcome to LinkUp9ja! Check out our community rules.',
     time: 'Just now',
     href: '/welcome',
-    timestamp: new Date(),
 }
+
+function NotificationItem({ conversation, currentUserId }: { conversation: Conversation, currentUserId: string }) {
+    const firestore = useFirestore();
+    const participantId = conversation.participants.find(p => p !== currentUserId);
+
+    const { data: participant, loading } = useDoc<User>(
+        firestore && participantId ? doc(firestore, 'users', participantId) : null
+    );
+
+    if (loading || !participant) {
+        return (
+             <DropdownMenuItem asChild className="p-2 cursor-pointer">
+                <div className="flex items-start gap-3 w-full">
+                     <div className="relative">
+                        <Avatar className="h-9 w-9 bg-muted animate-pulse" />
+                    </div>
+                    <div className="flex-1 space-y-1">
+                        <div className="h-4 w-3/4 rounded bg-muted animate-pulse" />
+                        <div className="h-3 w-1/2 rounded bg-muted animate-pulse" />
+                    </div>
+                </div>
+            </DropdownMenuItem>
+        );
+    }
+    
+    const isNewMessage = conversation.lastMessage && conversation.lastMessage.senderId === participantId;
+
+    const notificationType: NotificationType = isNewMessage ? 'message' : 'match';
+    const timestamp = isNewMessage ? conversation.lastMessage.timestamp : conversation.createdAt;
+    const time = timestamp ? formatDistanceToNow(new Date(timestamp.seconds * 1000), { addSuffix: true }) : 'a while ago';
+    
+    return (
+        <DropdownMenuItem asChild className="p-2 cursor-pointer">
+            <Link href={`/chat/${participant.id}`}>
+                <div className="flex items-start gap-3">
+                    <div className="relative">
+                        <Avatar className="h-9 w-9">
+                            {participant.photos?.[0] ? <AvatarImage src={participant.photos[0]} alt={participant.name} /> : <AvatarFallback><Sparkles className="h-5 w-5 text-primary"/></AvatarFallback>}
+                        </Avatar>
+                        <div className="absolute -bottom-1 -right-1 p-0.5 bg-background rounded-full">
+                            {notificationType === 'match' && <Heart className="h-4 w-4 text-primary fill-primary" />}
+                            {notificationType === 'message' && <MessageSquareText className="h-4 w-4 text-blue-500 fill-blue-500" />}
+                        </div>
+                    </div>
+                    <div className="flex-1">
+                        <p className="text-sm">
+                            {notificationType === 'match' ? (
+                                <>You matched with <span className="font-semibold">{participant.name}</span>!</>
+                            ) : (
+                                <><span className="font-semibold">{participant.name}</span> sent a message</>
+                            )}
+                        </p>
+                        <p className="text-xs text-muted-foreground">{time}</p>
+                    </div>
+                </div>
+            </Link>
+        </DropdownMenuItem>
+    );
+}
+
 
 export function AppHeader() {
   const { user: currentUser } = useUser();
@@ -58,55 +116,16 @@ export function AppHeader() {
     );
   }, [firestore, currentUser]);
 
-  const { data: conversations } = useCollection<Conversation>(conversationsQuery);
-
-  const notifications: Notification[] = useMemo(() => {
-    if (!conversations || !currentUser) return [welcomeNotification];
-
-    const matchNotifications = conversations.map((convo) => {
-        const participantId = convo.participants.find(p => p !== currentUser.uid) || '';
-        const participant = convo.participantDetails[participantId];
-        const convoTimestamp = convo.createdAt?.seconds ? new Date(convo.createdAt.seconds * 1000) : new Date();
-        return {
-            id: `match-${convo.id}`,
-            type: 'match' as NotificationType,
-            user: { id: participant.id, name: participant.name, photos: participant.photos },
-            time: formatDistanceToNow(convoTimestamp, { addSuffix: true }),
-            href: `/chat/${participant.id}`,
-            timestamp: convoTimestamp
-        }
+  const { data: conversations, loading } = useCollection<Conversation>(conversationsQuery);
+  
+  const sortedConversations = useMemo(() => {
+    if (!conversations) return [];
+    return [...conversations].sort((a, b) => {
+        const timeA = a.lastMessage?.timestamp?.seconds || a.createdAt?.seconds || 0;
+        const timeB = b.lastMessage?.timestamp?.seconds || b.createdAt?.seconds || 0;
+        return timeB - timeA;
     });
-
-    const messageNotifications = conversations.filter(c => c.lastMessage && c.lastMessage.senderId !== currentUser.uid).map((convo) => {
-        const participantId = convo.participants.find(p => p !== currentUser.uid) || '';
-        const participant = convo.participantDetails[participantId];
-        const lastMessageTimestamp = convo.lastMessage.timestamp?.seconds ? new Date(convo.lastMessage.timestamp.seconds * 1000) : new Date();
-
-        return {
-            id: `msg-${convo.id}`,
-            type: 'message' as NotificationType,
-            user: { id: participant.id, name: participant.name, photos: participant.photos },
-            message: convo.lastMessage.text,
-            time: formatDistanceToNow(lastMessageTimestamp, { addSuffix: true }),
-            href: `/chat/${participant.id}`,
-            timestamp: lastMessageTimestamp,
-        }
-    });
-
-    const allNotifications = [...matchNotifications, ...messageNotifications]
-      .sort((a, b) => b.timestamp.getTime() - a.timestamp.getTime());
-      
-    // Deduplicate, keeping the most recent (e.g., show message notif over match notif for same user)
-    const uniqueNotifications = allNotifications.reduce((acc, current) => {
-        const existing = acc.find(item => item.user.id === current.user.id);
-        if (!existing) {
-            acc.push(current);
-        }
-        return acc;
-    }, [] as Notification[]);
-
-    return [welcomeNotification, ...uniqueNotifications];
-  }, [conversations, currentUser]);
+  }, [conversations]);
 
 
   return (
@@ -124,7 +143,7 @@ export function AppHeader() {
                 <Button variant="ghost" size="icon" className="rounded-full relative text-foreground">
                     <Bell className="h-5 w-5"/>
                     <span className="sr-only">Notifications</span>
-                    {notifications.length > 1 && ( // More than just welcome
+                    {conversations && conversations.length > 0 && (
                       <span className="absolute top-0 right-0 block h-2 w-2 rounded-full bg-primary ring-2 ring-background" />
                     )}
                 </Button>
@@ -133,43 +152,35 @@ export function AppHeader() {
                 <DropdownMenuLabel>Notifications</DropdownMenuLabel>
                 <DropdownMenuSeparator />
                 <div className="flex flex-col gap-1">
-                    {notifications.map((notif) => (
-                        <DropdownMenuItem key={notif.id} asChild className="p-2 cursor-pointer">
-                            <Link href={notif.href}>
-                                <div className="flex items-start gap-3">
-                                    <div className="relative">
-                                        <Avatar className="h-9 w-9">
-                                            {notif.user.photos?.[0] ? <AvatarImage src={notif.user.photos[0]} alt={notif.user.name} /> : <AvatarFallback><Sparkles className="h-5 w-5 text-primary"/></AvatarFallback>}
-                                        </Avatar>
-                                        <div className="absolute -bottom-1 -right-1 p-0.5 bg-background rounded-full">
-                                            {notif.type === 'match' && <Heart className="h-4 w-4 text-primary fill-primary" />}
-                                            {notif.type === 'message' && <MessageSquareText className="h-4 w-4 text-blue-500 fill-blue-500" />}
-                                            {notif.type === 'welcome' && <Sparkles className="h-4 w-4 text-yellow-500 fill-yellow-500" />}
-                                        </div>
-                                    </div>
-                                    <div className="flex-1">
-                                        <p className="text-sm">
-                                            {notif.type === 'match' ? (
-                                                <>You matched with <span className="font-semibold">{notif.user.name}</span>!</>
-                                            ) : notif.type === 'welcome' ? (
-                                                <span className="font-semibold">{notif.message}</span>
-                                            ) : (
-                                                <><span className="font-semibold">{notif.user.name}</span> sent a message</>
-                                            )}
-                                        </p>
-                                        <p className="text-xs text-muted-foreground">{notif.time}</p>
+                    <DropdownMenuItem asChild className="p-2 cursor-pointer">
+                        <Link href={welcomeNotification.href}>
+                             <div className="flex items-start gap-3">
+                                <div className="relative">
+                                    <Avatar className="h-9 w-9">
+                                        <AvatarFallback><Sparkles className="h-5 w-5 text-primary"/></AvatarFallback>
+                                    </Avatar>
+                                     <div className="absolute -bottom-1 -right-1 p-0.5 bg-background rounded-full">
+                                        <Sparkles className="h-4 w-4 text-yellow-500 fill-yellow-500" />
                                     </div>
                                 </div>
-                            </Link>
-                        </DropdownMenuItem>
+                                <div className="flex-1">
+                                    <p className="text-sm font-semibold">{welcomeNotification.message}</p>
+                                    <p className="text-xs text-muted-foreground">{welcomeNotification.time}</p>
+                                </div>
+                            </div>
+                        </Link>
+                    </DropdownMenuItem>
+
+                    {loading && <div className="flex justify-center p-4"><Loader2 className="h-5 w-5 animate-spin"/></div>}
+
+                    {sortedConversations && currentUser && sortedConversations.map(convo => (
+                       <NotificationItem key={convo.id} conversation={convo} currentUserId={currentUser.uid} />
                     ))}
+
+                    {!loading && sortedConversations?.length === 0 && (
+                        <p className="p-4 text-sm text-center text-muted-foreground">No new notifications.</p>
+                    )}
                 </div>
-                <DropdownMenuSeparator />
-                <DropdownMenuItem asChild>
-                    <Link href="#" className={cn(buttonVariants({variant: 'link'}), 'w-full')}>
-                        View all notifications
-                    </Link>
-                </DropdownMenuItem>
             </DropdownMenuContent>
         </DropdownMenu>
         <ThemeToggle className="text-foreground" />
