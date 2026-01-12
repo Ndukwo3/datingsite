@@ -30,14 +30,14 @@ const notifications = [
     {
         id: '1',
         type: 'match',
-        user: { name: 'Chioma', image: 'https://images.unsplash.com/photo-1756485161657-e005fc9e4393?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&ixid=M3w3NDE5ODJ8MHwxfHNlYXJjaHw2fHxhJTIwbmlnZXJpYW4lMjBsYWR5fGVufDB8fHx8MTc2ODA3MTc4MHww&ixlib=rb-4.1.0&q=80&w=1080' },
+        user: { id: 'user-3', name: 'Chioma', image: 'https://images.unsplash.com/photo-1756485161657-e005fc9e4393?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&ixid=M3w3NDE5ODJ8MHwxfHNlYXJjaHw2fHxhJTIwbmlnZXJpYW4lMjBsYWR5fGVufDB8fHx8MTc2ODA3MTc4MHww&ixlib=rb-4.1.0&q=80&w=1080' },
         time: '5m ago',
-        href: '/matches'
+        href: '/profile/user-3'
     },
     {
         id: '2',
         type: 'message',
-        user: { name: 'Bolu', image: 'https://images.unsplash.com/photo-1589635823089-774fca28fe13?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&ixid=M3w3NDE5ODJ8MHwxfHNlYXJjaHw5fHxhJTIwbmlnZXJpYSUyMGd1eXxlbnwwfHx8fDE3NjgwNzE2OTh8MA&ixlib=rb-4.1.0&q=80&w=1080' },
+        user: { id: 'user-2', name: 'Bolu', image: 'https://images.unsplash.com/photo-1589635823089-774fca28fe13?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&ixid=M3w3NDE5ODJ8MHwxfHNlYXJjaHw5fHxhJTIwbmlnZXJpYSUyMGd1eXxlbnwwfHx8fDE3NjgwNzE2OTh8MA&ixlib=rb-4.1.0&q=80&w=1080' },
         message: 'Maybe I can play for you sometime?',
         time: '2h ago',
         href: '/chat/user-2'
