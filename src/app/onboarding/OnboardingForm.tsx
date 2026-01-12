@@ -6,7 +6,7 @@ import { useForm, FormProvider, Controller } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import * as z from 'zod';
 import { motion, AnimatePresence } from 'framer-motion';
-import { Loader2, Sparkles, Upload, Camera, ArrowLeft, Info, ChevronDown, Check, Star, X, PartyPopper } from 'lucide-react';
+import { Loader2, Sparkles, Upload, Camera, ArrowLeft, Info, ChevronDown, Check, Star, X, PartyPopper, MapPin } from 'lucide-react';
 import { cn } from "@/lib/utils";
 import { useRouter } from 'next/navigation';
 import { useUser, useFirestore } from '@/firebase';
@@ -46,6 +46,10 @@ const step1Schema = z.object({
 const step2Schema = z.object({
   state: z.string({ required_error: "Please select your state." }),
   city: z.string().min(2, "Please enter your city."),
+  coordinates: z.object({
+    lat: z.number(),
+    lng: z.number(),
+  }).optional(),
 });
 
 const step3Schema = z.object({
@@ -77,7 +81,7 @@ type FormData = z.infer<typeof fullSchema>;
 
 const steps = [
   { id: 1, title: 'Basic Information', schema: step1Schema, fields: ['fullName', 'dob', 'gender'] },
-  { id: 2, title: 'Location', schema: step2Schema, fields: ['state', 'city'] },
+  { id: 2, title: 'Location', schema: step2Schema, fields: ['state', 'city', 'coordinates'] },
   { id: 3, title: 'Upload Photos', schema: step3Schema, fields: ['photos'] },
   { id: 4, title: 'Bio & Interests', schema: step4Schema, fields: ['bio', 'interests'] },
   { id: 5, title: 'Lifestyle & Details', schema: step5Schema, fields: ['relationshipGoal', 'height', 'exercise', 'drinking', 'smoking'] },
@@ -126,6 +130,7 @@ export function OnboardingForm() {
   const [currentStep, setCurrentStep] = useState(0);
   const [direction, setDirection] = useState(1);
   const [isSubmitting, setIsSubmitting] = useState(false);
+  const [isGettingLocation, setIsGettingLocation] = useState(false);
   const [uploadingIndex, setUploadingIndex] = useState<number | null>(null);
   const { toast } = useToast();
   const router = useRouter();
@@ -174,6 +179,7 @@ export function OnboardingForm() {
   const interests = watch('interests', []);
   const ageRange = watch('ageRange');
   const maxDistance = watch('maxDistance');
+  const coordinates = watch('coordinates');
   const isValid = Object.keys(errors).length === 0;
 
   const handleNext = async () => {
@@ -181,6 +187,11 @@ export function OnboardingForm() {
     const output = await trigger(fields as (keyof FormData)[]);
 
     if (!output) return;
+
+    if (currentStep === 1 && !getValues('coordinates')) {
+        handleGetLocation();
+        return; // Wait for location before proceeding
+    }
 
     if (currentStep < steps.length - 2) {
         setDirection(1);
@@ -220,6 +231,7 @@ export function OnboardingForm() {
         age: age,
         gender: data.gender,
         location: `${data.city}, ${data.state}`,
+        coordinates: data.coordinates,
         bio: data.bio,
         interests: data.interests,
         photos: photoBase64s,
@@ -316,7 +328,6 @@ export function OnboardingForm() {
   const navigateTo = (path: string) => {
     if(isSubmitting) return;
 
-    // A final save to make sure onboarding is marked as complete
     if (authUser && firestore) {
       setIsSubmitting(true);
       const userDocRef = doc(firestore, 'users', authUser.uid);
@@ -330,6 +341,24 @@ export function OnboardingForm() {
         });
     }
   }
+
+  const handleGetLocation = () => {
+    setIsGettingLocation(true);
+    navigator.geolocation.getCurrentPosition(
+        (position) => {
+            const { latitude, longitude } = position.coords;
+            setValue('coordinates', { lat: latitude, lng: longitude }, { shouldValidate: true });
+            setIsGettingLocation(false);
+            toast({ title: "Location captured!", description: "We've securely saved your location." });
+            handleNext(); // Automatically move to the next step
+        },
+        (error) => {
+            console.error("Geolocation error:", error);
+            toast({ title: "Location Access Denied", description: "Please enable location services in your browser to continue.", variant: 'destructive' });
+            setIsGettingLocation(false);
+        }
+    );
+  };
 
 
   const progress = ((currentStep + 1) / (steps.length - 1)) * 100;
@@ -460,6 +489,17 @@ export function OnboardingForm() {
                         <Info className="h-5 w-5 mt-0.5 shrink-0"/>
                         <p className="text-sm">Your exact location is private. We only show your city and approximate distance to potential matches.</p>
                     </div>
+                    {coordinates ? (
+                        <div className="rounded-lg bg-green-500/10 p-3 text-green-800 dark:bg-green-300/10 dark:text-green-200 border border-green-500/20 flex items-center gap-3">
+                            <Check className="h-5 w-5"/>
+                            <p className="text-sm font-medium">Location captured successfully!</p>
+                        </div>
+                    ) : (
+                        <Button onClick={handleGetLocation} disabled={isGettingLocation} className="w-full">
+                            {isGettingLocation && <Loader2 className="mr-2 h-4 w-4 animate-spin"/>}
+                            {isGettingLocation ? 'Getting Location...' : 'Use My Current Location'}
+                        </Button>
+                    )}
                  </div>
               </div>
             )}
@@ -471,48 +511,55 @@ export function OnboardingForm() {
                     <p className="text-muted-foreground">Add at least 3 photos. The first will be your main photo.</p>
                  </div>
                  <div className="grid grid-cols-2 md:grid-cols-3 gap-4">
-                     <input 
-                        type="file" 
-                        ref={fileInputRef} 
-                        className="hidden" 
-                        accept="image/*" 
+                    <input
+                        type="file"
+                        ref={fileInputRef}
+                        className="hidden"
+                        accept="image/*"
                     />
                     {Array.from({ length: 6 }).map((_, i) => {
                        const photo = photos[i];
                        const isUploading = uploadingIndex === i;
 
-                       if (photo) {
-                         return (
-                            <div key={i} className="aspect-square rounded-xl border-2 flex items-center justify-center relative bg-muted/50 overflow-hidden">
-                               {isUploading && (
-                                    <div className="absolute inset-0 flex items-center justify-center bg-black/50 rounded-xl">
-                                        <Loader2 className="w-8 h-8 animate-spin text-white"/>
-                                    </div>
-                                )}
-                                <img 
-                                    src={photo} 
-                                    alt={`upload-preview-${i}`} 
-                                    className="w-full h-full object-cover" 
-                                />
-                                {i === 0 && <Badge className='absolute top-2 left-2 bg-primary text-primary-foreground'><Star className='w-3 h-3 mr-1'/> Main</Badge>}
-                                <Button size="icon" variant="destructive" className="absolute top-2 right-2 h-6 w-6 rounded-full" onClick={() => removePhoto(i)}><X className="h-4 w-4"/></Button>
-                            </div>
-                         )
-                       }
-                       
                        return (
-                            <div key={`empty-${i}`} className="aspect-square rounded-xl border-dashed border-2 flex items-center justify-center relative bg-muted/50 cursor-pointer hover:bg-muted" onClick={() => triggerPhotoUpload(i)}>
-                               {isUploading && (
-                                     <div className="absolute inset-0 flex items-center justify-center bg-black/50 rounded-xl">
-                                        <Loader2 className="w-8 h-8 animate-spin text-white"/>
+                            <div key={photo || `empty-${i}`} className="relative group">
+                                <div className="aspect-square rounded-xl border-2 flex items-center justify-center bg-muted/50 overflow-hidden">
+                                {photo ? (
+                                     <img
+                                        src={typeof photo === 'string' ? photo : URL.createObjectURL(photo)}
+                                        alt={`upload-preview-${i}`}
+                                        className="w-full h-full object-cover"
+                                        onLoad={e => {
+                                            if (typeof photo !== 'string') {
+                                                URL.revokeObjectURL(e.currentTarget.src)
+                                            }
+                                        }}
+                                    />
+                                ) : (
+                                    <div className='text-center text-muted-foreground p-2'>
+                                        <Camera className="w-8 h-8 mb-2 mx-auto"/>
+                                        <span className='text-sm'>Add Photo</span>
                                     </div>
                                 )}
-                                <div className='text-center text-muted-foreground'>
-                                    <Camera className="w-8 h-8 mb-2 mx-auto"/>
-                                    <span className='text-sm'>Add Photo</span>
+
+                                {(isUploading || photo) && (
+                                    <div className="absolute inset-0 bg-black/60 flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity">
+                                        {isUploading ? (
+                                            <Loader2 className="w-8 h-8 animate-spin text-white"/>
+                                        ) : (
+                                            photo && <Button size="icon" variant="destructive" className="h-8 w-8 rounded-full" onClick={() => removePhoto(i)}><X className="h-4 w-4"/></Button>
+                                        )}
+                                    </div>
+                                )}
+                                
+                                {i === 0 && photo && <Badge className='absolute top-2 left-2 bg-primary text-primary-foreground'><Star className='w-3 h-3 mr-1'/> Main</Badge>}
+
+                                {!photo && !isUploading && (
+                                    <button type='button' onClick={() => triggerPhotoUpload(i)} className="absolute inset-0 cursor-pointer" aria-label={`Add photo ${i+1}`} />
+                                )}
                                 </div>
                             </div>
-                        )
+                         )
                     })}
                  </div>
                  {errors.photos && <p className="text-sm text-destructive text-center">{errors.photos.message as string}</p>}
@@ -765,8 +812,8 @@ export function OnboardingForm() {
 
         {currentStep < steps.length - 2 && (
           <div className="flex justify-end pt-4">
-            <Button onClick={handleNext} disabled={!isValid} size="lg" className="w-full bg-primary-gradient text-primary-foreground font-semibold">
-              Next Step &rarr;
+            <Button onClick={handleNext} disabled={!isValid || isGettingLocation} size="lg" className="w-full bg-primary-gradient text-primary-foreground font-semibold">
+              {currentStep === 1 && !coordinates ? 'Enable Location & Continue' : 'Next Step →'}
             </Button>
           </div>
         )}

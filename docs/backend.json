@@ -13,7 +13,15 @@
         "createdAt": { "type": "string", "format": "date-time", "description": "The timestamp when the user account was created." },
         "age": { "type": "number", "description": "The user's age." },
         "bio": { "type": "string", "description": "A short biography of the user." },
-        "location": { "type": "string", "description": "The user's location." },
+        "location": { "type": "string", "description": "The user's location (e.g., City, State)." },
+        "coordinates": {
+            "type": "object",
+            "description": "The user's geographic coordinates.",
+            "properties": {
+                "lat": { "type": "number" },
+                "lng": { "type": "number" }
+            }
+        },
         "job": { "type": "string", "description": "The user's job title." },
         "education": { "type": "string", "description": "The user's educational background." },
         "interests": { "type": "array", "items": { "type": "string" }, "description": "A list of the user's interests." },

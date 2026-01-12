@@ -8,11 +8,12 @@ import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import { BadgeCheck, Heart, MapPin, X, Star, Briefcase, GraduationCap, Instagram, Share2, Flag, ArrowLeft, Loader2, User as UserIcon, Ruler, HeartHandshake, Dumbbell, GlassWater, Cigarette } from 'lucide-react';
 import Link from 'next/link';
-import { useDoc, useFirestore } from '@/firebase';
+import { useDoc, useFirestore, useUser } from '@/firebase';
 import { doc } from 'firebase/firestore';
 import type { User } from '@/lib/types';
 import { isValidHttpUrl } from '@/lib/is-valid-url';
 import { useEffect, useState } from 'react';
+import { getDistanceFromLatLonInKm } from '@/lib/utils';
 
 function SpotifyIcon(props: React.SVGProps<SVGSVGElement>) {
     return (
@@ -43,16 +44,21 @@ export default function UserProfilePage() {
   const params = useParams();
   const firestore = useFirestore();
   const userId = Array.isArray(params.id) ? params.id[0] : params.id;
-  const [distance, setDistance] = useState<number | null>(null);
+  const { userData: currentUserData } = useUser();
 
   const { data: user, loading } = useDoc<User>(
     firestore && userId ? doc(firestore, 'users', userId) : null
   );
 
-  useEffect(() => {
-    // Generate a random distance when component mounts on the client
-    setDistance(Math.floor(Math.random() * (25 - 2 + 1)) + 2);
-  }, []);
+  const distance =
+    currentUserData?.coordinates && user?.coordinates
+      ? getDistanceFromLatLonInKm(
+          currentUserData.coordinates.lat,
+          currentUserData.coordinates.lng,
+          user.coordinates.lat,
+          user.coordinates.lng
+        )
+      : null;
 
   if (loading) {
     return <div className="flex h-full items-center justify-center"><Loader2 className="h-8 w-8 animate-spin" /></div>;
@@ -95,7 +101,7 @@ export default function UserProfilePage() {
             </div>
             <p className="flex items-center gap-2 text-muted-foreground">
                 <MapPin className="h-5 w-5" />
-                {user.location} {distance !== null && `- ${distance}km away`}
+                {user.location} {distance !== null && ` - ${distance}km away`}
             </p>
         </div>
 

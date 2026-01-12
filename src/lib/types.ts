@@ -7,6 +7,10 @@ export type User = {
   age: number;
   bio: string;
   location: string;
+  coordinates?: {
+    lat: number;
+    lng: number;
+  };
   job: string;
   education: string;
   interests: string[];
