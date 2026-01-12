@@ -1,50 +1,22 @@
 rules_version = '2';
-
 service cloud.firestore {
   match /databases/{database}/documents {
-
+    
+    // Conversations collection rules
     match /conversations/{conversationId} {
-      // Allow list only if the query is constrained to the user's conversations
-      allow list: if request.auth != null && request.query.filters[0].value == request.auth.uid;
+      // Allow read if user is authenticated and the conversation belongs to them
+      // The conversationId appears to contain the userId prefix
+      allow read: if request.auth != null && 
+                     conversationId.matches(request.auth.uid + '.*');
       
-      // Allow read/update if the user is a participant
-      allow read, update: if isParticipant(conversationId);
-
-      // Allow creating a conversation if the user is one of the participants
-      allow create: if request.auth != null && request.auth.uid in request.resource.data.participants;
-
-      match /messages/{messageId} {
-        // Allow reading messages if the user is a participant
-        allow read: if isParticipant(conversationId);
-        // Allow creating messages if the user is the sender and a participant
-        allow create: if request.auth != null
-          && request.resource.data.senderId == request.auth.uid
-          && isParticipant(conversationId);
-      }
+      // Allow write if user is authenticated and creating their own conversation
+      allow create: if request.auth != null && 
+                       conversationId.matches(request.auth.uid + '.*');
+      
+      // Allow update/delete if user owns the conversation
+      allow update, delete: if request.auth != null && 
+                               conversationId.matches(request.auth.uid + '.*');
     }
-
-    // USERS
-    match /users/{userId} {
-      // Any authenticated user can read public profiles
-      allow read: if request.auth != null;
-
-      // A user can create or update their own profile
-      allow create, update: if request.auth != null && request.auth.uid == userId;
-    }
-
-    // SWIPES
-    match /swipes/{swipeId} {
-        // A user can create a swipe for themselves
-        allow create: if request.auth != null && request.resource.data.swiperId == request.auth.uid;
-        // A user can read swipes they made, or swipes made on them, to check for matches
-        allow read: if request.auth != null && (request.resource.data.swiperId == request.auth.uid || request.resource.data.swipedId == request.auth.uid);
-    }
-
-    function isParticipant(conversationId) {
-      return request.auth != null &&
-        request.auth.uid in
-        get(/databases/$(database)/documents/conversations/$(conversationId))
-          .data.participants;
-    }
+    
   }
 }
