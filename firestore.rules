@@ -4,32 +4,40 @@ rules_version = '2';
 service cloud.firestore {
   match /databases/{database}/documents {
 
-    // Conversations
+    // USERS
+    match /users/{userId} {
+      // Other users can read public profiles
+      allow read: if request.auth != null;
+
+      // User can create/update their own profile
+      allow create, update: if request.auth != null && request.auth.uid == userId;
+    }
+
+    // SWIPES
+    match /swipes/{swipeId} {
+        // A user can create a swipe for themselves
+        allow create: if request.auth != null && request.resource.data.swiperId == request.auth.uid;
+        // A user can read swipes they made, or swipes made on them, to check for matches
+        allow read: if request.auth != null && (request.resource.data.swiperId == request.auth.uid || request.resource.data.swipedId == request.auth.uid);
+    }
+
+    // CONVERSATIONS
     match /conversations/{conversationId} {
+      // A user can get a conversation if their ID is in the conversationId string (to check for existence)
+      allow get: if request.auth != null && request.auth.uid in conversationId.split('_');
+      // A user can list/read conversations they are a participant in.
+      allow list, update: if isParticipant(conversationId);
+      // A user can create a conversation if they are one of the participants.
+      allow create: if isParticipant(conversationId);
 
-      // Only participants can read the conversation
-      allow read: if isParticipant(conversationId);
-
-      // Only participants can update conversation metadata
-      allow update: if isParticipant(conversationId);
-
-      // Messages subcollection
       match /messages/{messageId} {
-
-        // Read messages only if user is a participant
         allow read: if isParticipant(conversationId);
-
-        // Create message:
-        // - user must be logged in
-        // - senderId must match auth uid
-        // - user must be a participant
         allow create: if request.auth != null
           && request.resource.data.senderId == request.auth.uid
           && isParticipant(conversationId);
       }
     }
 
-    // Helper function
     function isParticipant(conversationId) {
       return request.auth != null &&
         request.auth.uid in
