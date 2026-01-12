@@ -13,23 +13,16 @@ service cloud.firestore {
 
     // Conversations collection rules
     match /conversations/{conversationId} {
-      // Allow list/read if user is authenticated and the conversation ID starts with their UID.
-      allow list, read: if request.auth != null && 
-                           conversationId.matches(request.auth.uid + '.*');
-      
-      // Allow write if user is authenticated and creating their own conversation
-      allow create: if request.auth != null && 
-                       conversationId.matches(request.auth.uid + '.*');
-      
-      // Allow update/delete if user owns the conversation
-      allow update, delete: if request.auth != null && 
-                               conversationId.matches(request.auth.uid + '.*');
+      // Allow read/update if the user is a participant
+      allow read, update: if request.auth.uid in resource.data.participants;
+
+      // Allow create if the user's UID is in the new document's participants list
+      allow create: if request.auth.uid in request.resource.data.participants;
 
       // Messages subcollection rules
       match /messages/{messageId} {
         // Allow read/write to messages if the user is a participant of the parent conversation
-        allow read, write: if request.auth != null &&
-                           get(/databases/$(database)/documents/conversations/$(conversationId)).data.participants.hasAny([request.auth.uid]);
+        allow read, write: if request.auth.uid in get(/databases/$(database)/documents/conversations/$(conversationId)).data.participants;
       }
     }
     
