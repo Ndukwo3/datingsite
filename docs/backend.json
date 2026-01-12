@@ -44,7 +44,6 @@
       "properties": {
         "id": { "type": "string", "description": "The unique identifier for the conversation." },
         "participants": { "type": "array", "items": { "type": "string" }, "description": "A list of user IDs participating in the conversation." },
-        "participantDetails": { "type": "object", "description": "Embedded details of the participants for easy access." },
         "createdAt": { "type": "string", "format": "date-time", "description": "The timestamp when the conversation was created." },
         "lastMessage": { "$ref": "#/entities/Message" }
       },
@@ -57,7 +56,6 @@
       "properties": {
         "id": { "type": "string", "description": "The unique identifier for the message." },
         "senderId": { "type": "string", "description": "The ID of the user who sent the message." },
-        "receiverId": { "type": "string", "description": "The ID of the user who received the message." },
         "text": { "type": "string", "description": "The content of the message." },
         "timestamp": { "type": "string", "format": "date-time", "description": "The timestamp when the message was sent." }
       },
@@ -99,3 +97,5 @@
     }
   }
 }
+
+    

@@ -101,10 +101,6 @@ export function ChatInterface({ participant, conversationId, isNewMatch }: ChatI
                 senderId: currentUser.uid,
             },
             participants: [currentUser.uid, participant.id],
-            participantDetails: {
-              [currentUser.uid]: { ...userData, id: currentUser.uid },
-              [participant.id]: { ...participant, id: participant.id }
-            },
             createdAt: serverTimestamp(),
         }, { merge: true });
 
@@ -301,5 +297,7 @@ export function ChatInterface({ participant, conversationId, isNewMatch }: ChatI
     </div>
   );
 }
+
+    
 
     

@@ -41,7 +41,6 @@ export type Match = {
 export type Message = {
   id: string;
   senderId: string;
-  receiverId: string;
   text: string;
   timestamp: Timestamp;
 };
@@ -49,7 +48,8 @@ export type Message = {
 export type Conversation = {
   id: string;
   participants: string[];
-  participantDetails: { [key: string]: User };
   lastMessage: Message;
   createdAt: Timestamp;
 };
+
+    

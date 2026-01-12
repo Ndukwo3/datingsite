@@ -6,11 +6,71 @@ import Link from 'next/link';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { formatDistanceToNow } from 'date-fns';
-import { useCollection, useFirestore, useUser } from '@/firebase';
-import { collection, query, where, orderBy } from 'firebase/firestore';
-import { Conversation } from '@/lib/types';
+import { useCollection, useFirestore, useUser, useDoc } from '@/firebase';
+import { collection, query, where, doc } from 'firebase/firestore';
+import type { Conversation, User } from '@/lib/types';
 import { Loader2 } from 'lucide-react';
 import { isValidHttpUrl } from '@/lib/is-valid-url';
+
+function ConversationItem({ conversation, currentUserId }: { conversation: Conversation, currentUserId: string }) {
+  const firestore = useFirestore();
+  const participantId = conversation.participants.find(p => p !== currentUserId);
+
+  const participantRef = useMemo(() => {
+    if (!firestore || !participantId) return null;
+    return doc(firestore, 'users', participantId);
+  }, [firestore, participantId]);
+  
+  const { data: participant, loading } = useDoc<User>(participantRef);
+
+  if (loading || !participant) {
+    return (
+      <div className="flex items-center gap-4 p-4">
+        <Avatar className="h-12 w-12">
+            <AvatarFallback><Loader2 className="h-6 w-6 animate-spin" /></AvatarFallback>
+        </Avatar>
+        <div className="flex-1 space-y-2">
+            <div className="h-4 w-1/2 rounded bg-muted" />
+            <div className="h-3 w-3/4 rounded bg-muted" />
+        </div>
+      </div>
+    )
+  }
+
+  const userImage = participant.photos?.[0];
+  const firstName = participant.name.split(' ')[0];
+  const lastMessage = conversation.lastMessage || { text: 'No messages yet', timestamp: new Date() };
+
+  return (
+    <Link
+      href={`/chat/${participant.id}`}
+      key={conversation.id}
+      className="block rounded-lg p-4 transition-colors hover:bg-muted"
+    >
+      <div className="flex items-center gap-4">
+        <Avatar className="h-12 w-12">
+          {isValidHttpUrl(userImage) ? (
+            <AvatarImage src={userImage} alt={participant.name} />
+          ) : (
+            <AvatarFallback>{firstName.charAt(0)}</AvatarFallback>
+          )}
+        </Avatar>
+        <div className="flex-1">
+          <div className="flex items-baseline justify-between">
+            <p className="font-semibold">{firstName}</p>
+            <p className="text-xs text-muted-foreground">
+              {lastMessage.timestamp ? formatDistanceToNow(new Date(lastMessage.timestamp.seconds * 1000), { addSuffix: true }) : ''}
+            </p>
+          </div>
+          <p className="mt-1 truncate text-sm text-muted-foreground">
+            {lastMessage.text}
+          </p>
+        </div>
+      </div>
+    </Link>
+  );
+}
+
 
 export default function ChatListPage() {
   const firestore = useFirestore();
@@ -28,7 +88,6 @@ export default function ChatListPage() {
   
   const sortedConversations = useMemo(() => {
     if (!conversations) return [];
-    // Sort conversations by the timestamp of the last message, descending
     return [...conversations].sort((a, b) => {
         const timeA = a.lastMessage?.timestamp?.seconds || a.createdAt?.seconds || 0;
         const timeB = b.lastMessage?.timestamp?.seconds || b.createdAt?.seconds || 0;
@@ -48,44 +107,9 @@ export default function ChatListPage() {
         </CardHeader>
         <CardContent>
           <div className="space-y-2">
-            {sortedConversations && sortedConversations.map((convo) => {
-              const participant = convo.participantDetails[convo.participants.find(p => p !== user?.uid) || ''];
-              if (!participant) return null;
-
-              const userImage = participant.photos?.[0];
-              const firstName = participant.name.split(' ')[0];
-              
-              const lastMessage = convo.lastMessage || { text: 'No messages yet', timestamp: new Date() };
-
-              return (
-                <Link
-                  href={`/chat/${participant.id}`}
-                  key={convo.id}
-                  className="block rounded-lg p-4 transition-colors hover:bg-muted"
-                >
-                  <div className="flex items-center gap-4">
-                    <Avatar className="h-12 w-12">
-                      {isValidHttpUrl(userImage) ? (
-                        <AvatarImage src={userImage} alt={participant.name} />
-                      ) : (
-                        <AvatarFallback>{firstName.charAt(0)}</AvatarFallback>
-                      )}
-                    </Avatar>
-                    <div className="flex-1">
-                      <div className="flex items-baseline justify-between">
-                        <p className="font-semibold">{firstName}</p>
-                        <p className="text-xs text-muted-foreground">
-                          {lastMessage.timestamp ? formatDistanceToNow(new Date(lastMessage.timestamp.seconds * 1000), { addSuffix: true }) : ''}
-                        </p>
-                      </div>
-                      <p className="mt-1 truncate text-sm text-muted-foreground">
-                        {lastMessage.text}
-                      </p>
-                    </div>
-                  </div>
-                </Link>
-              );
-            })}
+            {sortedConversations && user && sortedConversations.map((convo) => (
+              <ConversationItem key={convo.id} conversation={convo} currentUserId={user.uid} />
+            ))}
              {conversations?.length === 0 && (
               <p className="text-center text-muted-foreground p-8">No conversations yet. Start swiping to find a match!</p>
             )}
@@ -95,3 +119,5 @@ export default function ChatListPage() {
     </div>
   );
 }
+
+    

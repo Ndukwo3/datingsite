@@ -90,11 +90,6 @@ export default function SwipePage() {
               const conversationData = {
                 participants: [currentUser.uid, swipedUser.id],
                 createdAt: serverTimestamp(),
-                // Embed participant details for easier display in chat lists
-                participantDetails: {
-                  [currentUser.uid]: { ...userData, id: currentUser.uid },
-                  [swipedUser.id]: { ...swipedUser, id: swipedUser.id }
-                }
               };
 
               const batch = writeBatch(firestore);
@@ -272,3 +267,5 @@ export default function SwipePage() {
     </>
   );
 }
+
+    
