@@ -106,7 +106,7 @@ export function AppSidebarContent() {
         <SidebarMenu>
             <SidebarMenuItem>
                 <SidebarMenuButton asChild tooltip={{children: 'Settings'}} onClick={handleLinkClick}>
-                    <Link href="#">
+                    <Link href="/profile">
                         <Settings className="h-5 w-5" />
                         <span>Settings</span>
                     </Link>

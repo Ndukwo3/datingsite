@@ -46,7 +46,7 @@ export function UserNav() {
     <DropdownMenu>
       <DropdownMenuTrigger asChild>
         <Button variant="ghost" className="relative h-10 w-10 rounded-full">
-          <Avatar className="h-10 w-10 border-2 border-primary">
+          <Avatar className="h-10 w-10 border-2 border-white">
             {isValidHttpUrl(userImage) ? (
               <AvatarImage src={userImage} alt={userName} />
             ) : (
@@ -72,9 +72,8 @@ export function UserNav() {
           <DropdownMenuItem asChild>
              <Link href="/premium"><Crown className="mr-2 h-4 w-4" />Upgrade</Link>
           </DropdownMenuItem>
-          <DropdownMenuItem>
-            <Settings className="mr-2 h-4 w-4" />
-            <span>Settings</span>
+          <DropdownMenuItem asChild>
+            <Link href="/profile"><Settings className="mr-2 h-4 w-4" />Settings</Link>
           </DropdownMenuItem>
         </DropdownMenuGroup>
         <DropdownMenuSeparator />
