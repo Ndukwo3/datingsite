@@ -13,19 +13,25 @@ import { useToast } from '@/hooks/use-toast';
 import Link from 'next/link';
 import { ArrowLeft, Loader2 } from 'lucide-react';
 import { Badge } from '@/components/ui/badge';
-import { interestOptions } from '@/lib/data';
+import { interestOptions, lifestyleOptions } from '@/lib/data';
 import { useRouter } from 'next/navigation';
 import { useUser, useFirestore, useDoc } from '@/firebase';
 import { doc, setDoc } from 'firebase/firestore';
 import type { User } from '@/lib/types';
 import * as React from 'react';
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 
 const profileSchema = z.object({
   name: z.string().min(2, 'Name must be at least 2 characters.'),
-  job: z.string().min(2, 'Job title must be at least 2 characters.'),
-  education: z.string().min(2, 'Education must be at least 2 characters.'),
+  job: z.string().min(2, 'Job title must be at least 2 characters.').optional().or(z.literal('')),
+  education: z.string().min(2, 'Education must be at least 2 characters.').optional().or(z.literal('')),
   bio: z.string().min(20, 'Bio must be at least 20 characters.').max(500, 'Bio cannot exceed 500 characters.'),
   interests: z.array(z.string()).min(3, "Please select at least 3 interests.").max(10),
+  relationshipGoal: z.string().optional().or(z.literal('')),
+  height: z.string().optional().or(z.literal('')),
+  exercise: z.string().optional().or(z.literal('')),
+  drinking: z.string().optional().or(z.literal('')),
+  smoking: z.string().optional().or(z.literal('')),
 });
 
 type ProfileFormData = z.infer<typeof profileSchema>;
@@ -47,18 +53,27 @@ export default function EditProfilePage() {
       education: '',
       bio: '',
       interests: [],
+      relationshipGoal: '',
+      height: '',
+      exercise: '',
+      drinking: '',
+      smoking: '',
     },
   });
   
-  // When currentUser data loads, reset the form with the fetched data.
   React.useEffect(() => {
     if (currentUser) {
       reset({
-        name: currentUser.name,
-        job: currentUser.job,
-        education: currentUser.education,
-        bio: currentUser.bio,
-        interests: currentUser.interests,
+        name: currentUser.name || '',
+        job: currentUser.job || '',
+        education: currentUser.education || '',
+        bio: currentUser.bio || '',
+        interests: currentUser.interests || [],
+        relationshipGoal: currentUser.relationshipGoal || '',
+        height: currentUser.height || '',
+        exercise: currentUser.exercise || '',
+        drinking: currentUser.drinking || '',
+        smoking: currentUser.smoking || '',
       });
     }
   }, [currentUser, reset]);
@@ -147,6 +162,11 @@ export default function EditProfilePage() {
               />
               {errors.education && <p className="text-sm text-destructive mt-1">{errors.education.message}</p>}
             </div>
+             <div>
+                <Label htmlFor="height">Height</Label>
+                <Controller name="height" control={control} render={({ field }) => <Input id="height" placeholder="e.g., 5' 10''" {...field} />} />
+                {errors.height && <p className="text-sm text-destructive mt-1">{errors.height.message}</p>}
+            </div>
           </CardContent>
         </Card>
 
@@ -183,6 +203,86 @@ export default function EditProfilePage() {
                 ))}
                 </div>
                 {errors.interests && <p className="text-sm text-destructive mt-1">{errors.interests.message as string}</p>}
+            </CardContent>
+        </Card>
+        
+        <Card>
+            <CardHeader>
+                <CardTitle>Lifestyle</CardTitle>
+            </CardHeader>
+            <CardContent className="space-y-4">
+                 <div>
+                    <Label htmlFor="relationshipGoal">I'm looking for...</Label>
+                    <Controller
+                        name="relationshipGoal"
+                        control={control}
+                        render={({ field }) => (
+                            <Select onValueChange={field.onChange} value={field.value}>
+                                <SelectTrigger id="relationshipGoal">
+                                    <SelectValue placeholder="Select your goal" />
+                                </SelectTrigger>
+                                <SelectContent>
+                                    {lifestyleOptions.relationshipGoal.map(opt => <SelectItem key={opt} value={opt}>{opt}</SelectItem>)}
+                                </SelectContent>
+                            </Select>
+                        )}
+                    />
+                    {errors.relationshipGoal && <p className="text-sm text-destructive mt-1">{errors.relationshipGoal.message}</p>}
+                </div>
+                 <div>
+                    <Label htmlFor="exercise">Exercise</Label>
+                    <Controller
+                        name="exercise"
+                        control={control}
+                        render={({ field }) => (
+                            <Select onValueChange={field.onChange} value={field.value}>
+                                <SelectTrigger id="exercise">
+                                    <SelectValue placeholder="How often do you exercise?" />
+                                </SelectTrigger>
+                                <SelectContent>
+                                    {lifestyleOptions.exercise.map(opt => <SelectItem key={opt} value={opt}>{opt}</SelectItem>)}
+                                </SelectContent>
+                            </Select>
+                        )}
+                    />
+                    {errors.exercise && <p className="text-sm text-destructive mt-1">{errors.exercise.message}</p>}
+                </div>
+                 <div>
+                    <Label htmlFor="drinking">Drinking</Label>
+                    <Controller
+                        name="drinking"
+                        control={control}
+                        render={({ field }) => (
+                            <Select onValueChange={field.onChange} value={field.value}>
+                                <SelectTrigger id="drinking">
+                                    <SelectValue placeholder="Do you drink?" />
+                                </SelectTrigger>
+                                <SelectContent>
+                                    {lifestyleOptions.drinking.map(opt => <SelectItem key={opt} value={opt}>{opt}</SelectItem>)}
+                                </SelectContent>
+                            </Select>
+                        )}
+                    />
+                    {errors.drinking && <p className="text-sm text-destructive mt-1">{errors.drinking.message}</p>}
+                </div>
+                 <div>
+                    <Label htmlFor="smoking">Smoking</Label>
+                    <Controller
+                        name="smoking"
+                        control={control}
+                        render={({ field }) => (
+                            <Select onValueChange={field.onChange} value={field.value}>
+                                <SelectTrigger id="smoking">
+                                    <SelectValue placeholder="Do you smoke?" />
+                                </SelectTrigger>
+                                <SelectContent>
+                                    {lifestyleOptions.smoking.map(opt => <SelectItem key={opt} value={opt}>{opt}</SelectItem>)}
+                                </SelectContent>
+                            </Select>
+                        )}
+                    />
+                    {errors.smoking && <p className="text-sm text-destructive mt-1">{errors.smoking.message}</p>}
+                </div>
             </CardContent>
         </Card>
 

@@ -84,3 +84,10 @@ export const nigerianStates = [
 ];
 
 export const interestOptions = [ "🎵 Afrobeats", "⚽ Football", "🍛 Jollof Rice", "🎬 Nollywood", "💃 Dancing", "🎉 Owambe", "✈️ Travel", "📸 Photography", "🎭 Comedy", "📚 Reading", "💪 Fitness", "🎨 Art", "👗 Fashion", "💻 Tech", "🍳 Cooking", "🎮 Gaming", "⛪ Church", "🏀 Basketball", "🎸 Music", "📱 Social Media", "🌍 Volunteering", "💼 Business", "🎤 Karaoke", "🏖️ Beach Life", "🚗 Road Trips", "🍕 Food Explorer", "📺 Netflix", "🏋️ Gym", "🧘 Yoga", "🎪 Events" ];
+
+export const lifestyleOptions = {
+    relationshipGoal: ["Life Partner", "Long-term relationship", "Short-term relationship", "Something casual", "New friends", "Still figuring it out"],
+    exercise: ["Active (Daily)", "Sometimes (A few times a week)", "Occasionally"],
+    drinking: ["Frequently", "Socially", "Never"],
+    smoking: ["Frequently", "Socially", "Never"]
+};

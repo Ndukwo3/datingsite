@@ -24,7 +24,7 @@ import { Badge } from '@/components/ui/badge';
 import { useToast } from '@/hooks/use-toast';
 import { GenderSelector } from '@/components/GenderSelector';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
-import { nigerianStates } from '@/lib/data';
+import { nigerianStates, interestOptions, lifestyleOptions } from '@/lib/data';
 import { Slider } from '@/components/ui/slider';
 import Link from 'next/link';
 import { parse, isValid as isValidDate } from 'date-fns';
@@ -86,15 +86,6 @@ const steps = [
   { id: 6, title: 'Dating Preferences', schema: step6Schema, fields: ['interestedIn', 'ageRange', 'maxDistance'] },
   { id: 7, title: 'Complete', schema: z.object({}), fields: [] },
 ];
-
-const interestOptions = [ "🎵 Afrobeats", "⚽ Football", "🍛 Jollof Rice", "🎬 Nollywood", "💃 Dancing", "🎉 Owambe", "✈️ Travel", "📸 Photography", "🎭 Comedy", "📚 Reading", "💪 Fitness", "🎨 Art", "👗 Fashion", "💻 Tech", "🍳 Cooking", "🎮 Gaming", "⛪ Church", "🏀 Basketball", "🎸 Music", "📱 Social Media", "🌍 Volunteering", "💼 Business", "🎤 Karaoke", "🏖️ Beach Life", "🚗 Road Trips", "🍕 Food Explorer", "📺 Netflix", "🏋️ Gym", "🧘 Yoga", "🎪 Events" ];
-
-const lifestyleOptions = {
-    relationshipGoal: ["Life Partner", "Long-term relationship", "Short-term relationship", "Something casual", "New friends", "Still figuring it out"],
-    exercise: ["Active (Daily)", "Sometimes (A few times a week)", "Occasionally"],
-    drinking: ["Frequently", "Socially", "Never"],
-    smoking: ["Frequently", "Socially", "Never"]
-}
 
 const getAge = (dobString: string | undefined) => {
     if (!dobString) return null;
