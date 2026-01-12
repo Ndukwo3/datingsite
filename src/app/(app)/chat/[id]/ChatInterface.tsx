@@ -26,6 +26,7 @@ import { isValidHttpUrl } from '@/lib/is-valid-url';
 type ChatInterfaceProps = {
   participant: User;
   conversationId: string;
+  isNewMatch: boolean;
 };
 
 const popularEmojis = ['😀', '😂', '❤️', '👍', '🙏', '😍', '🤔', '😎', '🔥', '🎉', '😊', '😭'];
@@ -39,7 +40,7 @@ const reportReasons = [
 ];
 
 
-export function ChatInterface({ participant, conversationId }: ChatInterfaceProps) {
+export function ChatInterface({ participant, conversationId, isNewMatch }: ChatInterfaceProps) {
   const [newMessage, setNewMessage] = useState('');
   const [isSending, setIsSending] = useState(false);
   const { toast } = useToast();
@@ -47,7 +48,10 @@ export function ChatInterface({ participant, conversationId }: ChatInterfaceProp
   const { user: currentUser, userData } = useUser();
   const firestore = useFirestore();
 
-  const messagesQuery = firestore ? query(collection(firestore, 'conversations', conversationId, 'messages'), orderBy('timestamp', 'asc')) : null;
+  const messagesQuery = (firestore && !isNewMatch)
+    ? query(collection(firestore, 'conversations', conversationId, 'messages'), orderBy('timestamp', 'asc')) 
+    : null;
+  
   const { data: messages, loading } = useCollection<Message>(messagesQuery);
   
   const [isReportDialogOpen, setIsReportDialogOpen] = useState(false);
@@ -140,7 +144,7 @@ export function ChatInterface({ participant, conversationId }: ChatInterfaceProp
      // Here you would add logic to actually report the user
   }
   
-  const showNewMatchUI = !loading && messages?.length === 0;
+  const showNewMatchUI = isNewMatch || (!loading && messages?.length === 0);
 
   return (
     <div className="flex h-[calc(100vh-8rem)] flex-col rounded-xl border bg-card">
@@ -219,7 +223,7 @@ export function ChatInterface({ participant, conversationId }: ChatInterfaceProp
       
       <ScrollArea className="flex-1" ref={scrollAreaRef}>
         <div className="p-6 space-y-6">
-            {loading && <div className="flex justify-center"><Loader2 className="h-6 w-6 animate-spin" /></div>}
+            {loading && !isNewMatch && <div className="flex justify-center"><Loader2 className="h-6 w-6 animate-spin" /></div>}
             {showNewMatchUI && (
                 <div className='text-center my-8'>
                     <h3 className='font-headline text-lg font-semibold'>It's a Match!</h3>
