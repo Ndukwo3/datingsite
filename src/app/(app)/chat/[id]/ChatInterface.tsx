@@ -224,7 +224,7 @@ export function ChatInterface({ participant, conversationId, isNewMatch }: ChatI
       <ScrollArea className="flex-1" ref={scrollAreaRef}>
         <div className="p-6 space-y-6">
             {loading && !isNewMatch && <div className="flex justify-center"><Loader2 className="h-6 w-6 animate-spin" /></div>}
-            {isNewMatch && messages?.length === 0 && (
+            {isNewMatch && (
                 <div className='text-center my-8'>
                     <p className='text-muted-foreground'>Break the ice with a clever opening line.</p>
                 </div>
@@ -301,3 +301,5 @@ export function ChatInterface({ participant, conversationId, isNewMatch }: ChatI
     </div>
   );
 }
+
+    
