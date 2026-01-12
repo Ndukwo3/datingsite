@@ -1,7 +1,7 @@
 
 "use client";
 
-import { useState } from 'react';
+import { useState, useRef } from 'react';
 import { useForm, FormProvider, Controller } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import * as z from 'zod';
@@ -131,6 +131,7 @@ export function OnboardingForm() {
   const router = useRouter();
   const { user: authUser } = useUser();
   const firestore = useFirestore();
+  const fileInputRef = useRef<HTMLInputElement>(null);
 
   const currentSchema = steps[currentStep].schema;
 
@@ -192,7 +193,7 @@ export function OnboardingForm() {
   const handlePrev = () => {
     if (currentStep > 0) {
       setDirection(-1);
-      setCurrentStep(step => step - 1);
+      setCurrentStep(step => step + 1);
     }
   };
   
@@ -263,46 +264,41 @@ export function OnboardingForm() {
     setValue('interests', newInterests, { shouldValidate: true });
   };
 
-  const handlePhotoUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
-    if (e.target.files) {
-      const files = Array.from(e.target.files);
+  const handlePhotoUpload = async (e: React.ChangeEvent<HTMLInputElement>, index: number) => {
+    if (e.target.files && e.target.files.length > 0) {
+      const file = e.target.files[0];
       const currentPhotos = getValues('photos') || [];
-      if (currentPhotos.length + files.length > 6) {
-        toast({ title: "You can upload a maximum of 6 photos.", variant: 'destructive' });
-        return;
-      }
       
-      const newlyAddedIndex = currentPhotos.length;
-      
-      const placeholderFiles = files.map(f => new File([], f.name));
-      setValue('photos', [...currentPhotos, ...placeholderFiles], { shouldValidate: true });
+      setUploadingIndex(index);
+      // Use a placeholder to show loading state immediately
+      const placeholderUrl = URL.createObjectURL(file);
+      const tempPhotos = [...currentPhotos];
+      tempPhotos[index] = placeholderUrl;
+      setValue('photos', tempPhotos, { shouldValidate: true });
 
-      for (let i = 0; i < files.length; i++) {
-        const file = files[i];
-        const photoIndex = newlyAddedIndex + i;
-        setUploadingIndex(photoIndex);
 
         try {
             const compressionOptions = {
-                maxSizeMB: 0.2, // 200KB
+                maxSizeMB: 1,
                 maxWidthOrHeight: 1080,
                 useWebWorker: true,
             }
             const compressedFile = await imageCompression(file, compressionOptions);
             
             const updatedPhotos = getValues('photos');
-            updatedPhotos[photoIndex] = compressedFile;
-            setValue('photos', updatedPhotos, { shouldValidate: true });
+            updatedPhotos[index] = compressedFile;
+            setValue('photos', [...updatedPhotos], { shouldValidate: true });
 
         } catch (error) {
             console.error("Photo processing failed", error);
             toast({ title: "Photo processing failed", description: "Please try a different image.", variant: 'destructive' });
-            const updatedPhotos = getValues('photos').filter((_, idx) => idx !== photoIndex);
+            const updatedPhotos = getValues('photos').filter((_, i) => i !== index);
             setValue('photos', updatedPhotos, { shouldValidate: true });
         } finally {
             setUploadingIndex(null);
+            // Reset file input
+            if(fileInputRef.current) fileInputRef.current.value = "";
         }
-      }
     }
   };
 
@@ -310,6 +306,12 @@ export function OnboardingForm() {
     const currentPhotos = getValues('photos');
     const newPhotos = currentPhotos.filter((_, i) => i !== index);
     setValue('photos', newPhotos, { shouldValidate: true });
+  };
+  
+  const triggerPhotoUpload = () => {
+    if (fileInputRef.current) {
+      fileInputRef.current.click();
+    }
   };
 
   const progress = ((currentStep + 1) / (steps.length - 1)) * 100;
@@ -451,30 +453,47 @@ export function OnboardingForm() {
                     <p className="text-muted-foreground">Add at least 3 photos. The first will be your main photo.</p>
                  </div>
                  <div className="grid grid-cols-2 md:grid-cols-3 gap-4">
-                    {Array.from({ length: 6 }).map((_, i) => (
-                        <div key={i} className="aspect-square rounded-xl border-dashed border-2 flex items-center justify-center relative bg-muted/50">
-                        {uploadingIndex === i && photos[i]?.size === 0 && (
-                            <div className="absolute inset-0 flex items-center justify-center bg-black/50 rounded-xl">
-                                <Loader2 className="w-8 h-8 animate-spin text-white"/>
-                            </div>
-                        )}
-                        {photos[i] && photos[i].size > 0 ? (
-                            <>
-                                <img src={URL.createObjectURL(photos[i])} alt={`upload-preview-${i}`} className="w-full h-full object-cover rounded-xl" />
-                                {i === 0 && <Badge className='absolute top-2 left-2 bg-primary text-primary-foreground'><Star className='w-3 h-3 mr-1'/> Main</Badge>}
-                                <Button size="icon" variant="destructive" className="absolute top-2 right-2 h-6 w-6 rounded-full" onClick={() => removePhoto(i)}><X className="h-4 w-4"/></Button>
-                            </>
-                        ) : (
-                             uploadingIndex !== i && (
-                                <Label htmlFor="photo-upload" className="w-full h-full cursor-pointer flex flex-col items-center justify-center text-muted-foreground">
-                                    <Camera className="w-8 h-8 mb-2"/>
-                                    <span className='text-sm'>Add Photo</span>
-                                </Label>
-                             )
-                        )}
+                     <input 
+                        type="file" 
+                        ref={fileInputRef} 
+                        className="hidden" 
+                        accept="image/*" 
+                        onChange={(e) => handlePhotoUpload(e, photos.length)} 
+                    />
+                    {photos.map((photo, i) => (
+                        <div key={i} className="aspect-square rounded-xl border-2 flex items-center justify-center relative bg-muted/50 overflow-hidden">
+                           {uploadingIndex === i && (
+                                <div className="absolute inset-0 flex items-center justify-center bg-black/50 rounded-xl">
+                                    <Loader2 className="w-8 h-8 animate-spin text-white"/>
+                                </div>
+                            )}
+                            <img 
+                                src={typeof photo === 'string' ? photo : URL.createObjectURL(photo)} 
+                                alt={`upload-preview-${i}`} 
+                                className="w-full h-full object-cover" 
+                            />
+                            {i === 0 && <Badge className='absolute top-2 left-2 bg-primary text-primary-foreground'><Star className='w-3 h-3 mr-1'/> Main</Badge>}
+                            <Button size="icon" variant="destructive" className="absolute top-2 right-2 h-6 w-6 rounded-full" onClick={() => removePhoto(i)}><X className="h-4 w-4"/></Button>
                         </div>
                     ))}
-                    <Input id="photo-upload" type="file" accept="image/*" multiple onChange={handlePhotoUpload} className="hidden" />
+                    {photos.length < 6 && Array.from({ length: 6 - photos.length }).map((_, i) => {
+                       if (i === 0) { // Only render the first empty slot as clickable
+                        return (
+                             <div key={`empty-${i}`} className="aspect-square rounded-xl border-dashed border-2 flex items-center justify-center relative bg-muted/50 cursor-pointer hover:bg-muted" onClick={triggerPhotoUpload}>
+                                {uploadingIndex === photos.length && (
+                                     <div className="absolute inset-0 flex items-center justify-center bg-black/50 rounded-xl">
+                                        <Loader2 className="w-8 h-8 animate-spin text-white"/>
+                                    </div>
+                                )}
+                                <div className='text-center text-muted-foreground'>
+                                    <Camera className="w-8 h-8 mb-2 mx-auto"/>
+                                    <span className='text-sm'>Add Photo</span>
+                                </div>
+                            </div>
+                        )
+                       }
+                       return <div key={`empty-${i}`} className="aspect-square rounded-xl border-dashed border-2 bg-muted/50"></div>
+                    })}
                  </div>
                  {errors.photos && <p className="text-sm text-destructive text-center">{errors.photos.message as string}</p>}
                  <div className='space-y-2 text-sm'>
@@ -482,12 +501,12 @@ export function OnboardingForm() {
                         {photos.length >= 3 ? <Check className='w-4 h-4'/> : <span className="w-4 h-4" />}
                         At least 3 photos (required)
                     </div>
-                    <div className={cn('flex items-center gap-2', photos.length >= 3 ? 'text-green-600' : 'text-muted-foreground')}>
-                        {photos.length >= 3 ? <Check className='w-4 h-4'/> : <Star className='w-4 h-4'/>}
+                    <div className={cn('flex items-center gap-2', photos.length >= 1 ? 'text-green-600' : 'text-muted-foreground')}>
+                        <Star className='w-4 h-4'/>
                         First photo is your main profile picture
                     </div>
-                    <div className={cn('flex items-center gap-2', photos.length >= 3 ? 'text-green-600' : 'text-muted-foreground')}>
-                        {photos.length >= 3 ? <Check className='w-4 h-4'/> : <Camera className='w-4 h-4'/>}
+                    <div className={cn('flex items-center gap-2', 'text-muted-foreground')}>
+                        <Camera className='w-4 h-4'/>
                         Clear face photos work best
                     </div>
                  </div>
@@ -717,7 +736,7 @@ export function OnboardingForm() {
                  </Button>
                   <Button size="lg" variant="ghost" className="w-full font-bold" asChild>
                     <Link href="/discover">Start Swiping 🔥</Link>
-                 </Button>
+                  </Button>
               </div>
             )}
           </motion.div>
