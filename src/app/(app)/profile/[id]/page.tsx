@@ -12,6 +12,7 @@ import { useDoc, useFirestore } from '@/firebase';
 import { doc } from 'firebase/firestore';
 import type { User } from '@/lib/types';
 import { isValidHttpUrl } from '@/lib/is-valid-url';
+import { useEffect, useState } from 'react';
 
 function SpotifyIcon(props: React.SVGProps<SVGSVGElement>) {
     return (
@@ -42,10 +43,16 @@ export default function UserProfilePage() {
   const params = useParams();
   const firestore = useFirestore();
   const userId = Array.isArray(params.id) ? params.id[0] : params.id;
+  const [distance, setDistance] = useState<number | null>(null);
 
   const { data: user, loading } = useDoc<User>(
     firestore && userId ? doc(firestore, 'users', userId) : null
   );
+
+  useEffect(() => {
+    // Generate a random distance when component mounts on the client
+    setDistance(Math.floor(Math.random() * (25 - 2 + 1)) + 2);
+  }, []);
 
   if (loading) {
     return <div className="flex h-full items-center justify-center"><Loader2 className="h-8 w-8 animate-spin" /></div>;
@@ -88,7 +95,7 @@ export default function UserProfilePage() {
             </div>
             <p className="flex items-center gap-2 text-muted-foreground">
                 <MapPin className="h-5 w-5" />
-                {user.location} - 5km away
+                {user.location} {distance !== null && `- ${distance}km away`}
             </p>
         </div>
 
@@ -165,3 +172,5 @@ export default function UserProfilePage() {
     </div>
   );
 }
+
+    
