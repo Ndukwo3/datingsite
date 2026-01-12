@@ -15,7 +15,6 @@ import { useRouter } from 'next/navigation';
 import { isValidHttpUrl } from '@/lib/is-valid-url';
 import { useEffect, useState, useRef } from 'react';
 import { useToast } from '@/hooks/use-toast';
-import imageCompression from 'browser-image-compression';
 import { cn } from '@/lib/utils';
 import {
   AlertDialog,
@@ -84,13 +83,7 @@ export default function ProfilePage() {
     
         try {
             for (const file of files) {
-                const compressionOptions = {
-                    maxSizeMB: 0.2,
-                    maxWidthOrHeight: 1080,
-                    useWebWorker: true,
-                };
-                const compressedFile = await imageCompression(file, compressionOptions);
-                const photoDataUri = await fileToDataUri(compressedFile);
+                const photoDataUri = await fileToDataUri(file);
                 newPhotoBase64s.push(photoDataUri);
             }
     
@@ -506,5 +499,3 @@ export default function ProfilePage() {
     </div>
   );
 }
-
-    

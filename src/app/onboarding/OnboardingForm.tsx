@@ -11,7 +11,6 @@ import { cn } from "@/lib/utils";
 import { useRouter } from 'next/navigation';
 import { useUser, useFirestore } from '@/firebase';
 import { doc, setDoc, serverTimestamp } from 'firebase/firestore';
-import imageCompression from 'browser-image-compression';
 import { errorEmitter } from '@/firebase/error-emitter';
 import { FirestorePermissionError } from '@/firebase/errors';
 
@@ -283,14 +282,7 @@ export function OnboardingForm() {
 
 
         try {
-            const compressionOptions = {
-                maxSizeMB: 1,
-                maxWidthOrHeight: 1080,
-                useWebWorker: true,
-            }
-            const compressedFile = await imageCompression(file, compressionOptions);
-            
-            const dataUri = await fileToDataUri(compressedFile);
+            const dataUri = await fileToDataUri(file);
             
             const updatedPhotos = getValues('photos');
             updatedPhotos[index] = dataUri;
