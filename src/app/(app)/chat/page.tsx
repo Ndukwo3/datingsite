@@ -21,7 +21,7 @@ export default function ChatListPage() {
     return query(
       collection(firestore, 'conversations'),
       where('participants', 'array-contains', user.uid),
-      orderBy('lastMessage.timestamp', 'desc')
+      orderBy('lastMessage.timestamp', 'asc')
     );
   }, [firestore, user]);
 
