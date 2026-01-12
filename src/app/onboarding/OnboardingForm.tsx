@@ -126,6 +126,7 @@ const fileToDataUri = (file: File): Promise<string> => {
 export function OnboardingForm() {
   const [currentStep, setCurrentStep] = useState(0);
   const [direction, setDirection] = useState(1);
+  const [isSubmitting, setIsSubmitting] = useState(false);
   const [uploadingIndex, setUploadingIndex] = useState<number | null>(null);
   const { toast } = useToast();
   const router = useRouter();
@@ -165,7 +166,7 @@ export function OnboardingForm() {
     watch,
     control,
     handleSubmit,
-    formState: { errors, isSubmitting },
+    formState: { errors },
   } = methods;
 
   const dob = watch('dob');
@@ -193,7 +194,7 @@ export function OnboardingForm() {
   const handlePrev = () => {
     if (currentStep > 0) {
       setDirection(-1);
-      setCurrentStep(step => step + 1);
+      setCurrentStep(step => step - 1);
     }
   };
   
@@ -202,6 +203,8 @@ export function OnboardingForm() {
         toast({ title: 'You must be logged in to complete onboarding.', variant: 'destructive' });
         return;
     }
+    
+    setIsSubmitting(true);
     
     const userDocRef = doc(firestore, 'users', authUser.uid);
     const age = getAge(data.dob);
@@ -244,6 +247,8 @@ export function OnboardingForm() {
           requestResourceData: finalUserData,
         });
         errorEmitter.emit('permission-error', permissionError);
+      }).finally(() => {
+        setIsSubmitting(false);
       });
   };
 
@@ -270,7 +275,7 @@ export function OnboardingForm() {
       const currentPhotos = getValues('photos') || [];
       
       setUploadingIndex(index);
-      // Use a placeholder to show loading state immediately
+      
       const placeholderUrl = URL.createObjectURL(file);
       const tempPhotos = [...currentPhotos];
       tempPhotos[index] = placeholderUrl;
@@ -285,8 +290,10 @@ export function OnboardingForm() {
             }
             const compressedFile = await imageCompression(file, compressionOptions);
             
+            const dataUri = await fileToDataUri(compressedFile);
+            
             const updatedPhotos = getValues('photos');
-            updatedPhotos[index] = compressedFile;
+            updatedPhotos[index] = dataUri;
             setValue('photos', [...updatedPhotos], { shouldValidate: true });
 
         } catch (error) {
@@ -296,7 +303,6 @@ export function OnboardingForm() {
             setValue('photos', updatedPhotos, { shouldValidate: true });
         } finally {
             setUploadingIndex(null);
-            // Reset file input
             if(fileInputRef.current) fileInputRef.current.value = "";
         }
     }
@@ -308,11 +314,31 @@ export function OnboardingForm() {
     setValue('photos', newPhotos, { shouldValidate: true });
   };
   
-  const triggerPhotoUpload = () => {
+  const triggerPhotoUpload = (index: number) => {
     if (fileInputRef.current) {
-      fileInputRef.current.click();
+        fileInputRef.current.onchange = (e) => handlePhotoUpload(e as any, index);
+        fileInputRef.current.click();
     }
   };
+
+  const navigateTo = (path: string) => {
+    if(isSubmitting) return;
+
+    // A final save to make sure onboarding is marked as complete
+    if (authUser && firestore) {
+      setIsSubmitting(true);
+      const userDocRef = doc(firestore, 'users', authUser.uid);
+      setDoc(userDocRef, { onboardingComplete: true }, { merge: true })
+        .then(() => {
+          router.push(path);
+        })
+        .catch(() => {
+          toast({ title: 'Could not complete setup. Please try again.', variant: 'destructive' });
+          setIsSubmitting(false);
+        });
+    }
+  }
+
 
   const progress = ((currentStep + 1) / (steps.length - 1)) * 100;
   const slideVariants = {
@@ -458,29 +484,33 @@ export function OnboardingForm() {
                         ref={fileInputRef} 
                         className="hidden" 
                         accept="image/*" 
-                        onChange={(e) => handlePhotoUpload(e, photos.length)} 
                     />
-                    {photos.map((photo, i) => (
-                        <div key={i} className="aspect-square rounded-xl border-2 flex items-center justify-center relative bg-muted/50 overflow-hidden">
-                           {uploadingIndex === i && (
-                                <div className="absolute inset-0 flex items-center justify-center bg-black/50 rounded-xl">
-                                    <Loader2 className="w-8 h-8 animate-spin text-white"/>
-                                </div>
-                            )}
-                            <img 
-                                src={typeof photo === 'string' ? photo : URL.createObjectURL(photo)} 
-                                alt={`upload-preview-${i}`} 
-                                className="w-full h-full object-cover" 
-                            />
-                            {i === 0 && <Badge className='absolute top-2 left-2 bg-primary text-primary-foreground'><Star className='w-3 h-3 mr-1'/> Main</Badge>}
-                            <Button size="icon" variant="destructive" className="absolute top-2 right-2 h-6 w-6 rounded-full" onClick={() => removePhoto(i)}><X className="h-4 w-4"/></Button>
-                        </div>
-                    ))}
-                    {photos.length < 6 && Array.from({ length: 6 - photos.length }).map((_, i) => {
-                       if (i === 0) { // Only render the first empty slot as clickable
-                        return (
-                             <div key={`empty-${i}`} className="aspect-square rounded-xl border-dashed border-2 flex items-center justify-center relative bg-muted/50 cursor-pointer hover:bg-muted" onClick={triggerPhotoUpload}>
-                                {uploadingIndex === photos.length && (
+                    {Array.from({ length: 6 }).map((_, i) => {
+                       const photo = photos[i];
+                       const isUploading = uploadingIndex === i;
+
+                       if (photo) {
+                         return (
+                            <div key={i} className="aspect-square rounded-xl border-2 flex items-center justify-center relative bg-muted/50 overflow-hidden">
+                               {isUploading && (
+                                    <div className="absolute inset-0 flex items-center justify-center bg-black/50 rounded-xl">
+                                        <Loader2 className="w-8 h-8 animate-spin text-white"/>
+                                    </div>
+                                )}
+                                <img 
+                                    src={photo} 
+                                    alt={`upload-preview-${i}`} 
+                                    className="w-full h-full object-cover" 
+                                />
+                                {i === 0 && <Badge className='absolute top-2 left-2 bg-primary text-primary-foreground'><Star className='w-3 h-3 mr-1'/> Main</Badge>}
+                                <Button size="icon" variant="destructive" className="absolute top-2 right-2 h-6 w-6 rounded-full" onClick={() => removePhoto(i)}><X className="h-4 w-4"/></Button>
+                            </div>
+                         )
+                       }
+                       
+                       return (
+                            <div key={`empty-${i}`} className="aspect-square rounded-xl border-dashed border-2 flex items-center justify-center relative bg-muted/50 cursor-pointer hover:bg-muted" onClick={() => triggerPhotoUpload(i)}>
+                               {isUploading && (
                                      <div className="absolute inset-0 flex items-center justify-center bg-black/50 rounded-xl">
                                         <Loader2 className="w-8 h-8 animate-spin text-white"/>
                                     </div>
@@ -491,8 +521,6 @@ export function OnboardingForm() {
                                 </div>
                             </div>
                         )
-                       }
-                       return <div key={`empty-${i}`} className="aspect-square rounded-xl border-dashed border-2 bg-muted/50"></div>
                     })}
                  </div>
                  {errors.photos && <p className="text-sm text-destructive text-center">{errors.photos.message as string}</p>}
@@ -731,11 +759,12 @@ export function OnboardingForm() {
                  </motion.div>
                  <h2 className="text-3xl font-headline font-bold mt-8">You're all set, {getValues('fullName').split(' ')[0]}!</h2>
                  <p className="text-muted-foreground max-w-md mx-auto">Welcome to LinkUp9ja! Get ready to start connecting with amazing people.</p>
-                 <Button size="lg" className="w-full bg-primary-gradient text-primary-foreground font-bold text-lg py-6" asChild>
-                    <Link href="/tutorial">Take a Quick Tour</Link>
+                 <Button onClick={() => navigateTo('/tutorial')} disabled={isSubmitting} size="lg" className="w-full bg-primary-gradient text-primary-foreground font-bold text-lg py-6">
+                    {isSubmitting && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
+                    Take a Quick Tour
                  </Button>
-                  <Button size="lg" variant="ghost" className="w-full font-bold" asChild>
-                    <Link href="/discover">Start Swiping 🔥</Link>
+                  <Button onClick={() => navigateTo('/discover')} disabled={isSubmitting} size="lg" variant="ghost" className="w-full font-bold">
+                    Start Swiping 🔥
                   </Button>
               </div>
             )}
