@@ -27,6 +27,7 @@ service cloud.firestore {
     }
     
     // Participants of a conversation can read/write to it.
+    // This will trigger an index creation for the chat query.
     match /conversations/{conversationId} {
        allow read, write: if isAuthenticated() && request.auth.uid in resource.data.participants;
       
