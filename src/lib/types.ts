@@ -17,7 +17,14 @@ export type User = {
   socials?: {
     instagram?: string;
     spotify?: string;
-  }
+  },
+  relationshipGoal?: string;
+  height?: string;
+  exercise?: string;
+  drinking?: string;
+  smoking?: string;
+  gender?: string;
+  email?: string;
 };
 
 export type Match = {

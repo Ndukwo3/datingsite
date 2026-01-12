@@ -1,3 +1,4 @@
+
 {
   "entities": {
     "User": {
@@ -16,9 +17,15 @@
         "job": { "type": "string", "description": "The user's job title." },
         "education": { "type": "string", "description": "The user's educational background." },
         "interests": { "type": "array", "items": { "type": "string" }, "description": "A list of the user's interests." },
-        "photos": { "type": "array", "items": { "type": "string" }, "description": "A list of IDs for the user's photos." },
+        "photos": { "type": "array", "items": { "type": "string", "format": "uri" }, "description": "A list of Base64 encoded data URIs for the user's photos." },
         "isVerified": { "type": "boolean", "description": "Indicates if the user's profile is verified." },
-        "lastSeen": { "type": "string", "description": "Indicates when the user was last active." }
+        "lastSeen": { "type": "string", "description": "Indicates when the user was last active." },
+        "relationshipGoal": { "type": "string", "description": "The user's relationship goal." },
+        "height": { "type": "string", "description": "The user's height." },
+        "exercise": { "type": "string", "description": "The user's exercise habits." },
+        "drinking": { "type": "string", "description": "The user's drinking habits." },
+        "smoking": { "type": "string", "description": "The user's smoking habits." },
+        "gender": { "type": "string", "description": "The user's gender."}
       },
       "required": ["id", "name", "email", "createdAt"]
     },

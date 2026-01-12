@@ -60,12 +60,20 @@ const step4Schema = z.object({
 });
 
 const step5Schema = z.object({
+    relationshipGoal: z.string({required_error: "Please select what you're looking for."}),
+    height: z.string().min(2, "Please enter your height"),
+    exercise: z.string({required_error: "Please select your exercise habits."}),
+    drinking: z.string({required_error: "Please select your drinking habits."}),
+    smoking: z.string({required_error: "Please select your smoking habits."}),
+});
+
+const step6Schema = z.object({
     interestedIn: z.enum(['men', 'women', 'everyone']),
     ageRange: z.tuple([z.number(), z.number()]),
     maxDistance: z.number(),
 });
 
-const fullSchema = step1Schema.merge(step2Schema).merge(step3Schema).merge(step4Schema).merge(step5Schema);
+const fullSchema = step1Schema.merge(step2Schema).merge(step3Schema).merge(step4Schema).merge(step5Schema).merge(step6Schema);
 
 type FormData = z.infer<typeof fullSchema>;
 
@@ -74,11 +82,19 @@ const steps = [
   { id: 2, title: 'Location', schema: step2Schema, fields: ['state', 'city'] },
   { id: 3, title: 'Upload Photos', schema: step3Schema, fields: ['photos'] },
   { id: 4, title: 'Bio & Interests', schema: step4Schema, fields: ['bio', 'interests'] },
-  { id: 5, title: 'Dating Preferences', schema: step5Schema, fields: ['interestedIn', 'ageRange', 'maxDistance'] },
-  { id: 6, title: 'Complete', schema: z.object({}), fields: [] },
+  { id: 5, title: 'Lifestyle & Details', schema: step5Schema, fields: ['relationshipGoal', 'height', 'exercise', 'drinking', 'smoking'] },
+  { id: 6, title: 'Dating Preferences', schema: step6Schema, fields: ['interestedIn', 'ageRange', 'maxDistance'] },
+  { id: 7, title: 'Complete', schema: z.object({}), fields: [] },
 ];
 
 const interestOptions = [ "🎵 Afrobeats", "⚽ Football", "🍛 Jollof Rice", "🎬 Nollywood", "💃 Dancing", "🎉 Owambe", "✈️ Travel", "📸 Photography", "🎭 Comedy", "📚 Reading", "💪 Fitness", "🎨 Art", "👗 Fashion", "💻 Tech", "🍳 Cooking", "🎮 Gaming", "⛪ Church", "🏀 Basketball", "🎸 Music", "📱 Social Media", "🌍 Volunteering", "💼 Business", "🎤 Karaoke", "🏖️ Beach Life", "🚗 Road Trips", "🍕 Food Explorer", "📺 Netflix", "🏋️ Gym", "🧘 Yoga", "🎪 Events" ];
+
+const lifestyleOptions = {
+    relationshipGoal: ["Life Partner", "Long-term relationship", "Short-term relationship", "Something casual", "New friends", "Still figuring it out"],
+    exercise: ["Active (Daily)", "Sometimes (A few times a week)", "Occasionally"],
+    drinking: ["Frequently", "Socially", "Never"],
+    smoking: ["Frequently", "Socially", "Never"]
+}
 
 const getAge = (dobString: string | undefined) => {
     if (!dobString) return null;
@@ -140,6 +156,11 @@ export function OnboardingForm() {
         photos: [],
         bio: '',
         interests: [],
+        relationshipGoal: undefined,
+        height: '',
+        exercise: undefined,
+        drinking: undefined,
+        smoking: undefined,
         interestedIn: 'everyone',
         ageRange: [18, 35],
         maxDistance: 50,
@@ -209,10 +230,15 @@ export function OnboardingForm() {
         bio: data.bio,
         interests: data.interests,
         photos: photoBase64s,
+        relationshipGoal: data.relationshipGoal,
+        height: data.height,
+        exercise: data.exercise,
+        drinking: data.drinking,
+        smoking: data.smoking,
         onboardingComplete: true,
         createdAt: serverTimestamp(),
         email: authUser.email,
-        id: authUser.uid
+        id: authUser.uid,
     };
 
     setDoc(userDocRef, finalUserData, { merge: true })
@@ -538,7 +564,95 @@ export function OnboardingForm() {
                 </div>
             )}
 
-             {currentStep === 4 && (
+            {currentStep === 4 && (
+              <div className="space-y-8">
+                <div className='text-center'>
+                    <h2 className="text-2xl font-headline font-bold">Lifestyle & Details</h2>
+                    <p className="text-muted-foreground">Share a little more about your lifestyle.</p>
+                </div>
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-6">
+                    <div>
+                        <Label htmlFor="relationshipGoal">I'm looking for...</Label>
+                        <Controller
+                            name="relationshipGoal"
+                            control={control}
+                            render={({ field }) => (
+                                <Select onValueChange={field.onChange} defaultValue={field.value}>
+                                    <SelectTrigger id="relationshipGoal">
+                                        <SelectValue placeholder="Select your goal" />
+                                    </SelectTrigger>
+                                    <SelectContent>
+                                        {lifestyleOptions.relationshipGoal.map(opt => <SelectItem key={opt} value={opt}>{opt}</SelectItem>)}
+                                    </SelectContent>
+                                </Select>
+                            )}
+                        />
+                        {errors.relationshipGoal && <p className="text-sm text-destructive mt-1">{errors.relationshipGoal.message}</p>}
+                    </div>
+                    <div>
+                        <Label htmlFor="height">Height</Label>
+                        <Controller name="height" control={control} render={({ field }) => <Input id="height" placeholder="e.g., 5' 10''" {...field} />} />
+                        {errors.height && <p className="text-sm text-destructive mt-1">{errors.height.message}</p>}
+                    </div>
+                     <div>
+                        <Label htmlFor="exercise">Exercise</Label>
+                        <Controller
+                            name="exercise"
+                            control={control}
+                            render={({ field }) => (
+                                <Select onValueChange={field.onChange} defaultValue={field.value}>
+                                    <SelectTrigger id="exercise">
+                                        <SelectValue placeholder="How often do you exercise?" />
+                                    </SelectTrigger>
+                                    <SelectContent>
+                                        {lifestyleOptions.exercise.map(opt => <SelectItem key={opt} value={opt}>{opt}</SelectItem>)}
+                                    </SelectContent>
+                                </Select>
+                            )}
+                        />
+                        {errors.exercise && <p className="text-sm text-destructive mt-1">{errors.exercise.message}</p>}
+                    </div>
+                     <div>
+                        <Label htmlFor="drinking">Drinking</Label>
+                        <Controller
+                            name="drinking"
+                            control={control}
+                            render={({ field }) => (
+                                <Select onValueChange={field.onChange} defaultValue={field.value}>
+                                    <SelectTrigger id="drinking">
+                                        <SelectValue placeholder="Do you drink?" />
+                                    </SelectTrigger>
+                                    <SelectContent>
+                                        {lifestyleOptions.drinking.map(opt => <SelectItem key={opt} value={opt}>{opt}</SelectItem>)}
+                                    </SelectContent>
+                                </Select>
+                            )}
+                        />
+                        {errors.drinking && <p className="text-sm text-destructive mt-1">{errors.drinking.message}</p>}
+                    </div>
+                     <div className='sm:col-span-2'>
+                        <Label htmlFor="smoking">Smoking</Label>
+                        <Controller
+                            name="smoking"
+                            control={control}
+                            render={({ field }) => (
+                                <Select onValueChange={field.onChange} defaultValue={field.value}>
+                                    <SelectTrigger id="smoking">
+                                        <SelectValue placeholder="Do you smoke?" />
+                                    </SelectTrigger>
+                                    <SelectContent>
+                                        {lifestyleOptions.smoking.map(opt => <SelectItem key={opt} value={opt}>{opt}</SelectItem>)}
+                                    </SelectContent>
+                                </Select>
+                            )}
+                        />
+                        {errors.smoking && <p className="text-sm text-destructive mt-1">{errors.smoking.message}</p>}
+                    </div>
+                </div>
+              </div>
+            )}
+
+             {currentStep === 5 && (
                 <div className="space-y-8">
                     <div className='text-center'>
                         <h2 className="text-2xl font-headline font-bold">Who are you looking for?</h2>
@@ -595,7 +709,7 @@ export function OnboardingForm() {
                 </div>
              )}
 
-            {currentStep === 5 && (
+            {currentStep === 6 && (
               <div className="space-y-6 text-center flex flex-col items-center justify-center h-[500px]">
                  <motion.div initial={{scale: 0}} animate={{scale: 1}} transition={{delay: 0.2, type: 'spring'}}>
                     <div className="relative inline-block">
