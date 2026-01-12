@@ -163,8 +163,8 @@ export default function SwipePage() {
   const currentProfile = potentialMatches?.[currentIndex];
   
   const variants = {
-    initial: { scale: 0.8, opacity: 0, y: 50 },
-    animate: { scale: 1, opacity: 1, y: 0 },
+    initial: { scale: 0.9, opacity: 0, rotate: 5 },
+    animate: { scale: 1, opacity: 1, y: 0, rotate: 0 },
     exit: (direction: SwipeDirection) => {
         return {
             x: direction === 'right' ? 300 : direction === 'left' ? -300 : 0,
