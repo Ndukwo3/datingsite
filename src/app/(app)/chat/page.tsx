@@ -7,7 +7,7 @@ import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { formatDistanceToNow } from 'date-fns';
 import { useCollection, useFirestore, useUser } from '@/firebase';
-import { collection, query, where } from 'firebase/firestore';
+import { collection, query, where, orderBy } from 'firebase/firestore';
 import { Conversation } from '@/lib/types';
 import { Loader2 } from 'lucide-react';
 import { isValidHttpUrl } from '@/lib/is-valid-url';
@@ -20,7 +20,8 @@ export default function ChatListPage() {
     if (!firestore || !user) return null;
     return query(
       collection(firestore, 'conversations'),
-      where('participants', 'array-contains', user.uid)
+      where('participants', 'array-contains', user.uid),
+      orderBy('lastMessage.timestamp', 'desc')
     );
   }, [firestore, user]);
 
@@ -65,7 +66,7 @@ export default function ChatListPage() {
                       <div className="flex items-baseline justify-between">
                         <p className="font-semibold">{firstName}</p>
                         <p className="text-xs text-muted-foreground">
-                          {formatDistanceToNow(new Date(lastMessage.timestamp.seconds * 1000), { addSuffix: true })}
+                          {lastMessage.timestamp ? formatDistanceToNow(new Date(lastMessage.timestamp.seconds * 1000), { addSuffix: true }) : ''}
                         </p>
                       </div>
                       <p className="mt-1 truncate text-sm text-muted-foreground">

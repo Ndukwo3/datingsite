@@ -18,7 +18,7 @@ import { Dialog, DialogTrigger, DialogContent, DialogHeader, DialogTitle, Dialog
 import { Label } from '@/components/ui/label';
 import { RadioGroup, RadioGroupItem } from '@/components/ui/radio-group';
 import { useUser, useFirestore, useCollection } from '@/firebase';
-import { collection, addDoc, serverTimestamp, query, orderBy } from 'firebase/firestore';
+import { collection, addDoc, serverTimestamp, query, orderBy, doc, updateDoc } from 'firebase/firestore';
 import { errorEmitter } from '@/firebase/error-emitter';
 import { FirestorePermissionError } from '@/firebase/errors';
 import { isValidHttpUrl } from '@/lib/is-valid-url';
@@ -67,37 +67,51 @@ export function ChatInterface({ participant, conversationId }: ChatInterfaceProp
     }
   }, [messages]);
 
-  const sendMessage = () => {
+  const sendMessage = async () => {
     if (!newMessage.trim() || !currentUser || !firestore) return;
 
     setIsSending(true);
+    
+    const messageTimestamp = serverTimestamp();
 
     const messageData = {
       senderId: currentUser.uid,
       receiverId: participant.id,
       text: newMessage,
-      timestamp: serverTimestamp(),
+      timestamp: messageTimestamp,
     };
 
     const messagesCol = collection(firestore, 'conversations', conversationId, 'messages');
     
-    addDoc(messagesCol, messageData).catch(error => {
+    try {
+        await addDoc(messagesCol, messageData);
+        
+        // After sending message, update the conversation's lastMessage field
+        const conversationRef = doc(firestore, 'conversations', conversationId);
+        await updateDoc(conversationRef, {
+            lastMessage: {
+                text: newMessage,
+                timestamp: messageTimestamp,
+            }
+        });
+        
+    } catch(error) {
       const permissionError = new FirestorePermissionError({
         path: messagesCol.path,
         operation: 'create',
         requestResourceData: messageData,
       });
       errorEmitter.emit('permission-error', permissionError);
-    }).finally(() => {
+    } finally {
       setIsSending(false);
-    });
+    }
 
     setNewMessage('');
   };
 
   const handleFormSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    sendMessage();
+    await sendMessage();
   };
 
   const handleEmojiSelect = (emoji: string) => {
