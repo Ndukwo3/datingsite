@@ -91,7 +91,8 @@ export function ChatInterface({ participant, conversationId, isNewMatch }: ChatI
         const batch = writeBatch(firestore);
 
         // Add new message
-        batch.set(doc(messagesCol), messageData);
+        const newMessageRef = doc(messagesCol);
+        batch.set(newMessageRef, messageData);
         
         // Update the conversation's lastMessage and ensure participants are set
         batch.set(conversationRef, {
@@ -105,6 +106,7 @@ export function ChatInterface({ participant, conversationId, isNewMatch }: ChatI
         }, { merge: true });
 
         await batch.commit();
+        setNewMessage('');
         
     } catch(error) {
       console.error(error);
@@ -117,8 +119,6 @@ export function ChatInterface({ participant, conversationId, isNewMatch }: ChatI
     } finally {
       setIsSending(false);
     }
-
-    setNewMessage('');
   };
 
   const handleFormSubmit = async (e: React.FormEvent) => {
@@ -297,7 +297,3 @@ export function ChatInterface({ participant, conversationId, isNewMatch }: ChatI
     </div>
   );
 }
-
-    
-
-    
