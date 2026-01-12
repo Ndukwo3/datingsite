@@ -61,8 +61,8 @@ export function TutorialOverlay() {
   const [direction, setDirection] = useState(1);
   const router = useRouter();
   
-  const currentUserImage = users.find(u => u.id === 'user-1')?.photos[0];
-  const chiomaUserImage = users.find(u => u.id === 'user-3')?.photos[0];
+  const currentUserImage = PlaceHolderImages.find(p => p.id === 'tutorial-match-1')?.imageUrl;
+  const chiomaUserImage = PlaceHolderImages.find(p => p.id === 'tutorial-match-2')?.imageUrl;
 
 
   const handleNext = () => {
@@ -208,4 +208,3 @@ export function TutorialOverlay() {
     </div>
   );
 }
-
