@@ -27,7 +27,8 @@ service cloud.firestore {
     }
     
     // Only participants of a conversation can read or write to it or its messages.
-    // Queries on this collection MUST include a `where("participants", "array-contains", request.auth.uid)` clause.
+    // This rule allows both `get` and `list` (query) operations as long as the
+    // client-side query includes `where("participants", "array-contains", request.auth.uid)`.
     match /conversations/{conversationId} {
        allow read, write: if isAuthenticated() && request.auth.uid in resource.data.participants;
       
