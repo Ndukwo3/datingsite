@@ -198,7 +198,6 @@ export default function SwipePage() {
             <motion.div
               key={currentIndex}
               drag
-              dragConstraints={{ left: 0, right: 0, top: 0, bottom: 0 }}
               style={{ x, y, rotate }}
               onDragEnd={onDragEnd}
               variants={variants}
