@@ -73,6 +73,33 @@
         "timestamp": { "type": "string", "format": "date-time" }
       },
       "required": ["swiperId", "swipedId", "direction", "timestamp"]
+    },
+    "Post": {
+      "title": "Post",
+      "description": "A blog post created by a user.",
+      "type": "object",
+      "properties": {
+        "id": { "type": "string" },
+        "title": { "type": "string" },
+        "content": { "type": "string" },
+        "authorId": { "type": "string" },
+        "createdAt": { "type": "string", "format": "date-time" },
+        "likes": { "type": "number" }
+      },
+      "required": ["id", "title", "content", "authorId", "createdAt"]
+    },
+    "Comment": {
+      "title": "Comment",
+      "description": "A comment on a blog post.",
+      "type": "object",
+      "properties": {
+        "id": { "type": "string" },
+        "text": { "type": "string" },
+        "authorId": { "type": "string" },
+        "postId": { "type": "string" },
+        "createdAt": { "type": "string", "format": "date-time" }
+      },
+      "required": ["id", "text", "authorId", "postId", "createdAt"]
     }
   },
   "auth": {
@@ -94,8 +121,14 @@
     "/swipes/{swipeId}": {
       "schema": { "$ref": "#/entities/Swipe" },
       "description": "Stores individual swipe actions."
+    },
+    "/posts/{postId}": {
+      "schema": { "$ref": "#/entities/Post" },
+      "description": "Stores blog posts."
+    },
+    "/posts/{postId}/comments/{commentId}": {
+      "schema": { "$ref": "#/entities/Comment" },
+      "description": "Stores comments for a specific blog post."
     }
   }
 }
-
-    

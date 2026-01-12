@@ -12,7 +12,7 @@ import {
   SidebarFooter,
 } from "@/components/ui/sidebar";
 import { Logo } from "@/components/Logo";
-import { Flame, MessageSquareText, Users, CircleUser, Crown, LogOut, Settings, Rss } from "lucide-react";
+import { Flame, MessageSquareText, Users, CircleUser, Crown, LogOut, Settings, Rss, Newspaper } from "lucide-react";
 import { ThemeToggle } from "./ThemeToggle";
 import { getAuth, signOut } from "firebase/auth";
 import { useFirebaseApp, useSidebar } from "@/firebase";
@@ -24,6 +24,7 @@ const menuItems = [
   { href: "/discover", label: "Swipe", icon: Flame },
   { href: "/matches", label: "Matches", icon: Users },
   { href: "/chat", label: "Chat", icon: MessageSquareText },
+  { href: "/blog", label: "Blog", icon: Newspaper },
   { href: "/profile", label: "Profile", icon: CircleUser },
 ];
 
@@ -37,6 +38,7 @@ export function AppSidebarContent() {
   const isActive = (href: string) => {
     if (href === '/discover') return pathname === '/discover';
     if (href === '/chat') return pathname.startsWith('/chat');
+    if (href === '/blog') return pathname.startsWith('/blog');
     if (href === '/profile') return pathname.startsWith('/profile');
     return pathname === href;
   };

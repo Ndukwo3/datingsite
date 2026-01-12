@@ -52,4 +52,21 @@ export type Conversation = {
   createdAt: Timestamp;
 };
 
-    
+export type Post = {
+    id: string;
+    title: string;
+    content: string;
+    authorId: string;
+    createdAt: Timestamp;
+    likes: number;
+    author?: Partial<User>;
+};
+
+export type Comment = {
+    id: string;
+    text: string;
+    authorId: string;
+    postId: string;
+    createdAt: Timestamp;
+    author?: Partial<User>;
+};
