@@ -8,10 +8,11 @@ import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { Button } from "./ui/button";
 import { ProfileCard } from "./ProfileCard";
-import { potentialMatches } from "@/lib/data";
+import { potentialMatches, users } from "@/lib/data";
 import { cn } from "@/lib/utils";
 import Image from "next/image";
 import { PlaceHolderImages } from "@/lib/placeholder-images";
+import { isValidHttpUrl } from "@/lib/is-valid-url";
 
 
 const tutorialSlides = [
@@ -59,8 +60,10 @@ export function TutorialOverlay() {
   const [currentSlide, setCurrentSlide] = useState(0);
   const [direction, setDirection] = useState(1);
   const router = useRouter();
-  const user1 = PlaceHolderImages.find(p => p.id === 'tutorial-1');
-  const user2 = PlaceHolderImages.find(p => p.id === 'tutorial-2');
+  
+  const currentUserImage = users.find(u => u.id === 'user-1')?.photos[0];
+  const chiomaUserImage = users.find(u => u.id === 'user-3')?.photos[0];
+
 
   const handleNext = () => {
     setDirection(1);
@@ -120,19 +123,19 @@ export function TutorialOverlay() {
                        </motion.div>
                      )}
                  </AnimatePresence>
-                 {currentAnimation && currentAnimation.action === 'match' && user1 && user2 && (
+                 {currentAnimation && currentAnimation.action === 'match' && (
                     <div className="relative w-full h-full flex items-center justify-center">
                         <motion.div initial={{opacity: 0, scale: 0.5}} animate={{opacity:1, scale:1, transition: {delay: 1.5}}} className="absolute text-center z-10">
                             <h2 className="text-4xl font-headline font-bold bg-primary-gradient text-transparent bg-clip-text">It's a Match!</h2>
-                            <p>You and Sarah liked each other.</p>
+                            <p>You and Chioma liked each other.</p>
                         </motion.div>
 
                         <motion.div className="absolute" initial={{x: -100, rotate: -15}} animate={{x: -40, rotate: -10}} transition={{duration: 1}}>
-                           <Image src={user1.imageUrl} alt="user 1" width={180} height={240} className="rounded-2xl object-cover shadow-lg"/>
+                           {currentUserImage && isValidHttpUrl(currentUserImage) && <Image src={currentUserImage} alt="user 1" width={180} height={240} className="rounded-2xl object-cover shadow-lg"/>}
                            <Heart className="w-10 h-10 text-primary fill-primary absolute -bottom-5 -right-5"/>
                         </motion.div>
                         <motion.div className="absolute" initial={{x: 100, rotate: 15}} animate={{x: 40, rotate: 10}} transition={{duration: 1}}>
-                            <Image src={user2.imageUrl} alt="user 2" width={180} height={240} className="rounded-2xl object-cover shadow-lg"/>
+                            {chiomaUserImage && isValidHttpUrl(chiomaUserImage) && <Image src={chiomaUserImage} alt="user 2" width={180} height={240} className="rounded-2xl object-cover shadow-lg"/>}
                             <Heart className="w-10 h-10 text-primary fill-primary absolute -bottom-5 -left-5"/>
                         </motion.div>
                     </div>
@@ -206,4 +209,3 @@ export function TutorialOverlay() {
   );
 }
 
-    
