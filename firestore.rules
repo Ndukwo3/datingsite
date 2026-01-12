@@ -4,13 +4,19 @@ service cloud.firestore {
   match /databases/{database}/documents {
 
     match /conversations/{conversationId} {
+      // Allow list only if the query is constrained to the user's conversations
       allow list: if request.auth != null && request.query.filters[0].value == request.auth.uid;
+      
+      // Allow read/update if the user is a participant
       allow read, update: if isParticipant(conversationId);
 
+      // Allow creating a conversation if the user is one of the participants
       allow create: if request.auth != null && request.auth.uid in request.resource.data.participants;
 
       match /messages/{messageId} {
+        // Allow reading messages if the user is a participant
         allow read: if isParticipant(conversationId);
+        // Allow creating messages if the user is the sender and a participant
         allow create: if request.auth != null
           && request.resource.data.senderId == request.auth.uid
           && isParticipant(conversationId);
@@ -19,10 +25,10 @@ service cloud.firestore {
 
     // USERS
     match /users/{userId} {
-      // Other users can read public profiles
+      // Any authenticated user can read public profiles
       allow read: if request.auth != null;
 
-      // User can create/update their own profile
+      // A user can create or update their own profile
       allow create, update: if request.auth != null && request.auth.uid == userId;
     }
 

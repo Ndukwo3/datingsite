@@ -85,12 +85,13 @@ export default function MatchesPage() {
     const firestore = useFirestore();
     const { user: currentUser } = useUser();
 
-    const matchesQuery = firestore && currentUser
-        ? query(
+    const matchesQuery = useMemo(() => {
+        if (!firestore || !currentUser) return null;
+        return query(
             collection(firestore, 'conversations'),
             where('participants', 'array-contains', currentUser.uid)
-        )
-        : null;
+        );
+    }, [firestore, currentUser]);
 
     const { data: matches, loading } = useCollection<Conversation>(matchesQuery);
 

@@ -39,7 +39,7 @@ function ConversationItem({ conversation, currentUserId }: { conversation: Conve
 
   const userImage = participant.photos?.[0];
   const firstName = participant.name.split(' ')[0];
-  const lastMessage = conversation.lastMessage || { text: 'No messages yet', timestamp: new Date() };
+  const lastMessage = conversation.lastMessage || { text: 'No messages yet', timestamp: conversation.createdAt };
 
   return (
     <Link
