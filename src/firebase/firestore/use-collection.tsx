@@ -3,10 +3,7 @@
 
 import { useState, useEffect } from "react";
 import {
-  collection,
   onSnapshot,
-  query,
-  where,
   type DocumentData,
   type Query,
 } from "firebase/firestore";
@@ -17,6 +14,28 @@ import { FirestorePermissionError } from "../errors";
 interface UseCollectionOptions {
   // Add any options here if needed in the future
 }
+
+// A helper to get the path from a Firestore query object.
+// This is a bit of a hack, but it's necessary because the v9 SDK
+// doesn't expose a public `path` property on queries.
+function getPathFromQuery(q: Query): string {
+    try {
+        // This accesses a private property, which is not ideal but is the
+        // most reliable way to get the path from a query for debugging.
+        const internalQuery = q as any;
+        if (internalQuery._query) {
+            return internalQuery._query.path.toString();
+        }
+        // Fallback for collection group queries or other types
+        if (internalQuery.converter) {
+            return '(collection group)';
+        }
+    } catch (e) {
+        // Fallback in case internal API changes
+    }
+    return 'unknown_collection_path';
+}
+
 
 export function useCollection<T = DocumentData>(
   query: Query<T> | null,
@@ -50,7 +69,7 @@ export function useCollection<T = DocumentData>(
       (err) => {
         console.error("Firestore onSnapshot error:", err);
         const permissionError = new FirestorePermissionError({
-          path: 'collection' in query ? (query as any).path : 'unknown',
+          path: getPathFromQuery(query),
           operation: 'list'
         });
         errorEmitter.emit('permission-error', permissionError);
