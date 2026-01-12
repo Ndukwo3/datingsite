@@ -108,7 +108,7 @@ export function AppHeader() {
                 </DropdownMenuItem>
             </DropdownMenuContent>
         </DropdownMenu>
-        <ThemeToggle />
+        <ThemeToggle className="text-foreground" />
         <UserNav />
       </div>
     </header>
