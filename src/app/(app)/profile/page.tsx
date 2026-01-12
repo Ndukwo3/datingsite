@@ -61,10 +61,10 @@ export default function ProfilePage() {
     }
 
     const handlePhotoUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
-        if (!e.target.files || !firestore || !authUser || !currentUser) return;
+        if (!e.target.files || !firestore || !authUser || !userData) return;
     
         const files = Array.from(e.target.files);
-        if (currentUser.photos.length + files.length > 6) {
+        if (userData.photos.length + files.length > 6) {
             toast({ title: "You can upload a maximum of 6 photos.", variant: "destructive" });
             return;
         }
@@ -93,7 +93,7 @@ export default function ProfilePage() {
             if (newPhotoBase64s.length > 0) {
                 const userDocRef = doc(firestore, 'users', authUser.uid);
                 await updateDoc(userDocRef, {
-                    photos: [...currentUser.photos, ...newPhotoBase64s]
+                    photos: [...userData.photos, ...newPhotoBase64s]
                 });
                 await refreshUserData();
                 toast({ title: `${newPhotoBase64s.length} photo(s) uploaded successfully!` });
@@ -114,9 +114,9 @@ export default function ProfilePage() {
     };
     
     const handleDeletePhoto = async (photoUrlToDelete: string) => {
-        if (!firestore || !authUser || !currentUser) return;
+        if (!firestore || !authUser || !userData) return;
 
-        const updatedPhotos = currentUser.photos.filter(url => url !== photoUrlToDelete);
+        const updatedPhotos = userData.photos.filter(url => url !== photoUrlToDelete);
         const userDocRef = doc(firestore, 'users', authUser.uid);
 
         try {
@@ -129,9 +129,9 @@ export default function ProfilePage() {
     };
 
     const handleSetMainPhoto = async (photoUrlToSetAsMain: string) => {
-        if (!firestore || !authUser || !currentUser) return;
+        if (!firestore || !authUser || !userData) return;
 
-        const otherPhotos = currentUser.photos.filter(url => url !== photoUrlToSetAsMain);
+        const otherPhotos = userData.photos.filter(url => url !== photoUrlToSetAsMain);
         const newPhotoOrder = [photoUrlToSetAsMain, ...otherPhotos];
         const userDocRef = doc(firestore, 'users', authUser.uid);
 
@@ -432,3 +432,5 @@ export default function ProfilePage() {
       </div>
     </div>
   );
+
+    
