@@ -1,7 +1,10 @@
 
+"use client";
+
+import { useMemo } from "react";
 import { SidebarTrigger } from "@/components/ui/sidebar";
 import { UserNav } from "@/components/UserNav";
-import { Button } from "./ui/button";
+import { Button, buttonVariants } from "./ui/button";
 import { Bell, Heart, MessageSquareText, Sparkles } from "lucide-react";
 import { ThemeToggle } from "./ThemeToggle";
 import { Logo } from "./Logo";
@@ -15,36 +18,97 @@ import {
 } from "@/components/ui/dropdown-menu";
 import { Avatar, AvatarFallback, AvatarImage } from "./ui/avatar";
 import Link from "next/link";
-import { buttonVariants } from "./ui/button";
 import { cn } from "@/lib/utils";
+import { useCollection, useFirestore, useUser } from "@/firebase";
+import { collection, query, where, orderBy, Timestamp } from "firebase/firestore";
+import type { Conversation, Message, User } from "@/lib/types";
+import { formatDistanceToNow } from "date-fns";
 
-const notifications = [
-    {
-        id: 'welcome',
-        type: 'welcome',
-        user: { name: 'LinkUp9ja', image: '' },
-        message: 'Welcome to LinkUp9ja! Check out our community rules.',
-        time: 'Just now',
-        href: '/welcome'
-    },
-    {
-        id: '1',
-        type: 'match',
-        user: { id: 'user-3', name: 'Chioma', image: 'https://images.unsplash.com/photo-1756485161657-e005fc9e4393?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&ixid=M3w3NDE5ODJ8MHwxfHNlYXJjaHw2fHxhJTIwbmlnZXJpYW4lMjBsYWR5fGVufDB8fHx8MTc2ODA3MTc4MHww&ixlib=rb-4.1.0&q=80&w=1080' },
-        time: '5m ago',
-        href: '/profile/user-3'
-    },
-    {
-        id: '2',
-        type: 'message',
-        user: { id: 'user-2', name: 'Bolu', image: 'https://images.unsplash.com/photo-1589635823089-774fca28fe13?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&ixid=M3w3NDE5ODJ8MHwxfHNlYXJjaHw5fHxhJTIwbmlnZXJpYSUyMGd1eXxlbnwwfHx8fDE3NjgwNzE2OTh8MA&ixlib=rb-4.1.0&q=80&w=1080' },
-        message: 'Maybe I can play for you sometime?',
-        time: '2h ago',
-        href: '/chat/user-2'
-    }
-]
+type NotificationType = 'welcome' | 'match' | 'message';
+
+type Notification = {
+    id: string;
+    type: NotificationType;
+    user: Partial<User>;
+    message?: string;
+    time: string;
+    href: string;
+    timestamp: Date;
+};
+
+const welcomeNotification: Notification = {
+    id: 'welcome',
+    type: 'welcome',
+    user: { name: 'LinkUp9ja' },
+    message: 'Welcome to LinkUp9ja! Check out our community rules.',
+    time: 'Just now',
+    href: '/welcome',
+    timestamp: new Date(),
+}
 
 export function AppHeader() {
+  const { user: currentUser } = useUser();
+  const firestore = useFirestore();
+
+  const conversationsQuery = useMemo(() => {
+    if (!firestore || !currentUser) return null;
+    return query(
+      collection(firestore, 'conversations'),
+      where('participants', 'array-contains', currentUser.uid)
+    );
+  }, [firestore, currentUser]);
+
+  const { data: conversations } = useCollection<Conversation>(conversationsQuery);
+
+  const notifications: Notification[] = useMemo(() => {
+    if (!conversations || !currentUser) return [welcomeNotification];
+
+    const matchNotifications = conversations.map((convo) => {
+        const participantId = convo.participants.find(p => p !== currentUser.uid) || '';
+        const participant = convo.participantDetails[participantId];
+        const convoTimestamp = convo.createdAt?.seconds ? new Date(convo.createdAt.seconds * 1000) : new Date();
+        return {
+            id: `match-${convo.id}`,
+            type: 'match' as NotificationType,
+            user: { id: participant.id, name: participant.name, photos: participant.photos },
+            time: formatDistanceToNow(convoTimestamp, { addSuffix: true }),
+            href: `/chat/${participant.id}`,
+            timestamp: convoTimestamp
+        }
+    });
+
+    const messageNotifications = conversations.filter(c => c.lastMessage && c.lastMessage.senderId !== currentUser.uid).map((convo) => {
+        const participantId = convo.participants.find(p => p !== currentUser.uid) || '';
+        const participant = convo.participantDetails[participantId];
+        const lastMessageTimestamp = convo.lastMessage.timestamp?.seconds ? new Date(convo.lastMessage.timestamp.seconds * 1000) : new Date();
+
+        return {
+            id: `msg-${convo.id}`,
+            type: 'message' as NotificationType,
+            user: { id: participant.id, name: participant.name, photos: participant.photos },
+            message: convo.lastMessage.text,
+            time: formatDistanceToNow(lastMessageTimestamp, { addSuffix: true }),
+            href: `/chat/${participant.id}`,
+            timestamp: lastMessageTimestamp,
+        }
+    });
+
+    const allNotifications = [...matchNotifications, ...messageNotifications]
+      .sort((a, b) => b.timestamp.getTime() - a.timestamp.getTime());
+      
+    // Deduplicate, keeping the most recent (e.g., show message notif over match notif for same user)
+    const uniqueNotifications = allNotifications.reduce((acc, current) => {
+        const existing = acc.find(item => item.user.id === current.user.id);
+        if (!existing) {
+            acc.push(current);
+        }
+        return acc;
+    }, [] as Notification[]);
+
+    return [welcomeNotification, ...uniqueNotifications];
+  }, [conversations, currentUser]);
+
+
   return (
     <header className="sticky top-0 z-30 flex h-16 items-center gap-4 border-b bg-background/70 px-4 backdrop-blur-xl sm:px-6">
       <div className="flex items-center gap-2 md:hidden">
@@ -60,7 +124,7 @@ export function AppHeader() {
                 <Button variant="ghost" size="icon" className="rounded-full relative text-foreground">
                     <Bell className="h-5 w-5"/>
                     <span className="sr-only">Notifications</span>
-                    {notifications.length > 0 && (
+                    {notifications.length > 1 && ( // More than just welcome
                       <span className="absolute top-0 right-0 block h-2 w-2 rounded-full bg-primary ring-2 ring-background" />
                     )}
                 </Button>
@@ -75,7 +139,7 @@ export function AppHeader() {
                                 <div className="flex items-start gap-3">
                                     <div className="relative">
                                         <Avatar className="h-9 w-9">
-                                            {notif.user.image ? <AvatarImage src={notif.user.image} alt={notif.user.name} /> : <AvatarFallback><Sparkles className="h-5 w-5 text-primary"/></AvatarFallback>}
+                                            {notif.user.photos?.[0] ? <AvatarImage src={notif.user.photos[0]} alt={notif.user.name} /> : <AvatarFallback><Sparkles className="h-5 w-5 text-primary"/></AvatarFallback>}
                                         </Avatar>
                                         <div className="absolute -bottom-1 -right-1 p-0.5 bg-background rounded-full">
                                             {notif.type === 'match' && <Heart className="h-4 w-4 text-primary fill-primary" />}
