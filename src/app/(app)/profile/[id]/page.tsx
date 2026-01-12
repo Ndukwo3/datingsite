@@ -6,7 +6,7 @@ import Image from 'next/image';
 import { Card } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
-import { BadgeCheck, Heart, MapPin, X, Star, Briefcase, GraduationCap, Instagram, Share2, Flag, ArrowLeft, Loader2, User as UserIcon } from 'lucide-react';
+import { BadgeCheck, Heart, MapPin, X, Star, Briefcase, GraduationCap, Instagram, Share2, Flag, ArrowLeft, Loader2, User as UserIcon, Ruler, HeartHandshake, Dumbbell, GlassWater, Cigarette } from 'lucide-react';
 import Link from 'next/link';
 import { useDoc, useFirestore } from '@/firebase';
 import { doc } from 'firebase/firestore';
@@ -25,6 +25,18 @@ function SpotifyIcon(props: React.SVGProps<SVGSVGElement>) {
         </svg>
     );
 }
+
+const DetailItem = ({ icon: Icon, text }: { icon: React.ElementType, text: string | undefined | null }) => {
+    if (!text) return null;
+    return (
+        <Card className='p-4 bg-muted/50'>
+            <div className='flex items-center gap-3'>
+                <div className='bg-primary/20 text-primary p-2 rounded-lg'><Icon /></div>
+                <span>{text}</span>
+            </div>
+        </Card>
+    );
+};
 
 export default function UserProfilePage() {
   const params = useParams();
@@ -90,18 +102,13 @@ export default function UserProfilePage() {
         <div className="space-y-3">
             <h2 className="text-xl font-semibold font-headline">Basics</h2>
             <div className='grid grid-cols-1 sm:grid-cols-2 gap-4'>
-                <Card className='p-4 bg-muted/50'>
-                    <div className='flex items-center gap-3'>
-                        <div className='bg-primary/20 text-primary p-2 rounded-lg'><Briefcase/></div>
-                        <span>{user.job}</span>
-                    </div>
-                </Card>
-                 <Card className='p-4 bg-muted/50'>
-                    <div className='flex items-center gap-3'>
-                        <div className='bg-primary/20 text-primary p-2 rounded-lg'><GraduationCap/></div>
-                        <span>{user.education}</span>
-                    </div>
-                </Card>
+                <DetailItem icon={Briefcase} text={user.job} />
+                <DetailItem icon={GraduationCap} text={user.education} />
+                <DetailItem icon={Ruler} text={user.height} />
+                <DetailItem icon={HeartHandshake} text={user.relationshipGoal} />
+                <DetailItem icon={Dumbbell} text={user.exercise} />
+                <DetailItem icon={GlassWater} text={user.drinking} />
+                <DetailItem icon={Cigarette} text={user.smoking} />
             </div>
         </div>
 

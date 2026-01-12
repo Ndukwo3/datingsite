@@ -4,7 +4,7 @@
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button, buttonVariants } from '@/components/ui/button';
 import Image from 'next/image';
-import { Briefcase, ChevronRight, Crown, Edit, Eye, GraduationCap, HelpCircle, KeyRound, Loader2, MapPin, Bell, ShieldCheck, Trash2, Upload, User as UserIcon, X, Star } from 'lucide-react';
+import { Briefcase, ChevronRight, Crown, Edit, Eye, GraduationCap, HelpCircle, KeyRound, Loader2, MapPin, Bell, ShieldCheck, Trash2, Upload, User as UserIcon, X, Star, Ruler, HeartHandshake, Dumbbell, GlassWater, Cigarette } from 'lucide-react';
 import Link from 'next/link';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { Badge } from '@/components/ui/badge';
@@ -287,7 +287,7 @@ export default function ProfilePage() {
                 <Link href="/profile/edit"><Edit className="h-4 w-4" /></Link>
               </Button>
             </CardHeader>
-            <CardContent className="space-y-4">
+            <CardContent className="grid grid-cols-2 gap-4">
                 <div className="flex items-center gap-3 text-muted-foreground">
                     <Briefcase className="h-5 w-5 text-primary" />
                     <span>{currentUser.job}</span>
@@ -299,6 +299,26 @@ export default function ProfilePage() {
                 <div className="flex items-center gap-3 text-muted-foreground">
                     <MapPin className="h-5 w-5 text-primary" />
                     <span>{currentUser.location}</span>
+                </div>
+                 <div className="flex items-center gap-3 text-muted-foreground">
+                    <Ruler className="h-5 w-5 text-primary" />
+                    <span>{currentUser.height}</span>
+                </div>
+                 <div className="flex items-center gap-3 text-muted-foreground">
+                    <HeartHandshake className="h-5 w-5 text-primary" />
+                    <span>{currentUser.relationshipGoal}</span>
+                </div>
+                 <div className="flex items-center gap-3 text-muted-foreground">
+                    <Dumbbell className="h-5 w-5 text-primary" />
+                    <span>{currentUser.exercise}</span>
+                </div>
+                 <div className="flex items-center gap-3 text-muted-foreground">
+                    <GlassWater className="h-5 w-5 text-primary" />
+                    <span>{currentUser.drinking}</span>
+                </div>
+                 <div className="flex items-center gap-3 text-muted-foreground">
+                    <Cigarette className="h-5 w-5 text-primary" />
+                    <span>{currentUser.smoking}</span>
                 </div>
             </CardContent>
           </Card>
