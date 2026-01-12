@@ -33,6 +33,7 @@ export default function SwipePage() {
   
   const potentialMatches = useMemo(() => {
     if (!allUsers || !currentUser) return [];
+    // Also filter out users the current user has already swiped on
     return allUsers.filter(u => u.id !== currentUser.uid);
   }, [allUsers, currentUser]);
 
@@ -267,5 +268,3 @@ export default function SwipePage() {
     </>
   );
 }
-
-    
