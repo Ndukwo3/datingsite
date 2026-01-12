@@ -22,15 +22,19 @@ export default function SwipePage() {
 
   // Fetch users that are not the current user and have completed onboarding
   const usersQuery = useMemo(() => {
-    if (!firestore || !currentUser) return null;
+    if (!firestore) return null;
     return query(
-        collection(firestore, 'users'), 
-        where('id', '!=', currentUser.uid),
+        collection(firestore, 'users'),
         where('onboardingComplete', '==', true)
     );
-  }, [firestore, currentUser]);
+  }, [firestore]);
 
-  const { data: potentialMatches, loading } = useCollection<User>(usersQuery);
+  const { data: allUsers, loading } = useCollection<User>(usersQuery);
+  
+  const potentialMatches = useMemo(() => {
+    if (!allUsers || !currentUser) return [];
+    return allUsers.filter(u => u.id !== currentUser.uid);
+  }, [allUsers, currentUser]);
 
   const [currentIndex, setCurrentIndex] = useState(0);
   const [swipeDirection, setSwipeDirection] = useState<SwipeDirection | null>(null);
@@ -269,5 +273,3 @@ export default function SwipePage() {
     </>
   );
 }
-
-    
