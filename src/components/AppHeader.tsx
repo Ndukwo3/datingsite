@@ -57,7 +57,7 @@ export function AppHeader() {
       <div className="flex items-center gap-2">
         <DropdownMenu>
             <DropdownMenuTrigger asChild>
-                <Button variant="ghost" size="icon" className="rounded-full relative">
+                <Button variant="ghost" size="icon" className="rounded-full relative text-foreground">
                     <Bell className="h-5 w-5"/>
                     <span className="sr-only">Notifications</span>
                     {notifications.length > 0 && (
