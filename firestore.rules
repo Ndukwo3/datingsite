@@ -17,8 +17,8 @@ service cloud.firestore {
     // Authenticated users can query the list of users for discovery.
     // Individual users can only update their own profile.
     match /users/{userId} {
-      allow list: if isAuthenticated();
-      allow read, write: if isOwner(userId);
+      allow read, list: if isAuthenticated();
+      allow write: if isOwner(userId);
     }
 
     // Users can create swipes. To keep it simple, we are not restricting reads/updates for now.
