@@ -144,7 +144,7 @@ export function ChatInterface({ participant, conversationId, isNewMatch }: ChatI
      // Here you would add logic to actually report the user
   }
   
-  const showNewMatchUI = isNewMatch || (!loading && messages?.length === 0);
+  const showNewMatchUI = !isNewMatch && messages?.length === 0;
 
   return (
     <div className="flex h-[calc(100vh-8rem)] flex-col rounded-xl border bg-card">
@@ -224,10 +224,15 @@ export function ChatInterface({ participant, conversationId, isNewMatch }: ChatI
       <ScrollArea className="flex-1" ref={scrollAreaRef}>
         <div className="p-6 space-y-6">
             {loading && !isNewMatch && <div className="flex justify-center"><Loader2 className="h-6 w-6 animate-spin" /></div>}
+            {isNewMatch && messages?.length === 0 && (
+                <div className='text-center my-8'>
+                    <p className='text-muted-foreground'>Break the ice with a clever opening line.</p>
+                </div>
+            )}
             {showNewMatchUI && (
                 <div className='text-center my-8'>
                     <h3 className='font-headline text-lg font-semibold'>It's a Match!</h3>
-                    <p className='text-muted-foreground'>Break the ice with a clever opening line.</p>
+                    <p className='text-muted-foreground'>You and {participantFirstName} liked each other. Send a message!</p>
                 </div>
             )}
             {messages?.map((msg) => {
