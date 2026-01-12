@@ -28,7 +28,7 @@ service cloud.firestore {
       // A user can list/read conversations they are a participant in.
       allow list, update: if isParticipant(conversationId);
       // A user can create a conversation if they are one of the participants.
-      allow create: if isParticipant(conversationId);
+      allow create: if request.auth != null && request.auth.uid in request.resource.data.participants;
 
       match /messages/{messageId} {
         allow read: if isParticipant(conversationId);
