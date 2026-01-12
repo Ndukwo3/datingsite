@@ -28,6 +28,15 @@ import {
   AlertDialogTitle,
   AlertDialogTrigger,
 } from "@/components/ui/alert-dialog"
+import {
+  Dialog,
+  DialogContent,
+  DialogDescription,
+  DialogHeader,
+  DialogTitle,
+  DialogTrigger,
+} from "@/components/ui/dialog"
+
 
 export default function ProfilePage() {
     const { user: authUser, loading: authLoading, userData, refreshUserData } = useUser();
@@ -360,13 +369,25 @@ export default function ProfilePage() {
                     <CardTitle>Quick Actions</CardTitle>
                 </CardHeader>
                 <CardContent className="space-y-2">
-                    <Link href="#" className="flex items-center justify-between rounded-md p-3 hover:bg-muted">
-                        <div className='flex items-center gap-3'>
-                            <ShieldCheck className="h-5 w-5 text-primary" />
-                            <span className='font-medium'>Get Verified</span>
-                        </div>
-                        <ChevronRight className="h-5 w-5 text-muted-foreground" />
-                    </Link>
+                    <Dialog>
+                        <DialogTrigger asChild>
+                            <button className="w-full flex items-center justify-between rounded-md p-3 hover:bg-muted">
+                                <div className='flex items-center gap-3'>
+                                    <ShieldCheck className="h-5 w-5 text-primary" />
+                                    <span className='font-medium'>Get Verified</span>
+                                </div>
+                                <ChevronRight className="h-5 w-5 text-muted-foreground" />
+                            </button>
+                        </DialogTrigger>
+                        <DialogContent className="sm:max-w-md text-center">
+                            <DialogHeader>
+                            <DialogTitle className="font-headline text-2xl">Coming Soon!</DialogTitle>
+                            <DialogDescription>
+                                We're working hard to bring you profile verification. This feature will help you build more trust in the community. Stay tuned!
+                            </DialogDescription>
+                            </DialogHeader>
+                        </DialogContent>
+                    </Dialog>
                      <Link href="#" className="flex items-center justify-between rounded-md p-3 hover:bg-muted">
                         <div className='flex items-center gap-3'>
                             <Bell className="h-5 w-5 text-primary" />
@@ -421,5 +442,7 @@ export default function ProfilePage() {
 
     
 
+
+    
 
     
