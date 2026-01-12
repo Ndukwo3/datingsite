@@ -16,7 +16,6 @@ import { isValidHttpUrl } from '@/lib/is-valid-url';
 import { useEffect, useState, useRef } from 'react';
 import { useToast } from '@/hooks/use-toast';
 import imageCompression from 'browser-image-compression';
-import { validateProfilePhoto } from '@/ai/flows/validate-profile-photo';
 import { cn } from '@/lib/utils';
 import {
   AlertDialog,
@@ -81,12 +80,6 @@ export default function ProfilePage() {
                 };
                 const compressedFile = await imageCompression(file, compressionOptions);
                 const photoDataUri = await fileToDataUri(compressedFile);
-    
-                const validation = await validateProfilePhoto({ photoDataUri });
-                if (!validation.isValid) {
-                    throw new Error(validation.reason || "A selected photo is not valid.");
-                }
-    
                 newPhotoBase64s.push(photoDataUri);
             }
     

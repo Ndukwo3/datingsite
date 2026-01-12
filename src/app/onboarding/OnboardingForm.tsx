@@ -28,7 +28,6 @@ import { nigerianStates, interestOptions, lifestyleOptions } from '@/lib/data';
 import { Slider } from '@/components/ui/slider';
 import Link from 'next/link';
 import { parse, isValid as isValidDate } from 'date-fns';
-import { validateProfilePhoto } from '@/ai/flows/validate-profile-photo';
 
 
 const step1Schema = z.object({
@@ -127,7 +126,7 @@ const fileToDataUri = (file: File): Promise<string> => {
 export function OnboardingForm() {
   const [currentStep, setCurrentStep] = useState(0);
   const [direction, setDirection] = useState(1);
-  const [validatingPhotoIndex, setValidatingPhotoIndex] = useState<number | null>(null);
+  const [uploadingIndex, setUploadingIndex] = useState<number | null>(null);
   const { toast } = useToast();
   const router = useRouter();
   const { user: authUser } = useUser();
@@ -281,7 +280,7 @@ export function OnboardingForm() {
       for (let i = 0; i < files.length; i++) {
         const file = files[i];
         const photoIndex = newlyAddedIndex + i;
-        setValidatingPhotoIndex(photoIndex);
+        setUploadingIndex(photoIndex);
 
         try {
             const compressionOptions = {
@@ -290,30 +289,18 @@ export function OnboardingForm() {
                 useWebWorker: true,
             }
             const compressedFile = await imageCompression(file, compressionOptions);
-
-            const photoDataUri = await fileToDataUri(compressedFile);
-            const result = await validateProfilePhoto({ photoDataUri });
             
-            if (!result.isValid) {
-                toast({
-                    title: "Invalid Photo",
-                    description: result.reason,
-                    variant: "destructive"
-                });
-                const updatedPhotos = getValues('photos').filter((_, idx) => idx !== photoIndex);
-                setValue('photos', updatedPhotos, { shouldValidate: true });
-            } else {
-                const updatedPhotos = getValues('photos');
-                updatedPhotos[photoIndex] = compressedFile;
-                setValue('photos', updatedPhotos, { shouldValidate: true });
-            }
+            const updatedPhotos = getValues('photos');
+            updatedPhotos[photoIndex] = compressedFile;
+            setValue('photos', updatedPhotos, { shouldValidate: true });
+
         } catch (error) {
-            console.error("Photo validation failed", error);
+            console.error("Photo processing failed", error);
             toast({ title: "Photo processing failed", description: "Please try a different image.", variant: 'destructive' });
             const updatedPhotos = getValues('photos').filter((_, idx) => idx !== photoIndex);
             setValue('photos', updatedPhotos, { shouldValidate: true });
         } finally {
-            setValidatingPhotoIndex(null);
+            setUploadingIndex(null);
         }
       }
     }
@@ -466,7 +453,7 @@ export function OnboardingForm() {
                  <div className="grid grid-cols-2 md:grid-cols-3 gap-4">
                     {Array.from({ length: 6 }).map((_, i) => (
                         <div key={i} className="aspect-square rounded-xl border-dashed border-2 flex items-center justify-center relative bg-muted/50">
-                        {validatingPhotoIndex === i && photos[i]?.size === 0 && (
+                        {uploadingIndex === i && photos[i]?.size === 0 && (
                             <div className="absolute inset-0 flex items-center justify-center bg-black/50 rounded-xl">
                                 <Loader2 className="w-8 h-8 animate-spin text-white"/>
                             </div>
@@ -478,7 +465,7 @@ export function OnboardingForm() {
                                 <Button size="icon" variant="destructive" className="absolute top-2 right-2 h-6 w-6 rounded-full" onClick={() => removePhoto(i)}><X className="h-4 w-4"/></Button>
                             </>
                         ) : (
-                             validatingPhotoIndex !== i && (
+                             uploadingIndex !== i && (
                                 <Label htmlFor="photo-upload" className="w-full h-full cursor-pointer flex flex-col items-center justify-center text-muted-foreground">
                                     <Camera className="w-8 h-8 mb-2"/>
                                     <span className='text-sm'>Add Photo</span>
