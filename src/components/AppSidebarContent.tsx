@@ -15,7 +15,7 @@ import { Logo } from "@/components/Logo";
 import { Flame, MessageSquareText, Users, CircleUser, Crown, LogOut, Settings, Rss } from "lucide-react";
 import { ThemeToggle } from "./ThemeToggle";
 import { getAuth, signOut } from "firebase/auth";
-import { useFirebaseApp } from "@/firebase";
+import { useFirebaseApp, useSidebar } from "@/firebase";
 import { useRouter } from "next/navigation";
 import { useToast } from "@/hooks/use-toast";
 
@@ -32,10 +32,13 @@ export function AppSidebarContent() {
   const firebaseApp = useFirebaseApp();
   const router = useRouter();
   const { toast } = useToast();
+  const { setOpenMobile } = useSidebar();
   
   const isActive = (href: string) => {
-    if (href === '/discover') return pathname === '/discover' || pathname === '/';
-    return pathname.startsWith(href);
+    if (href === '/discover') return pathname === '/discover';
+    if (href === '/chat') return pathname.startsWith('/chat');
+    if (href === '/profile') return pathname.startsWith('/profile');
+    return pathname === href;
   };
 
   const handleLogout = async () => {
@@ -44,6 +47,7 @@ export function AppSidebarContent() {
       try {
         await signOut(auth);
         toast({ title: "Logged out successfully." });
+        setOpenMobile(false);
         router.push('/login');
       } catch (error) {
         console.error("Logout error:", error);
@@ -51,6 +55,10 @@ export function AppSidebarContent() {
       }
     }
   };
+
+  const handleLinkClick = () => {
+    setOpenMobile(false);
+  }
 
   return (
     <>
@@ -65,6 +73,7 @@ export function AppSidebarContent() {
                 asChild
                 isActive={isActive(item.href)}
                 tooltip={{children: item.label}}
+                onClick={handleLinkClick}
               >
                 <Link href={item.href}>
                   <item.icon className="h-5 w-5" />
@@ -79,6 +88,7 @@ export function AppSidebarContent() {
                 className="mt-4 bg-yellow-400/20 text-yellow-600 hover:bg-yellow-400/30 dark:text-yellow-400 dark:bg-yellow-400/10 dark:hover:bg-yellow-400/20"
                 isActive={isActive('/premium')}
                 tooltip={{children: 'Upgrade to Premium'}}
+                 onClick={handleLinkClick}
               >
                 <Link href="/premium">
                   <Crown className="h-5 w-5" />
@@ -95,7 +105,7 @@ export function AppSidebarContent() {
         </div>
         <SidebarMenu>
             <SidebarMenuItem>
-                <SidebarMenuButton asChild tooltip={{children: 'Settings'}}>
+                <SidebarMenuButton asChild tooltip={{children: 'Settings'}} onClick={handleLinkClick}>
                     <Link href="#">
                         <Settings className="h-5 w-5" />
                         <span>Settings</span>
