@@ -23,9 +23,9 @@ const notifications = [
         id: 'welcome',
         type: 'welcome',
         user: { name: 'LinkUp9ja', image: '' },
-        message: 'Welcome! Complete your profile to get better matches.',
+        message: 'Welcome to LinkUp9ja! Check out our community rules.',
         time: 'Just now',
-        href: '/profile/edit'
+        href: '/welcome'
     },
     {
         id: '1',
