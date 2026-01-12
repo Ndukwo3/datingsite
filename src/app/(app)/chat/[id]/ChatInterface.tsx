@@ -18,7 +18,7 @@ import { Dialog, DialogTrigger, DialogContent, DialogHeader, DialogTitle, Dialog
 import { Label } from '@/components/ui/label';
 import { RadioGroup, RadioGroupItem } from '@/components/ui/radio-group';
 import { useUser, useFirestore, useCollection } from '@/firebase';
-import { collection, addDoc, serverTimestamp, query, orderBy, doc, updateDoc } from 'firebase/firestore';
+import { collection, addDoc, serverTimestamp, query, orderBy, doc, updateDoc, writeBatch } from 'firebase/firestore';
 import { errorEmitter } from '@/firebase/error-emitter';
 import { FirestorePermissionError } from '@/firebase/errors';
 import { isValidHttpUrl } from '@/lib/is-valid-url';
@@ -44,7 +44,7 @@ export function ChatInterface({ participant, conversationId }: ChatInterfaceProp
   const [isSending, setIsSending] = useState(false);
   const { toast } = useToast();
   const scrollAreaRef = useRef<HTMLDivElement>(null);
-  const { user: currentUser } = useUser();
+  const { user: currentUser, userData } = useUser();
   const firestore = useFirestore();
 
   const messagesQuery = firestore ? query(collection(firestore, 'conversations', conversationId, 'messages'), orderBy('timestamp', 'asc')) : null;
@@ -68,7 +68,7 @@ export function ChatInterface({ participant, conversationId }: ChatInterfaceProp
   }, [messages]);
 
   const sendMessage = async () => {
-    if (!newMessage.trim() || !currentUser || !firestore) return;
+    if (!newMessage.trim() || !currentUser || !firestore || !userData) return;
 
     setIsSending(true);
     
@@ -76,26 +76,38 @@ export function ChatInterface({ participant, conversationId }: ChatInterfaceProp
 
     const messageData = {
       senderId: currentUser.uid,
-      receiverId: participant.id,
       text: newMessage,
       timestamp: messageTimestamp,
     };
-
-    const messagesCol = collection(firestore, 'conversations', conversationId, 'messages');
+    
+    const conversationRef = doc(firestore, 'conversations', conversationId);
+    const messagesCol = collection(conversationRef, 'messages');
     
     try {
-        await addDoc(messagesCol, messageData);
+        const batch = writeBatch(firestore);
+
+        // Add new message
+        batch.set(doc(messagesCol), messageData);
         
-        // After sending message, update the conversation's lastMessage field
-        const conversationRef = doc(firestore, 'conversations', conversationId);
-        await updateDoc(conversationRef, {
+        // Update the conversation's lastMessage and ensure participants are set
+        batch.set(conversationRef, {
             lastMessage: {
                 text: newMessage,
                 timestamp: messageTimestamp,
-            }
-        });
+                senderId: currentUser.uid,
+            },
+            participants: [currentUser.uid, participant.id],
+            participantDetails: {
+              [currentUser.uid]: { ...userData, id: currentUser.uid },
+              [participant.id]: { ...participant, id: participant.id }
+            },
+            createdAt: serverTimestamp(),
+        }, { merge: true });
+
+        await batch.commit();
         
     } catch(error) {
+      console.error(error);
       const permissionError = new FirestorePermissionError({
         path: messagesCol.path,
         operation: 'create',
