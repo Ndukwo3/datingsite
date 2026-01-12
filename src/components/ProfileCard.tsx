@@ -109,19 +109,11 @@ export function ProfileCard({ user }: ProfileCardProps) {
           <div
             className="absolute left-0 top-0 h-full w-1/2 z-20 cursor-pointer"
             onClick={(e) => { e.stopPropagation(); paginate(-1); }}
-          >
-             <div className="absolute left-2 top-1/2 -translate-y-1/2 p-1 rounded-full bg-black/30 opacity-0 group-hover:opacity-100 transition-opacity">
-                <ChevronLeft className="w-6 h-6 text-white"/>
-             </div>
-          </div>
+          />
           <div
             className="absolute right-0 top-0 h-full w-1/2 z-20 cursor-pointer"
             onClick={(e) => { e.stopPropagation(); paginate(1); }}
-          >
-              <div className="absolute right-2 top-1/2 -translate-y-1/2 p-1 rounded-full bg-black/30 opacity-0 group-hover:opacity-100 transition-opacity">
-                <ChevronRight className="w-6 h-6 text-white"/>
-             </div>
-          </div>
+          />
         </>
       )}
 
