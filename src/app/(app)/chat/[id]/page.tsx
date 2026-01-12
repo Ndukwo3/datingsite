@@ -1,19 +1,28 @@
 
 'use client';
 
-import { notFound, useParams } from 'next/navigation';
+import { notFound, useParams, useRouter } from 'next/navigation';
 import { ChatInterface } from './ChatInterface';
 import { useDoc, useFirestore, useUser } from '@/firebase';
 import { doc } from 'firebase/firestore';
 import type { User, Conversation } from '@/lib/types';
 import { Loader2 } from 'lucide-react';
-import { useMemo } from 'react';
+import { useMemo, useEffect } from 'react';
 
 export default function ChatPage() {
   const params = useParams();
+  const router = useRouter();
   const firestore = useFirestore();
   const { user: currentUser } = useUser();
   const participantId = Array.isArray(params.id) ? params.id[0] : params.id;
+  
+  const isOwnProfile = currentUser?.uid === participantId;
+
+  useEffect(() => {
+    if (isOwnProfile) {
+        router.replace('/profile');
+    }
+  }, [isOwnProfile, router]);
   
   const conversationId = useMemo(() => {
     if (!currentUser || !participantId) return null;
@@ -31,7 +40,7 @@ export default function ChatPage() {
   const loading = participantLoading || conversationLoading;
   const isNewMatch = !conversation;
 
-  if (loading || !conversationId) {
+  if (loading || !conversationId || isOwnProfile) {
     return <div className="flex h-full items-center justify-center"><Loader2 className="h-8 w-8 animate-spin" /></div>;
   }
   

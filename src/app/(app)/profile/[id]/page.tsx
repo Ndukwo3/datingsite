@@ -2,7 +2,7 @@
 
 'use client';
 
-import { notFound, useParams } from 'next/navigation';
+import { notFound, useParams, useRouter } from 'next/navigation';
 import Image from 'next/image';
 import { Card } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
@@ -43,18 +43,28 @@ const DetailItem = ({ icon: Icon, text }: { icon: React.ElementType, text: strin
 
 export default function UserProfilePage() {
   const params = useParams();
+  const router = useRouter();
   const firestore = useFirestore();
   const userId = Array.isArray(params.id) ? params.id[0] : params.id;
   const { user: currentUser, userData: currentUserData } = useUser();
+
+  const isOwnProfile = currentUser?.uid === userId;
+
+  useEffect(() => {
+    if (isOwnProfile) {
+        router.replace('/profile');
+    }
+  }, [isOwnProfile, router]);
+
 
   const { data: user, loading: userLoading } = useDoc<User>(
     firestore && userId ? doc(firestore, 'users', userId) : null
   );
 
   const conversationId = useMemo(() => {
-    if (!currentUser || !userId) return null;
+    if (!currentUser || !userId || isOwnProfile) return null;
     return [currentUser.uid, userId].sort().join('_');
-  }, [currentUser, userId]);
+  }, [currentUser, userId, isOwnProfile]);
 
   const { data: conversation, loading: conversationLoading } = useDoc<Conversation>(
     firestore && conversationId ? doc(firestore, 'conversations', conversationId) : null
@@ -76,7 +86,7 @@ export default function UserProfilePage() {
   }, [currentUserData, user]);
 
 
-  if (loading) {
+  if (loading || isOwnProfile) {
     return <div className="flex h-full items-center justify-center"><Loader2 className="h-8 w-8 animate-spin" /></div>;
   }
 
@@ -207,4 +217,3 @@ export default function UserProfilePage() {
     </div>
   );
 }
-
