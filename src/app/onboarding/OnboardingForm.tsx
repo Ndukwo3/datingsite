@@ -53,7 +53,7 @@ const step2Schema = z.object({
 });
 
 const step3Schema = z.object({
-  photos: z.array(z.any()).min(3, "Please upload at least 3 photos.").max(6),
+  photos: z.array(z.string()).min(3, "Please upload at least 3 photos.").max(6),
 });
 
 const step4Schema = z.object({
@@ -219,13 +219,6 @@ export function OnboardingForm() {
     const userDocRef = doc(firestore, 'users', authUser.uid);
     const age = getAge(data.dob);
 
-    const photoBase64Promises = data.photos.map(photo => {
-      if (typeof photo === 'string') return Promise.resolve(photo);
-      return fileToDataUri(photo);
-    });
-
-    const photoBase64s = await Promise.all(photoBase64Promises);
-
     const finalUserData = {
         name: data.fullName,
         age: age,
@@ -234,7 +227,7 @@ export function OnboardingForm() {
         coordinates: data.coordinates,
         bio: data.bio,
         interests: data.interests,
-        photos: photoBase64s,
+        photos: data.photos,
         relationshipGoal: data.relationshipGoal,
         height: data.height,
         exercise: data.exercise,
@@ -526,14 +519,9 @@ export function OnboardingForm() {
                                 <div className="aspect-square rounded-xl border-2 flex items-center justify-center bg-muted/50 overflow-hidden">
                                 {photo ? (
                                      <img
-                                        src={typeof photo === 'string' ? photo : URL.createObjectURL(photo)}
+                                        src={photo}
                                         alt={`upload-preview-${i}`}
                                         className="w-full h-full object-cover"
-                                        onLoad={e => {
-                                            if (typeof photo !== 'string') {
-                                                URL.revokeObjectURL(e.currentTarget.src)
-                                            }
-                                        }}
                                     />
                                 ) : (
                                     <div className='text-center text-muted-foreground p-2'>
