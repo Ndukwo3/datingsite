@@ -759,11 +759,11 @@ export function OnboardingForm() {
                  </motion.div>
                  <h2 className="text-3xl font-headline font-bold mt-8">You're all set, {getValues('fullName').split(' ')[0]}!</h2>
                  <p className="text-muted-foreground max-w-md mx-auto">Welcome to LinkUp9ja! Get ready to start connecting with amazing people.</p>
-                 <Button onClick={() => navigateTo('/tutorial')} disabled={isSubmitting} size="lg" className="w-full bg-primary-gradient text-primary-foreground font-bold text-lg py-6">
+                 <Button onClick={() => navigateTo('/tutorial')} disabled={isSubmitting} size="lg" className="w-full bg-primary-gradient text-primary-foreground font-bold text-lg py-6 transition-transform duration-300 hover:scale-105">
                     {isSubmitting && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
                     Take a Quick Tour
                  </Button>
-                  <Button onClick={() => navigateTo('/discover')} disabled={isSubmitting} size="lg" variant="ghost" className="w-full font-bold">
+                  <Button onClick={() => navigateTo('/discover')} disabled={isSubmitting} size="lg" variant="ghost" className="w-full font-bold transition-transform duration-300 hover:scale-105">
                     Start Swiping 🔥
                   </Button>
               </div>
