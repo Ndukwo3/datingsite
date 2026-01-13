@@ -105,7 +105,7 @@ function NotificationItem({ conversation, currentUserId }: { conversation: Conve
 
 
 export function AppHeader() {
-  const { user: currentUser } = useUser();
+  const { user: currentUser, userData } = useUser();
   const firestore = useFirestore();
 
   const conversationsQuery = useMemo(() => {
@@ -126,6 +126,18 @@ export function AppHeader() {
         return timeB - timeA;
     });
   }, [conversations]);
+  
+  const showWelcomeNotification = useMemo(() => {
+    if (!userData || !userData.onboardingComplete) return false;
+    
+    // @ts-ignore
+    const createdAt = userData.createdAt?.toDate();
+    if (!createdAt) return false;
+    
+    const fiveMinutesAgo = new Date(Date.now() - 5 * 60 * 1000);
+    return createdAt > fiveMinutesAgo;
+
+  }, [userData]);
 
 
   return (
@@ -143,7 +155,7 @@ export function AppHeader() {
                 <Button variant="ghost" size="icon" className="rounded-full relative text-foreground">
                     <Bell className="h-5 w-5"/>
                     <span className="sr-only">Notifications</span>
-                    {conversations && conversations.length > 0 && (
+                    {(conversations && conversations.length > 0) || showWelcomeNotification && (
                       <span className="absolute top-0 right-0 block h-2 w-2 rounded-full bg-primary ring-2 ring-background" />
                     )}
                 </Button>
@@ -152,24 +164,26 @@ export function AppHeader() {
                 <DropdownMenuLabel>Notifications</DropdownMenuLabel>
                 <DropdownMenuSeparator />
                 <div className="flex flex-col gap-1">
-                    <DropdownMenuItem asChild className="p-2 cursor-pointer">
-                        <Link href={welcomeNotification.href}>
-                             <div className="flex items-start gap-3">
-                                <div className="relative">
-                                    <Avatar className="h-9 w-9">
-                                        <AvatarFallback><Sparkles className="h-5 w-5 text-primary"/></AvatarFallback>
-                                    </Avatar>
-                                     <div className="absolute -bottom-1 -right-1 p-0.5 bg-background rounded-full">
-                                        <Sparkles className="h-4 w-4 text-yellow-500 fill-yellow-500" />
+                    {showWelcomeNotification && (
+                         <DropdownMenuItem asChild className="p-2 cursor-pointer">
+                            <Link href={welcomeNotification.href}>
+                                <div className="flex items-start gap-3">
+                                    <div className="relative">
+                                        <Avatar className="h-9 w-9">
+                                            <AvatarFallback><Sparkles className="h-5 w-5 text-primary"/></AvatarFallback>
+                                        </Avatar>
+                                        <div className="absolute -bottom-1 -right-1 p-0.5 bg-background rounded-full">
+                                            <Sparkles className="h-4 w-4 text-yellow-500 fill-yellow-500" />
+                                        </div>
+                                    </div>
+                                    <div className="flex-1">
+                                        <p className="text-sm font-semibold">{welcomeNotification.message}</p>
+                                        <p className="text-xs text-muted-foreground">{welcomeNotification.time}</p>
                                     </div>
                                 </div>
-                                <div className="flex-1">
-                                    <p className="text-sm font-semibold">{welcomeNotification.message}</p>
-                                    <p className="text-xs text-muted-foreground">{welcomeNotification.time}</p>
-                                </div>
-                            </div>
-                        </Link>
-                    </DropdownMenuItem>
+                            </Link>
+                        </DropdownMenuItem>
+                    )}
 
                     {loading && <div className="flex justify-center p-4"><Loader2 className="h-5 w-5 animate-spin"/></div>}
 
@@ -177,7 +191,7 @@ export function AppHeader() {
                        <NotificationItem key={convo.id} conversation={convo} currentUserId={currentUser.uid} />
                     ))}
 
-                    {!loading && sortedConversations?.length === 0 && (
+                    {!loading && sortedConversations?.length === 0 && !showWelcomeNotification && (
                         <p className="p-4 text-sm text-center text-muted-foreground">No new notifications.</p>
                     )}
                 </div>

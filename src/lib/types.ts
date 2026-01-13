@@ -29,6 +29,7 @@ export type User = {
   smoking?: string;
   gender?: string;
   email?: string;
+  createdAt?: Timestamp;
 };
 
 export type Match = {
