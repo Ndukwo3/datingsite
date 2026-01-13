@@ -9,7 +9,7 @@ import { formatActivity } from '@/lib/utils';
 import { cn } from '@/lib/utils';
 import { Loader2, MapPin, User as UserIcon } from 'lucide-react';
 import type { User } from '@/lib/types';
-import { useCollection, useFirestore } from '@/firebase';
+import { useCollection, useFirestore, useUser } from '@/firebase';
 import { collection, query, where } from 'firebase/firestore';
 import { isValidHttpUrl } from '@/lib/is-valid-url';
 
@@ -27,6 +27,8 @@ const shuffleArray = (array: User[]) => {
 
 export default function FeedPage() {
   const firestore = useFirestore();
+  const { user: currentUser } = useUser();
+
   const usersQuery = useMemo(() => {
     if (!firestore) return null;
     return query(collection(firestore, 'users'), where('onboardingComplete', '==', true));
@@ -36,16 +38,17 @@ export default function FeedPage() {
   const [shuffledUsers, setShuffledUsers] = useState<User[]>([]);
 
   useEffect(() => {
-    if (users) {
-      const onlineUsers = users.filter(u => u.lastSeen === 'online');
-      const offlineUsers = users.filter(u => u.lastSeen !== 'online');
+    if (users && currentUser) {
+      const otherUsers = users.filter(u => u.id !== currentUser.uid);
+      const onlineUsers = otherUsers.filter(u => u.lastSeen === 'online');
+      const offlineUsers = otherUsers.filter(u => u.lastSeen !== 'online');
 
       const shuffledOnline = shuffleArray(onlineUsers);
       const shuffledOffline = shuffleArray(offlineUsers);
 
       setShuffledUsers([...shuffledOnline, ...shuffledOffline]);
     }
-  }, [users]);
+  }, [users, currentUser]);
   
   if (loading) {
     return <div className="flex h-full items-center justify-center"><Loader2 className="h-8 w-8 animate-spin" /></div>;
@@ -100,5 +103,3 @@ export default function FeedPage() {
     </div>
   );
 }
-
-    
