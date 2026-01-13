@@ -48,15 +48,17 @@ export default function UserProfilePage() {
   const userId = Array.isArray(params.id) ? params.id[0] : params.id;
   const { user: currentUser, userData: currentUserData, loading: authLoading } = useUser();
 
+  const isOwnProfile = currentUser?.uid === userId;
+
   useEffect(() => {
     // Redirect to the main profile page if the user is trying to view their own profile via an ID.
-    if (!authLoading && currentUser && currentUser.uid === userId) {
+    if (!authLoading && isOwnProfile) {
       router.replace('/profile');
     }
-  }, [userId, currentUser, authLoading, router]);
+  }, [userId, currentUser, authLoading, router, isOwnProfile]);
 
   const { data: user, loading: userLoading } = useDoc<User>(
-    firestore && userId ? doc(firestore, 'users', userId) : null
+    firestore && userId && !isOwnProfile ? doc(firestore, 'users', userId) : null
   );
 
   const conversationId = useMemo(() => {
@@ -69,7 +71,7 @@ export default function UserProfilePage() {
   );
 
   const hasMatched = !!conversation;
-  const loading = userLoading || conversationLoading || authLoading;
+  const loading = userLoading || authLoading || (isOwnProfile && !authLoading);
 
   const distance = useMemo(() => {
       if (currentUserData?.coordinates && user?.coordinates) {
@@ -88,9 +90,7 @@ export default function UserProfilePage() {
     return <div className="flex h-full items-center justify-center"><Loader2 className="h-8 w-8 animate-spin" /></div>;
   }
   
-  // After loading, if the user is viewing their own profile, they should have been redirected.
-  // If we are still here, and the user object is null, it means the profile doesn't exist.
-  if (!user || (currentUser && currentUser.uid === userId)) {
+  if (!user) {
     notFound();
   }
 
