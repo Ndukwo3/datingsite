@@ -10,11 +10,16 @@ import { Button } from '@/components/ui/button';
 import { BadgeCheck, Heart, MapPin, X, Star, Briefcase, GraduationCap, Instagram, Share2, Flag, ArrowLeft, Loader2, User as UserIcon, Ruler, HeartHandshake, Dumbbell, GlassWater, Cigarette, MessageSquare } from 'lucide-react';
 import Link from 'next/link';
 import { useDoc, useFirestore, useUser } from '@/firebase';
-import { doc } from 'firebase/firestore';
+import { doc, serverTimestamp, writeBatch, collection, addDoc, getDocs, where, query } from 'firebase/firestore';
 import type { Conversation, User } from '@/lib/types';
 import { isValidHttpUrl } from '@/lib/is-valid-url';
-import { useMemo, useEffect } from 'react';
+import { useMemo, useEffect, useState } from 'react';
 import { getDistanceFromLatLonInKm } from '@/lib/utils';
+import { useToast } from '@/hooks/use-toast';
+import { MatchNotification } from '@/components/MatchNotification';
+import { errorEmitter } from '@/firebase/error-emitter';
+import { FirestorePermissionError } from '@/firebase/errors';
+
 
 function SpotifyIcon(props: React.SVGProps<SVGSVGElement>) {
     return (
@@ -47,17 +52,18 @@ export default function UserProfilePage() {
   const firestore = useFirestore();
   const userId = Array.isArray(params.id) ? params.id[0] : params.id;
   const { user: currentUser, userData: currentUserData, loading: authLoading } = useUser();
+  const { toast } = useToast();
+  const [showMatch, setShowMatch] = useState(false);
 
   const isOwnProfile = currentUser?.uid === userId;
 
   useEffect(() => {
-    // Redirect to the main profile page if the user is trying to view their own profile via an ID.
     if (!authLoading && isOwnProfile) {
       router.replace('/profile');
     }
   }, [userId, currentUser, authLoading, router, isOwnProfile]);
 
-  const { data: user, loading: userLoading } = useDoc<User>(
+  const { data: user, loading: userLoading, refetch: refetchUser } = useDoc<User>(
     firestore && userId ? doc(firestore, 'users', userId) : null
   );
 
@@ -66,12 +72,72 @@ export default function UserProfilePage() {
     return [currentUser.uid, userId].sort().join('_');
   }, [currentUser, userId]);
 
-  const { data: conversation, loading: conversationLoading } = useDoc<Conversation>(
+  const { data: conversation, loading: conversationLoading, refetch: refetchConversation } = useDoc<Conversation>(
     firestore && conversationId ? doc(firestore, 'conversations', conversationId) : null
   );
+  
+  const handleLike = async (direction: 'right' | 'up') => {
+    if (!currentUser || !firestore || !user) return;
+
+    // 1. Record the swipe
+    const swipeData = {
+      swiperId: currentUser.uid,
+      swipedId: user.id,
+      direction: direction,
+      timestamp: serverTimestamp(),
+    };
+    addDoc(collection(firestore, 'swipes'), swipeData).catch(error => {
+        const permissionError = new FirestorePermissionError({
+            path: 'swipes',
+            operation: 'create',
+            requestResourceData: swipeData,
+        });
+        errorEmitter.emit('permission-error', permissionError);
+    });
+
+    toast({
+        title: direction === 'right' ? "Liked!" : "Super Liked!",
+        description: `You liked ${user.name.split(' ')[0]}.`,
+    });
+
+    // 2. Check for a match
+    const matchQuery = query(
+      collection(firestore, 'swipes'),
+      where('swiperId', '==', user.id),
+      where('swipedId', '==', currentUser.uid),
+      where('direction', 'in', ['right', 'up'])
+    );
+
+    const querySnapshot = await getDocs(matchQuery);
+    if (!querySnapshot.empty) {
+      // It's a match!
+      setShowMatch(true);
+
+      const convRef = doc(firestore, 'conversations', conversationId!);
+      const conversationData = {
+          participants: [currentUser.uid, user.id],
+          createdAt: serverTimestamp(),
+      };
+      
+      const batch = writeBatch(firestore);
+      batch.set(convRef, conversationData, { merge: true });
+      await batch.commit().catch(error => {
+        const permissionError = new FirestorePermissionError({
+            path: convRef.path,
+            operation: 'write',
+            requestResourceData: conversationData,
+        });
+        errorEmitter.emit('permission-error', permissionError);
+      });
+      
+      // Refetch conversation data to update UI
+      refetchConversation();
+    }
+  };
+
 
   const hasMatched = !!conversation;
-  const loading = userLoading || authLoading;
+  const loading = userLoading || authLoading || conversationLoading;
 
   const distance = useMemo(() => {
       if (currentUserData?.coordinates && user?.coordinates) {
@@ -98,6 +164,8 @@ export default function UserProfilePage() {
   const userImage = user.photos?.[0];
 
   return (
+    <>
+    {showMatch && <MatchNotification matchedUser={user} onKeepSwiping={() => setShowMatch(false)} />}
     <div className="relative flex h-full min-h-screen flex-col md:flex-row">
        <Button asChild variant="ghost" size="icon" className="absolute top-4 left-4 z-20 bg-black/50 text-white hover:bg-black/75 hover:text-white md:hidden">
           <Link href="/feed"><ArrowLeft /></Link>
@@ -203,10 +271,10 @@ export default function UserProfilePage() {
                     <Button variant="outline" size="icon" className="h-16 w-16 rounded-full border-2 border-yellow-500 text-yellow-500 shadow-lg hover:bg-yellow-500/10" aria-label="Dislike">
                         <X className="h-8 w-8" />
                     </Button>
-                    <Button size="icon" className="h-20 w-20 rounded-full bg-primary text-primary-foreground shadow-xl" aria-label="Like">
+                    <Button onClick={() => handleLike('right')} size="icon" className="h-20 w-20 rounded-full bg-primary text-primary-foreground shadow-xl" aria-label="Like">
                         <Heart className="h-10 w-10 fill-current" />
                     </Button>
-                    <Button size="icon" className="h-16 w-16 rounded-full bg-blue-500 text-white shadow-xl" aria-label="Super Like">
+                    <Button onClick={() => handleLike('up')} size="icon" className="h-16 w-16 rounded-full bg-blue-500 text-white shadow-xl" aria-label="Super Like">
                         <Star className="h-8 w-8 fill-current" />
                     </Button>
                     <Button variant="ghost" size="icon" className='text-muted-foreground h-16 w-16'><Flag/></Button>
@@ -216,5 +284,6 @@ export default function UserProfilePage() {
 
       </div>
     </div>
+    </>
   );
 }
