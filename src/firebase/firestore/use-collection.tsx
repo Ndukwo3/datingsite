@@ -67,13 +67,12 @@ export function useCollection<T = DocumentData>(
         setError(null);
       },
       (err) => {
-        console.error("Firestore onSnapshot error:", err);
         const permissionError = new FirestorePermissionError({
           path: getPathFromQuery(query),
           operation: 'list'
         });
         errorEmitter.emit('permission-error', permissionError);
-        setError(err);
+        setError(permissionError);
         setLoading(false);
       }
     );
