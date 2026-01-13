@@ -53,8 +53,14 @@ function NotificationItem({ conversation, currentUserId }: { conversation: Conve
     );
 
     const isNewMessage = conversation.lastMessage && conversation.lastMessage.senderId === participantId;
-    // Don't show a notification for a new message, as the chat icon handles it.
     if (isNewMessage) {
+        return null;
+    }
+
+    const isNewMatch = conversation.createdAt && (new Date().getTime() - conversation.createdAt.toDate().getTime()) < 5 * 60 * 1000;
+    const hasMessages = !!conversation.lastMessage;
+
+    if (!isNewMatch || hasMessages) {
         return null;
     }
 
@@ -151,7 +157,10 @@ export function AppHeader() {
     const newUnreadMessages = conversations.some(convo => convo.lastMessage?.senderId !== currentUser.uid);
     setHasUnreadMessages(newUnreadMessages);
 
-    const newUnreadNotifications = conversations.some(convo => !convo.lastMessage || convo.lastMessage.senderId === currentUser.uid) || showWelcomeNotification;
+    const newUnreadNotifications = conversations.some(convo => {
+        const isNewMatch = convo.createdAt && (new Date().getTime() - convo.createdAt.toDate().getTime()) < 5 * 60 * 1000;
+        return isNewMatch && !convo.lastMessage;
+    }) || showWelcomeNotification;
     setHasUnreadNotifications(newUnreadNotifications);
 
   }, [conversations, currentUser, showWelcomeNotification]);
