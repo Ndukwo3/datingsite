@@ -11,16 +11,15 @@ import { useMemo } from 'react';
 
 export default function ChatPage() {
   const params = useParams();
-  const router = useRouter();
   const firestore = useFirestore();
   const { user: currentUser } = useUser();
   const participantId = Array.isArray(params.id) ? params.id[0] : params.id;
   
   const isOwnProfile = currentUser?.uid === participantId;
   
-  // This check is valid and should stay to prevent users from chatting with themselves.
+  // A user should not be able to chat with themselves.
   if (isOwnProfile) {
-    router.replace('/profile');
+    notFound();
   }
   
   const conversationId = useMemo(() => {
@@ -41,7 +40,7 @@ export default function ChatPage() {
   // A new match is determined by the absence of a conversation document.
   const isNewMatch = !loading && !conversation;
 
-  if (loading || !conversationId || isOwnProfile) {
+  if (loading || !conversationId) {
     return <div className="flex h-full items-center justify-center"><Loader2 className="h-8 w-8 animate-spin" /></div>;
   }
   
@@ -57,4 +56,3 @@ export default function ChatPage() {
     />
   );
 }
-
