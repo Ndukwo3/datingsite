@@ -10,10 +10,10 @@ import { Button } from '@/components/ui/button';
 import { BadgeCheck, Heart, MapPin, X, Star, Briefcase, GraduationCap, Instagram, Share2, Flag, ArrowLeft, Loader2, User as UserIcon, Ruler, HeartHandshake, Dumbbell, GlassWater, Cigarette, MessageSquare } from 'lucide-react';
 import Link from 'next/link';
 import { useDoc, useFirestore, useUser } from '@/firebase';
-import { doc, collection } from 'firebase/firestore';
+import { doc } from 'firebase/firestore';
 import type { Conversation, User } from '@/lib/types';
 import { isValidHttpUrl } from '@/lib/is-valid-url';
-import { useEffect, useState, useMemo } from 'react';
+import { useEffect, useMemo } from 'react';
 import { getDistanceFromLatLonInKm } from '@/lib/utils';
 
 function SpotifyIcon(props: React.SVGProps<SVGSVGElement>) {
@@ -217,3 +217,5 @@ export default function UserProfilePage() {
     </div>
   );
 }
+
+    
