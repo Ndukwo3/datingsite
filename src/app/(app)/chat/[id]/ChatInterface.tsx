@@ -87,38 +87,39 @@ export function ChatInterface({ participant, conversationId, isNewMatch }: ChatI
     const conversationRef = doc(firestore, 'conversations', conversationId);
     const messagesCol = collection(conversationRef, 'messages');
     
-    try {
-        const batch = writeBatch(firestore);
+    const batch = writeBatch(firestore);
 
-        // Add new message
-        const newMessageRef = doc(messagesCol);
-        batch.set(newMessageRef, messageData);
-        
-        // Update the conversation's lastMessage and ensure participants are set
-        batch.set(conversationRef, {
-            lastMessage: {
-                text: newMessage,
-                timestamp: messageTimestamp,
-                senderId: currentUser.uid,
-            },
-            participants: [currentUser.uid, participant.id],
-            createdAt: serverTimestamp(),
-        }, { merge: true });
+    // Add new message
+    const newMessageRef = doc(messagesCol);
+    batch.set(newMessageRef, messageData);
+    
+    const conversationData = {
+        lastMessage: {
+            text: newMessage,
+            timestamp: messageTimestamp,
+            senderId: currentUser.uid,
+        },
+        participants: [currentUser.uid, participant.id],
+        createdAt: serverTimestamp(),
+    };
+    
+    // Update the conversation's lastMessage and ensure participants are set
+    batch.set(conversationRef, conversationData, { merge: true });
 
-        await batch.commit();
+    batch.commit()
+    .then(() => {
         setNewMessage('');
-        
-    } catch(error) {
-      console.error(error);
-      const permissionError = new FirestorePermissionError({
-        path: messagesCol.path,
-        operation: 'create',
-        requestResourceData: messageData,
-      });
-      errorEmitter.emit('permission-error', permissionError);
-    } finally {
+    })
+    .catch((error) => {
+        const permissionError = new FirestorePermissionError({
+            path: conversationRef.path,
+            operation: 'write',
+            requestResourceData: { ...messageData, ...conversationData },
+        });
+        errorEmitter.emit('permission-error', permissionError);
+    }).finally(() => {
       setIsSending(false);
-    }
+    });
   };
 
   const handleFormSubmit = async (e: React.FormEvent) => {
