@@ -61,6 +61,7 @@ export default function SwipePage() {
       
       const swipeCollectionRef = collection(firestore, 'swipes');
       const swipeDocRef = doc(swipeCollectionRef);
+
       setDoc(swipeDocRef, swipeData).catch(error => {
         const permissionError = new FirestorePermissionError({
             path: swipeDocRef.path,
