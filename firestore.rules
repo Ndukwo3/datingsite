@@ -1,3 +1,4 @@
+
 rules_version = '2';
 service cloud.firestore {
   match /databases/{database}/documents {
@@ -22,6 +23,8 @@ service cloud.firestore {
 
     match /swipes/{swipeId} {
       allow create: if request.auth != null && request.resource.data.swiperId == request.auth.uid;
+      // Allow a user to read a swipe if they were the one swiped on.
+      allow read: if request.auth != null && resource.data.swipedId == request.auth.uid;
     }
     
     match /posts/{postId} {
