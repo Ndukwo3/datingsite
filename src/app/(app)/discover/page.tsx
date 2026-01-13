@@ -9,7 +9,7 @@ import { doc, setDoc, collection, getDocs, writeBatch, serverTimestamp, where, q
 import { Button } from '@/components/ui/button';
 import { ProfileCard } from '@/components/ProfileCard';
 import { MatchNotification } from '@/components/MatchNotification';
-import type { User } from '@/lib/types';
+import type { User, Conversation } from '@/lib/types';
 import { useUser, useFirestore, useCollection } from '@/firebase';
 import { errorEmitter } from '@/firebase/error-emitter';
 import { FirestorePermissionError } from '@/firebase/errors';
@@ -29,13 +29,27 @@ export default function SwipePage() {
     );
   }, [firestore]);
 
-  const { data: allUsers, loading } = useCollection<User>(usersQuery);
+  const { data: allUsers, loading: usersLoading } = useCollection<User>(usersQuery);
+
+  // Fetch existing conversations to filter out matched users
+  const conversationsQuery = useMemo(() => {
+    if (!firestore || !currentUser) return null;
+    return query(
+        collection(firestore, 'conversations'),
+        where('participants', 'array-contains', currentUser.uid)
+    );
+  }, [firestore, currentUser]);
+
+  const { data: conversations, loading: conversationsLoading } = useCollection<Conversation>(conversationsQuery);
   
   const potentialMatches = useMemo(() => {
-    if (!allUsers || !currentUser) return [];
-    // Also filter out users the current user has already swiped on
-    return allUsers.filter(u => u.id !== currentUser.uid);
-  }, [allUsers, currentUser]);
+    if (!allUsers || !currentUser || !conversations) return [];
+
+    const matchedUserIds = conversations.flatMap(c => c.participants);
+    
+    // Also filter out users the current user has already swiped on or matched with
+    return allUsers.filter(u => u.id !== currentUser.uid && !matchedUserIds.includes(u.id));
+  }, [allUsers, currentUser, conversations]);
 
   const [currentIndex, setCurrentIndex] = useState(0);
   const [swipeDirection, setSwipeDirection] = useState<SwipeDirection | null>(null);
@@ -162,6 +176,7 @@ export default function SwipePage() {
   }
   
   const currentProfile = potentialMatches?.[currentIndex];
+  const loading = usersLoading || conversationsLoading;
   
   const variants = {
     initial: { scale: 0.9, opacity: 0, rotate: 5 },
