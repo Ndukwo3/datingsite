@@ -1,7 +1,7 @@
 
 "use client";
 
-import { useMemo, useState } from "react";
+import { useMemo, useState, useEffect } from "react";
 import { SidebarTrigger } from "@/components/ui/sidebar";
 import { UserNav } from "@/components/UserNav";
 import { Button } from "./ui/button";
@@ -107,6 +107,9 @@ export function AppHeader() {
   const { user: currentUser, userData } = useUser();
   const firestore = useFirestore();
 
+  const [hasUnreadNotifications, setHasUnreadNotifications] = useState(false);
+  const [hasUnreadMessages, setHasUnreadMessages] = useState(false);
+
   const conversationsQuery = useMemo(() => {
     if (!firestore || !currentUser) return null;
     return query(
@@ -138,19 +141,28 @@ export function AppHeader() {
 
   }, [userData]);
 
-  const hasUnreadMessages = useMemo(() => {
-    if (!conversations || !currentUser) return false;
-    return conversations.some(convo => convo.lastMessage?.senderId !== currentUser.uid);
-  }, [conversations, currentUser]);
-  
-  const hasUnreadNotifications = useMemo(() => {
-      if (showWelcomeNotification) return true;
-      if (!conversations || !currentUser) return false;
-      // A notification exists if there's a conversation where the last action was NOT a message from the other person.
-      // This logic is implicitly handled by NotificationItem returning null, but we need to calculate the dot here.
-      // We'll consider any conversation without a last message, or where the current user sent the last message, as a "match" notification.
-      return conversations.some(convo => !convo.lastMessage || convo.lastMessage.senderId === currentUser.uid);
+  useEffect(() => {
+    if (!conversations || !currentUser) {
+        setHasUnreadMessages(false);
+        setHasUnreadNotifications(false);
+        return;
+    };
+
+    const newUnreadMessages = conversations.some(convo => convo.lastMessage?.senderId !== currentUser.uid);
+    setHasUnreadMessages(newUnreadMessages);
+
+    const newUnreadNotifications = conversations.some(convo => !convo.lastMessage || convo.lastMessage.senderId === currentUser.uid) || showWelcomeNotification;
+    setHasUnreadNotifications(newUnreadNotifications);
+
   }, [conversations, currentUser, showWelcomeNotification]);
+
+
+  const handleNotificationOpenChange = (open: boolean) => {
+    if (open && hasUnreadNotifications) {
+      // When the menu is opened, mark notifications as read
+      setHasUnreadNotifications(false);
+    }
+  }
 
 
   return (
@@ -172,7 +184,7 @@ export function AppHeader() {
                 )}
             </Link>
         </Button>
-        <DropdownMenu>
+        <DropdownMenu onOpenChange={handleNotificationOpenChange}>
             <DropdownMenuTrigger asChild>
                 <Button variant="ghost" size="icon" className="rounded-full relative text-foreground">
                     <Bell className="h-5 w-5"/>
@@ -213,7 +225,7 @@ export function AppHeader() {
                        <NotificationItem key={convo.id} conversation={convo} currentUserId={currentUser.uid} />
                     ))}
 
-                    {!loading && !hasUnreadNotifications && (
+                    {!loading && !hasUnreadNotifications && !sortedConversations?.some(c => !c.lastMessage || c.lastMessage.senderId === currentUser?.uid) && (
                         <p className="p-4 text-sm text-center text-muted-foreground">No new notifications.</p>
                     )}
                 </div>
