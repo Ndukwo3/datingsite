@@ -46,7 +46,7 @@ function ConversationItem({ conversation, currentUserId }: { conversation: Conve
 
   return (
     <Link
-      href={`/chat/${participant.id}`}
+      href={`/profile/${participant.id}`}
       key={conversation.id}
       className="block rounded-lg p-4 transition-colors hover:bg-muted"
     >
