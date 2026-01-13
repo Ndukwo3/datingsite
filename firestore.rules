@@ -25,6 +25,8 @@ service cloud.firestore {
     match /swipes/{swipeId} {
       // A user can create a swipe if they are the one swiping.
       allow create: if request.auth != null && request.resource.data.swiperId == request.auth.uid;
+      // A user can query the swipes collection. The get rule below still protects individual documents.
+      allow list: if request.auth != null;
       // A user can read a swipe document if they were the one swiped on or the one who swiped.
       allow get: if request.auth != null && (resource.data.swipedId == request.auth.uid || resource.data.swiperId == request.auth.uid);
     }

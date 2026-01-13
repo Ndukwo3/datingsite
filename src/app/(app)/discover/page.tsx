@@ -85,13 +85,17 @@ export default function SwipePage() {
       });
 
       if (direction === 'right' || direction === 'up') {
-          // Check for a match by looking for their swipe on you
-          const theirSwipeId = [swipedUser.id, currentUser.uid].sort().join('_');
-          const theirSwipeRef = doc(firestore, 'swipes', theirSwipeId);
+          // Check for a match by querying for their swipe on you
+          const matchQuery = query(
+            collection(firestore, 'swipes'),
+            where('swiperId', '==', swipedUser.id),
+            where('swipedId', '==', currentUser.uid),
+            where('direction', 'in', ['right', 'up'])
+          );
           
           try {
-              const theirSwipeDoc = await getDoc(theirSwipeRef);
-              if (theirSwipeDoc.exists() && (theirSwipeDoc.data().direction === 'right' || theirSwipeDoc.data().direction === 'up')) {
+              const querySnapshot = await getDocs(matchQuery);
+              if (!querySnapshot.empty) {
                   // It's a match!
                   setLastSwipedUser(swipedUser);
                   setShowMatch(true);
@@ -118,8 +122,8 @@ export default function SwipePage() {
               }
             } catch(e) {
                 const permissionError = new FirestorePermissionError({
-                    path: theirSwipeRef.path,
-                    operation: 'get',
+                    path: 'swipes',
+                    operation: 'list',
                 });
                 errorEmitter.emit('permission-error', permissionError);
             }
