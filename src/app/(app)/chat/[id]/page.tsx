@@ -7,7 +7,7 @@ import { useDoc, useFirestore, useUser } from '@/firebase';
 import { doc } from 'firebase/firestore';
 import type { User, Conversation } from '@/lib/types';
 import { Loader2 } from 'lucide-react';
-import { useMemo, useEffect } from 'react';
+import { useMemo } from 'react';
 
 export default function ChatPage() {
   const params = useParams();
@@ -17,12 +17,11 @@ export default function ChatPage() {
   const participantId = Array.isArray(params.id) ? params.id[0] : params.id;
   
   const isOwnProfile = currentUser?.uid === participantId;
-
-  useEffect(() => {
-    if (isOwnProfile) {
-        router.replace('/profile');
-    }
-  }, [isOwnProfile, router]);
+  
+  // This check is valid and should stay to prevent users from chatting with themselves.
+  if (isOwnProfile) {
+    router.replace('/profile');
+  }
   
   const conversationId = useMemo(() => {
     if (!currentUser || !participantId) return null;
@@ -38,7 +37,9 @@ export default function ChatPage() {
   );
 
   const loading = participantLoading || conversationLoading;
-  const isNewMatch = !conversation;
+  
+  // A new match is determined by the absence of a conversation document.
+  const isNewMatch = !loading && !conversation;
 
   if (loading || !conversationId || isOwnProfile) {
     return <div className="flex h-full items-center justify-center"><Loader2 className="h-8 w-8 animate-spin" /></div>;
@@ -56,3 +57,4 @@ export default function ChatPage() {
     />
   );
 }
+

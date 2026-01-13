@@ -1,7 +1,7 @@
 
 "use client";
 
-import { useState, useRef, useEffect } from 'react';
+import { useState, useRef, useEffect, useMemo } from 'react';
 import Link from 'next/link';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { Button, buttonVariants } from '@/components/ui/button';
@@ -48,9 +48,12 @@ export function ChatInterface({ participant, conversationId, isNewMatch }: ChatI
   const { user: currentUser, userData } = useUser();
   const firestore = useFirestore();
 
-  const messagesQuery = (firestore && !isNewMatch)
-    ? query(collection(firestore, 'conversations', conversationId, 'messages'), orderBy('timestamp', 'asc')) 
-    : null;
+  const messagesQuery = useMemo(() => 
+    (firestore && conversationId && !isNewMatch)
+      ? query(collection(firestore, 'conversations', conversationId, 'messages'), orderBy('timestamp', 'asc')) 
+      : null,
+    [firestore, conversationId, isNewMatch]
+  );
   
   const { data: messages, loading } = useCollection<Message>(messagesQuery);
   
@@ -220,7 +223,6 @@ export function ChatInterface({ participant, conversationId, isNewMatch }: ChatI
       
       <ScrollArea className="flex-1" ref={scrollAreaRef}>
         <div className="p-6 space-y-6">
-            {loading && isNewMatch && <div className="flex justify-center"><Loader2 className="h-6 w-6 animate-spin" /></div>}
             
             {showNewMatchUI && (
                 <div className='text-center my-8'>
@@ -229,7 +231,7 @@ export function ChatInterface({ participant, conversationId, isNewMatch }: ChatI
                 </div>
             )}
             
-            {loading && !isNewMatch && <div className="flex justify-center"><Loader2 className="h-6 w-6 animate-spin" /></div>}
+            {loading && <div className="flex justify-center"><Loader2 className="h-6 w-6 animate-spin" /></div>}
 
             {messages?.map((msg) => {
             const isCurrentUser = msg.senderId === currentUser?.uid;
