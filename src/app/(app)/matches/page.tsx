@@ -40,7 +40,7 @@ function MatchCard({ conversation, currentUserId }: { conversation: Conversation
   const isNewMatch = matchTimestamp > twentyFourHoursAgo;
 
   return (
-    <Link href={`/chat/${participant.id}`} key={conversation.id} className="group">
+    <Link href={`/profile/${participant.id}`} key={conversation.id} className="group">
       <Card className="overflow-hidden transition-all duration-300 hover:scale-105 hover:shadow-lg border-transparent hover:border-primary">
         <CardContent className="relative aspect-square p-0">
           {isValidHttpUrl(userImage) ? (
