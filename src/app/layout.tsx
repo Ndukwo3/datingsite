@@ -8,6 +8,22 @@ import { FirebaseClientProvider } from '@/firebase/client-provider';
 export const metadata: Metadata = {
   title: 'LinkUp9ja',
   description: 'Find your connection in Nigeria.',
+  openGraph: {
+    title: 'LinkUp9ja',
+    description: 'Find your connection in Nigeria.',
+    url: 'https://linkup9ja.com',
+    siteName: 'LinkUp9ja',
+    images: [
+      {
+        url: '/icon.svg',
+        width: 512,
+        height: 512,
+        alt: 'LinkUp9ja Logo',
+      },
+    ],
+    locale: 'en_US',
+    type: 'website',
+  },
 };
 
 export default function RootLayout({
