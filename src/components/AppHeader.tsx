@@ -139,6 +139,11 @@ export function AppHeader() {
 
   }, [userData]);
 
+  const hasUnreadMessages = useMemo(() => {
+    if (!conversations || !currentUser) return false;
+    return conversations.some(convo => convo.lastMessage?.senderId !== currentUser.uid);
+  }, [conversations, currentUser]);
+
 
   return (
     <header className="sticky top-0 z-30 flex h-16 items-center gap-4 border-b bg-background/70 px-4 backdrop-blur-xl sm:px-6">
@@ -150,12 +155,21 @@ export function AppHeader() {
         {/* Can add a search bar here if needed */}
       </div>
       <div className="flex items-center gap-2">
+        <Button asChild variant="ghost" size="icon" className="rounded-full relative text-foreground">
+            <Link href="/chat">
+                <MessageSquareText className="h-5 w-5"/>
+                <span className="sr-only">Chat</span>
+                 {hasUnreadMessages && (
+                  <span className="absolute top-0 right-0 block h-2 w-2 rounded-full bg-primary ring-2 ring-background" />
+                )}
+            </Link>
+        </Button>
         <DropdownMenu>
             <DropdownMenuTrigger asChild>
                 <Button variant="ghost" size="icon" className="rounded-full relative text-foreground">
                     <Bell className="h-5 w-5"/>
                     <span className="sr-only">Notifications</span>
-                    {(conversations && conversations.length > 0) || showWelcomeNotification && (
+                    {((conversations && conversations.length > 0) || showWelcomeNotification) && (
                       <span className="absolute top-0 right-0 block h-2 w-2 rounded-full bg-primary ring-2 ring-background" />
                     )}
                 </Button>
