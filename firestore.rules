@@ -9,10 +9,12 @@ service cloud.firestore {
     }
 
     match /conversations/{conversationId} {
-      // Allow a user to check for a match (get), but not list all conversations.
+      // Allow a user to check for a match (get).
       allow get: if request.auth != null;
-      // Allow read/write if the user is a participant.
-      allow read, write: if request.auth != null && request.auth.uid in resource.data.participants;
+      // Allow a user to query for their own conversations.
+      allow list: if request.auth != null && request.query.where.get('participants').get('array-contains') == request.auth.uid;
+      // Allow read/write if the user is a participant in the conversation.
+      allow read, write: if request.auth != null && resource.data.participants.hasAny([request.auth.uid]);
 
       match /messages/{messageId} {
         // Participants can read messages.
