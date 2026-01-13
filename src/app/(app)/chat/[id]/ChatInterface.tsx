@@ -140,7 +140,7 @@ export function ChatInterface({ participant, conversationId, isNewMatch }: ChatI
      // Here you would add logic to actually report the user
   }
   
-  const showNewMatchUI = isNewMatch && messages?.length === 0;
+  const showNewMatchUI = isNewMatch && (!messages || messages.length === 0);
 
   return (
     <div className="flex h-[calc(100vh-8rem)] flex-col rounded-xl border bg-card">
@@ -148,20 +148,22 @@ export function ChatInterface({ participant, conversationId, isNewMatch }: ChatI
         <Button asChild variant="ghost" size="icon" className="md:hidden">
             <Link href="/chat"><ArrowLeft /></Link>
         </Button>
-        <Avatar className="h-10 w-10">
-          {isValidHttpUrl(participantImage) ? (
-            <AvatarImage src={participantImage} alt={participant.name} />
-          ) : (
-            <AvatarFallback>{participantFirstName.charAt(0)}</AvatarFallback>
-          )}
-        </Avatar>
-        <div className="flex-1">
-          <p className="font-semibold">{participantFirstName}</p>
-          <div className="flex items-center gap-1.5">
-            <div className="h-2 w-2 rounded-full bg-green-400" />
-            <p className="text-sm text-muted-foreground">Online</p>
-          </div>
-        </div>
+        <Link href={`/profile/${participant.id}`} className="flex items-center gap-4 flex-1 group">
+            <Avatar className="h-10 w-10">
+            {isValidHttpUrl(participantImage) ? (
+                <AvatarImage src={participantImage} alt={participant.name} />
+            ) : (
+                <AvatarFallback>{participantFirstName.charAt(0)}</AvatarFallback>
+            )}
+            </Avatar>
+            <div className="flex-1">
+            <p className="font-semibold group-hover:underline">{participantFirstName}</p>
+            <div className="flex items-center gap-1.5">
+                <div className="h-2 w-2 rounded-full bg-green-400" />
+                <p className="text-sm text-muted-foreground">Online</p>
+            </div>
+            </div>
+        </Link>
         <DropdownMenu>
             <DropdownMenuTrigger asChild>
                 <Button variant="ghost" size="icon">
