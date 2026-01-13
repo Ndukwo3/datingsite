@@ -78,33 +78,40 @@ export default function SwipePage() {
               where('swipedId', '==', currentUser.uid),
               where('direction', 'in', ['right', 'up'])
           );
+            try {
+              const theirSwipeSnapshot = await getDocs(theirSwipeQuery);
+              if (!theirSwipeSnapshot.empty) {
+                  // It's a match!
+                  setLastSwipedUser(swipedUser);
+                  setShowMatch(true);
 
-          const theirSwipeSnapshot = await getDocs(theirSwipeQuery);
-          if (!theirSwipeSnapshot.empty) {
-              // It's a match!
-              setLastSwipedUser(swipedUser);
-              setShowMatch(true);
+                  const conversationId = [currentUser.uid, swipedUser.id].sort().join('_');
+                  const conversationRef = doc(firestore, 'conversations', conversationId);
+                  
+                  const conversationData = {
+                    participants: [currentUser.uid, swipedUser.id],
+                    createdAt: serverTimestamp(),
+                  };
 
-              const conversationId = [currentUser.uid, swipedUser.id].sort().join('_');
-              const conversationRef = doc(firestore, 'conversations', conversationId);
-              
-              const conversationData = {
-                participants: [currentUser.uid, swipedUser.id],
-                createdAt: serverTimestamp(),
-              };
+                  const batch = writeBatch(firestore);
+                  batch.set(conversationRef, conversationData, { merge: true });
 
-              const batch = writeBatch(firestore);
-              batch.set(conversationRef, conversationData, { merge: true });
-
-              batch.commit().catch(error => {
+                  batch.commit().catch(error => {
+                    const permissionError = new FirestorePermissionError({
+                        path: conversationRef.path,
+                        operation: 'write',
+                        requestResourceData: conversationData
+                    });
+                    errorEmitter.emit('permission-error', permissionError);
+                  });
+              }
+            } catch(e) {
                 const permissionError = new FirestorePermissionError({
-                    path: conversationRef.path,
-                    operation: 'write',
-                    requestResourceData: conversationData
+                    path: 'swipes',
+                    operation: 'list',
                 });
                 errorEmitter.emit('permission-error', permissionError);
-              });
-          }
+            }
       }
   };
 
