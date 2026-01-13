@@ -47,14 +47,21 @@ export default function UserProfilePage() {
   const userId = Array.isArray(params.id) ? params.id[0] : params.id;
   const { user: currentUser, userData: currentUserData } = useUser();
 
+  const isOwnProfile = currentUser?.uid === userId;
+  
+  // A user viewing their own profile should be redirected to the editable profile page
+  if (isOwnProfile) {
+    return notFound();
+  }
+
   const { data: user, loading: userLoading } = useDoc<User>(
     firestore && userId ? doc(firestore, 'users', userId) : null
   );
 
   const conversationId = useMemo(() => {
-    if (!currentUser || !userId || currentUser.uid === userId) return null;
+    if (!currentUser || !userId || isOwnProfile) return null;
     return [currentUser.uid, userId].sort().join('_');
-  }, [currentUser, userId]);
+  }, [currentUser, userId, isOwnProfile]);
 
   const { data: conversation, loading: conversationLoading } = useDoc<Conversation>(
     firestore && conversationId ? doc(firestore, 'conversations', conversationId) : null
