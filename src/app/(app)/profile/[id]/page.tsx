@@ -2,7 +2,7 @@
 
 'use client';
 
-import { notFound, useParams } from 'next/navigation';
+import { notFound, useParams, useRouter } from 'next/navigation';
 import Image from 'next/image';
 import { Card } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
@@ -13,7 +13,7 @@ import { useDoc, useFirestore, useUser } from '@/firebase';
 import { doc } from 'firebase/firestore';
 import type { Conversation, User } from '@/lib/types';
 import { isValidHttpUrl } from '@/lib/is-valid-url';
-import { useMemo } from 'react';
+import { useMemo, useEffect } from 'react';
 import { getDistanceFromLatLonInKm } from '@/lib/utils';
 
 function SpotifyIcon(props: React.SVGProps<SVGSVGElement>) {
@@ -43,32 +43,33 @@ const DetailItem = ({ icon: Icon, text }: { icon: React.ElementType, text: strin
 
 export default function UserProfilePage() {
   const params = useParams();
+  const router = useRouter();
   const firestore = useFirestore();
   const userId = Array.isArray(params.id) ? params.id[0] : params.id;
-  const { user: currentUser, userData: currentUserData } = useUser();
+  const { user: currentUser, userData: currentUserData, loading: authLoading } = useUser();
 
-  const isOwnProfile = currentUser?.uid === userId;
-  
-  // A user viewing their own profile should be redirected to the editable profile page
-  if (isOwnProfile) {
-    return notFound();
-  }
+  useEffect(() => {
+    // Redirect to the main profile page if the user is trying to view their own profile via an ID.
+    if (!authLoading && currentUser && currentUser.uid === userId) {
+      router.replace('/profile');
+    }
+  }, [userId, currentUser, authLoading, router]);
 
   const { data: user, loading: userLoading } = useDoc<User>(
     firestore && userId ? doc(firestore, 'users', userId) : null
   );
 
   const conversationId = useMemo(() => {
-    if (!currentUser || !userId || isOwnProfile) return null;
+    if (!currentUser || !userId) return null;
     return [currentUser.uid, userId].sort().join('_');
-  }, [currentUser, userId, isOwnProfile]);
+  }, [currentUser, userId]);
 
   const { data: conversation, loading: conversationLoading } = useDoc<Conversation>(
     firestore && conversationId ? doc(firestore, 'conversations', conversationId) : null
   );
 
   const hasMatched = !!conversation;
-  const loading = userLoading || conversationLoading;
+  const loading = userLoading || conversationLoading || authLoading;
 
   const distance = useMemo(() => {
       if (currentUserData?.coordinates && user?.coordinates) {
@@ -86,8 +87,10 @@ export default function UserProfilePage() {
   if (loading) {
     return <div className="flex h-full items-center justify-center"><Loader2 className="h-8 w-8 animate-spin" /></div>;
   }
-
-  if (!user) {
+  
+  // After loading, if the user is viewing their own profile, they should have been redirected.
+  // If we are still here, and the user object is null, it means the profile doesn't exist.
+  if (!user || (currentUser && currentUser.uid === userId)) {
     notFound();
   }
 
