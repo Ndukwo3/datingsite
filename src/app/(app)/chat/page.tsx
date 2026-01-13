@@ -11,6 +11,7 @@ import { collection, query, where, doc } from 'firebase/firestore';
 import type { Conversation, User } from '@/lib/types';
 import { Loader2 } from 'lucide-react';
 import { isValidHttpUrl } from '@/lib/is-valid-url';
+import { cn } from '@/lib/utils';
 
 function ConversationItem({ conversation, currentUserId }: { conversation: Conversation, currentUserId: string }) {
   const firestore = useFirestore();
@@ -40,6 +41,8 @@ function ConversationItem({ conversation, currentUserId }: { conversation: Conve
   const userImage = participant.photos?.[0];
   const firstName = participant.name.split(' ')[0];
   const lastMessage = conversation.lastMessage || { text: 'No messages yet', timestamp: conversation.createdAt };
+  const isUnread = lastMessage.senderId !== currentUserId;
+
 
   return (
     <Link
@@ -55,16 +58,22 @@ function ConversationItem({ conversation, currentUserId }: { conversation: Conve
             <AvatarFallback>{firstName.charAt(0)}</AvatarFallback>
           )}
         </Avatar>
-        <div className="flex-1">
+        <div className="flex-1 overflow-hidden">
           <div className="flex items-baseline justify-between">
             <p className="font-semibold">{firstName}</p>
             <p className="text-xs text-muted-foreground">
               {lastMessage.timestamp ? formatDistanceToNow(new Date(lastMessage.timestamp.seconds * 1000), { addSuffix: true }) : ''}
             </p>
           </div>
-          <p className="mt-1 truncate text-sm text-muted-foreground">
-            {lastMessage.text}
-          </p>
+          <div className="flex items-center gap-2">
+             <p className={cn(
+                "mt-1 truncate text-sm",
+                isUnread ? "font-bold text-foreground" : "text-muted-foreground"
+            )}>
+                {lastMessage.senderId === currentUserId && 'You: '}{lastMessage.text}
+             </p>
+            {isUnread && <div className="h-2 w-2 shrink-0 rounded-full bg-primary" />}
+          </div>
         </div>
       </div>
     </Link>
