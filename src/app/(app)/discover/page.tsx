@@ -4,7 +4,7 @@
 import { useState, useMemo } from 'react';
 import { motion, AnimatePresence, useMotionValue, useTransform, animate } from 'framer-motion';
 import { Heart, X, RotateCcw, Star, Loader2 } from 'lucide-react';
-import { doc, setDoc, collection, getDocs, writeBatch, serverTimestamp, where, query, getDoc } from 'firebase/firestore';
+import { doc, setDoc, collection, getDocs, writeBatch, serverTimestamp, where, query, getDoc, addDoc } from 'firebase/firestore';
 
 import { Button } from '@/components/ui/button';
 import { ProfileCard } from '@/components/ProfileCard';
@@ -66,8 +66,7 @@ export default function SwipePage() {
   const handleSwipe = async (swipedUser: User, direction: 'left' | 'right' | 'up') => {
       if (!currentUser || !firestore || !userData) return;
       
-      const swipeId = [currentUser.uid, swipedUser.id].sort().join('_');
-      const swipeDocRef = doc(firestore, 'swipes', swipeId);
+      const swipesCollectionRef = collection(firestore, 'swipes');
 
       const swipeData = {
           swiperId: currentUser.uid,
@@ -76,9 +75,9 @@ export default function SwipePage() {
           timestamp: serverTimestamp(),
       };
       
-      setDoc(swipeDocRef, swipeData).catch(error => {
+      addDoc(swipesCollectionRef, swipeData).catch(error => {
         const permissionError = new FirestorePermissionError({
-            path: swipeDocRef.path,
+            path: swipesCollectionRef.path,
             operation: 'create',
             requestResourceData: swipeData
         });
