@@ -4,7 +4,7 @@
 import { useState, useMemo } from 'react';
 import { motion, AnimatePresence, useMotionValue, useTransform, animate } from 'framer-motion';
 import { Heart, X, RotateCcw, Star, Loader2 } from 'lucide-react';
-import { doc, setDoc, collection, getDocs, writeBatch, serverTimestamp, where, query } from 'firebase/firestore';
+import { doc, setDoc, collection, getDocs, writeBatch, serverTimestamp, where, query, getDoc } from 'firebase/firestore';
 
 import { Button } from '@/components/ui/button';
 import { ProfileCard } from '@/components/ProfileCard';
@@ -51,6 +51,9 @@ export default function SwipePage() {
 
   const handleSwipe = async (swipedUser: User, direction: 'left' | 'right' | 'up') => {
       if (!currentUser || !firestore || !userData) return;
+      
+      const swipeId = [currentUser.uid, swipedUser.id].sort().join('_');
+      const swipeDocRef = doc(firestore, 'swipes', swipeId);
 
       const swipeData = {
           swiperId: currentUser.uid,
@@ -59,9 +62,6 @@ export default function SwipePage() {
           timestamp: serverTimestamp(),
       };
       
-      const swipeCollectionRef = collection(firestore, 'swipes');
-      const swipeDocRef = doc(swipeCollectionRef);
-
       setDoc(swipeDocRef, swipeData).catch(error => {
         const permissionError = new FirestorePermissionError({
             path: swipeDocRef.path,
@@ -72,16 +72,13 @@ export default function SwipePage() {
       });
 
       if (direction === 'right' || direction === 'up') {
-          // Check for a match
-          const theirSwipeQuery = query(
-              collection(firestore, 'swipes'),
-              where('swiperId', '==', swipedUser.id),
-              where('swipedId', '==', currentUser.uid),
-              where('direction', 'in', ['right', 'up'])
-          );
-            try {
-              const theirSwipeSnapshot = await getDocs(theirSwipeQuery);
-              if (!theirSwipeSnapshot.empty) {
+          // Check for a match by looking for their swipe on you
+          const theirSwipeId = [swipedUser.id, currentUser.uid].sort().join('_');
+          const theirSwipeRef = doc(firestore, 'swipes', theirSwipeId);
+          
+          try {
+              const theirSwipeDoc = await getDoc(theirSwipeRef);
+              if (theirSwipeDoc.exists() && (theirSwipeDoc.data().direction === 'right' || theirSwipeDoc.data().direction === 'up')) {
                   // It's a match!
                   setLastSwipedUser(swipedUser);
                   setShowMatch(true);
@@ -108,8 +105,8 @@ export default function SwipePage() {
               }
             } catch(e) {
                 const permissionError = new FirestorePermissionError({
-                    path: 'swipes',
-                    operation: 'list',
+                    path: theirSwipeRef.path,
+                    operation: 'get',
                 });
                 errorEmitter.emit('permission-error', permissionError);
             }
