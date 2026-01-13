@@ -107,9 +107,6 @@ export function ChatInterface({ participant, conversationId, isNewMatch }: ChatI
     batch.set(conversationRef, conversationData, { merge: true });
 
     batch.commit()
-    .then(() => {
-        setNewMessage('');
-    })
     .catch((error) => {
         const permissionError = new FirestorePermissionError({
             path: conversationRef.path,
@@ -119,6 +116,7 @@ export function ChatInterface({ participant, conversationId, isNewMatch }: ChatI
         errorEmitter.emit('permission-error', permissionError);
     }).finally(() => {
       setIsSending(false);
+      setNewMessage('');
     });
   };
 
