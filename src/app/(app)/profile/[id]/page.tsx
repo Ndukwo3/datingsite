@@ -58,7 +58,7 @@ export default function UserProfilePage() {
   }, [userId, currentUser, authLoading, router, isOwnProfile]);
 
   const { data: user, loading: userLoading } = useDoc<User>(
-    firestore && userId && !isOwnProfile ? doc(firestore, 'users', userId) : null
+    firestore && userId ? doc(firestore, 'users', userId) : null
   );
 
   const conversationId = useMemo(() => {
@@ -71,7 +71,7 @@ export default function UserProfilePage() {
   );
 
   const hasMatched = !!conversation;
-  const loading = userLoading || authLoading || (isOwnProfile && !authLoading);
+  const loading = userLoading || authLoading;
 
   const distance = useMemo(() => {
       if (currentUserData?.coordinates && user?.coordinates) {
@@ -90,8 +90,9 @@ export default function UserProfilePage() {
     return <div className="flex h-full items-center justify-center"><Loader2 className="h-8 w-8 animate-spin" /></div>;
   }
   
-  if (!user) {
-    notFound();
+  if (!user || isOwnProfile) {
+     if (!loading) notFound();
+    return <div className="flex h-full items-center justify-center"><Loader2 className="h-8 w-8 animate-spin" /></div>;
   }
 
   const userImage = user.photos?.[0];
@@ -196,7 +197,7 @@ export default function UserProfilePage() {
                 </div>
             ) : (
                 <div className="mx-auto flex max-w-sm items-center justify-evenly gap-4">
-                    <Button asChild variant="ghost" size="icon" className='text-muted-foreground h-12 w-12'>
+                    <Button asChild variant="ghost" size="icon" className='text-muted-foreground h-16 w-16'>
                         <Link href={`/chat/${user.id}`}><MessageSquare/></Link>
                     </Button>
                     <Button variant="outline" size="icon" className="h-16 w-16 rounded-full border-2 border-yellow-500 text-yellow-500 shadow-lg hover:bg-yellow-500/10" aria-label="Dislike">
@@ -208,7 +209,7 @@ export default function UserProfilePage() {
                     <Button size="icon" className="h-16 w-16 rounded-full bg-blue-500 text-white shadow-xl" aria-label="Super Like">
                         <Star className="h-8 w-8 fill-current" />
                     </Button>
-                    <Button variant="ghost" size="icon" className='text-muted-foreground h-12 w-12'><Flag/></Button>
+                    <Button variant="ghost" size="icon" className='text-muted-foreground h-16 w-16'><Flag/></Button>
                 </div>
             )}
         </div>
