@@ -52,6 +52,12 @@ function NotificationItem({ conversation, currentUserId }: { conversation: Conve
         firestore && participantId ? doc(firestore, 'users', participantId) : null
     );
 
+    const isNewMessage = conversation.lastMessage && conversation.lastMessage.senderId === participantId;
+    // Don't show a notification for a new message, as the chat icon handles it.
+    if (isNewMessage) {
+        return null;
+    }
+
     if (loading || !participant) {
         return (
              <DropdownMenuItem asChild className="p-2 cursor-pointer">
@@ -68,10 +74,8 @@ function NotificationItem({ conversation, currentUserId }: { conversation: Conve
         );
     }
     
-    const isNewMessage = conversation.lastMessage && conversation.lastMessage.senderId === participantId;
-
-    const notificationType: NotificationType = isNewMessage ? 'message' : 'match';
-    const timestamp = isNewMessage ? conversation.lastMessage.timestamp : conversation.createdAt;
+    const notificationType: NotificationType = 'match';
+    const timestamp = conversation.createdAt;
     const time = timestamp ? formatDistanceToNow(new Date(timestamp.seconds * 1000), { addSuffix: true }) : 'a while ago';
     
     return (
@@ -83,17 +87,12 @@ function NotificationItem({ conversation, currentUserId }: { conversation: Conve
                             {participant.photos?.[0] ? <AvatarImage src={participant.photos[0]} alt={participant.name} /> : <AvatarFallback><Sparkles className="h-5 w-5 text-primary"/></AvatarFallback>}
                         </Avatar>
                         <div className="absolute -bottom-1 -right-1 p-0.5 bg-background rounded-full">
-                            {notificationType === 'match' && <Heart className="h-4 w-4 text-primary fill-primary" />}
-                            {notificationType === 'message' && <MessageSquareText className="h-4 w-4 text-blue-500 fill-blue-500" />}
+                            <Heart className="h-4 w-4 text-primary fill-primary" />
                         </div>
                     </div>
                     <div className="flex-1">
                         <p className="text-sm">
-                            {notificationType === 'match' ? (
-                                <>You matched with <span className="font-semibold">{participant.name}</span>!</>
-                            ) : (
-                                <><span className="font-semibold">{participant.name}</span> sent a message</>
-                            )}
+                            You matched with <span className="font-semibold">{participant.name}</span>!
                         </p>
                         <p className="text-xs text-muted-foreground">{time}</p>
                     </div>
@@ -143,6 +142,15 @@ export function AppHeader() {
     if (!conversations || !currentUser) return false;
     return conversations.some(convo => convo.lastMessage?.senderId !== currentUser.uid);
   }, [conversations, currentUser]);
+  
+  const hasUnreadNotifications = useMemo(() => {
+      if (showWelcomeNotification) return true;
+      if (!conversations || !currentUser) return false;
+      // A notification exists if there's a conversation where the last action was NOT a message from the other person.
+      // This logic is implicitly handled by NotificationItem returning null, but we need to calculate the dot here.
+      // We'll consider any conversation without a last message, or where the current user sent the last message, as a "match" notification.
+      return conversations.some(convo => !convo.lastMessage || convo.lastMessage.senderId === currentUser.uid);
+  }, [conversations, currentUser, showWelcomeNotification]);
 
 
   return (
@@ -169,7 +177,7 @@ export function AppHeader() {
                 <Button variant="ghost" size="icon" className="rounded-full relative text-foreground">
                     <Bell className="h-5 w-5"/>
                     <span className="sr-only">Notifications</span>
-                    {((conversations && conversations.length > 0) || showWelcomeNotification) && (
+                    {hasUnreadNotifications && (
                       <span className="absolute top-0 right-0 block h-2 w-2 rounded-full bg-primary ring-2 ring-background" />
                     )}
                 </Button>
@@ -205,7 +213,7 @@ export function AppHeader() {
                        <NotificationItem key={convo.id} conversation={convo} currentUserId={currentUser.uid} />
                     ))}
 
-                    {!loading && sortedConversations?.length === 0 && !showWelcomeNotification && (
+                    {!loading && !hasUnreadNotifications && (
                         <p className="p-4 text-sm text-center text-muted-foreground">No new notifications.</p>
                     )}
                 </div>
