@@ -83,13 +83,15 @@ export default function EditProfilePage() {
   const onSubmit = async (data: ProfileFormData) => {
     if (!userDocRef) return;
     
-    setDoc(userDocRef, data, { merge: true }).then(() => {
+    setDoc(userDocRef, data, { merge: true })
+    .then(() => {
       toast({
         title: 'Profile Updated!',
         description: 'Your changes have been saved successfully.',
       });
       router.push('/profile');
-    }).catch(error => {
+    })
+    .catch(error => {
       const permissionError = new FirestorePermissionError({
           path: userDocRef.path,
           operation: 'update',
