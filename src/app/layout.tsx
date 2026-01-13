@@ -40,8 +40,11 @@ export default function RootLayout({
       </head>
       <body className={cn('font-body antialiased')}>
         <ThemeProvider
-            defaultTheme="system"
-            storageKey="linkup-theme"
+          attribute="class"
+          defaultTheme="system"
+          enableSystem
+          disableTransitionOnChange
+          storageKey="linkup-theme"
         >
           <FirebaseClientProvider>
             {children}
