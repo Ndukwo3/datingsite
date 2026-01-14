@@ -66,7 +66,7 @@ export function AppSidebarContent() {
   return (
     <>
       <SidebarHeader>
-        <Logo />
+        <Logo href="/feed" />
       </SidebarHeader>
       <SidebarContent className="p-2">
         <SidebarMenu>
