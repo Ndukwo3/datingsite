@@ -515,7 +515,7 @@ export function OnboardingForm() {
                        const isUploading = uploadingIndex === i;
 
                        return (
-                            <div key={photo || `empty-${i}`} className="relative group">
+                            <div key={`photo-${i}`} className="relative group">
                                 <div className="aspect-square rounded-xl border-2 flex items-center justify-center bg-muted/50 overflow-hidden">
                                 {photo ? (
                                      <img
