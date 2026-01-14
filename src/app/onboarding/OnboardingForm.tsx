@@ -117,6 +117,15 @@ const formatDobInput = (value: string) => {
     return input;
 };
 
+const toTitleCase = (str: string) => {
+    if (!str) return '';
+    return str
+        .toLowerCase()
+        .split(' ')
+        .map(word => word.charAt(0).toUpperCase() + word.slice(1))
+        .join(' ');
+};
+
 const fileToDataUri = (file: File): Promise<string> => {
   return new Promise((resolve, reject) => {
       const reader = new FileReader();
@@ -398,7 +407,14 @@ export function OnboardingForm() {
                     <Controller
                         name="fullName"
                         control={control}
-                        render={({ field }) => <Input id="fullName" placeholder="e.g., Baddo 🌶️" {...field} />}
+                        render={({ field }) => (
+                            <Input 
+                                id="fullName" 
+                                placeholder="e.g., Baddo 🌶️" 
+                                {...field}
+                                onChange={(e) => field.onChange(toTitleCase(e.target.value))}
+                            />
+                        )}
                     />
                     {errors.fullName && <p className="text-sm text-destructive mt-1">{errors.fullName.message}</p>}
                   </div>
@@ -817,3 +833,5 @@ export function OnboardingForm() {
     </FormProvider>
   );
 }
+
+    

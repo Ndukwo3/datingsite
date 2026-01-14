@@ -49,6 +49,15 @@ const toSentenceCase = (str: string) => {
         .join(' ');
 };
 
+const toTitleCase = (str: string) => {
+    if (!str) return '';
+    return str
+        .toLowerCase()
+        .split(' ')
+        .map(word => word.charAt(0).toUpperCase() + word.slice(1))
+        .join(' ');
+};
+
 export default function EditProfilePage() {
   const { toast } = useToast();
   const router = useRouter();
@@ -167,7 +176,13 @@ export default function EditProfilePage() {
               <Controller
                 name="name"
                 control={control}
-                render={({ field }) => <Input id="name" {...field} />}
+                render={({ field }) => (
+                    <Input 
+                        id="name" 
+                        {...field} 
+                        onChange={(e) => field.onChange(toTitleCase(e.target.value))}
+                    />
+                )}
               />
               {errors.name && <p className="text-sm text-destructive mt-1">{errors.name.message}</p>}
             </div>
@@ -357,3 +372,5 @@ export default function EditProfilePage() {
     </div>
   );
 }
+
+    

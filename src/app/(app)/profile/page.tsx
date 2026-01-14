@@ -47,6 +47,7 @@ export default function ProfilePage() {
     const firestore = useFirestore();
     const fileInputRef = useRef<HTMLInputElement>(null);
     const [uploading, setUploading] = useState(false);
+    const [isSkipping, setIsSkipping] = useState(false);
     const [isVisible, setIsVisible] = useState(true);
 
     const matchesQuery = useMemo(() => {
@@ -512,8 +513,8 @@ export default function ProfilePage() {
                 <CardContent>
                      <AlertDialog>
                         <AlertDialogTrigger asChild>
-                            <Button variant="destructive" className="w-full">
-                                <Trash2 className="mr-2 h-4 w-4" />
+                            <Button variant="destructive" className="w-full" disabled={isSkipping}>
+                                {isSkipping ? <Loader2 className="mr-2 h-4 w-4 animate-spin" /> : <Trash2 className="mr-2 h-4 w-4" />}
                                 Delete Account
                             </Button>
                         </AlertDialogTrigger>
@@ -543,3 +544,5 @@ export default function ProfilePage() {
     </div>
   );
 }
+
+    
