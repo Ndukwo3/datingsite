@@ -13,7 +13,7 @@ import { useToast } from '@/hooks/use-toast';
 import Link from 'next/link';
 import { ArrowLeft, Loader2 } from 'lucide-react';
 import { Badge } from '@/components/ui/badge';
-import { interestOptions, lifestyleOptions } from '@/lib/data';
+import { interestOptions, lifestyleOptions, nigerianStates } from '@/lib/data';
 import { useRouter } from 'next/navigation';
 import { useUser, useFirestore, useDoc } from '@/firebase';
 import { doc, setDoc } from 'firebase/firestore';
@@ -34,6 +34,8 @@ const profileSchema = z.object({
   exercise: z.string().optional().or(z.literal('')),
   drinking: z.string().optional().or(z.literal('')),
   smoking: z.string().optional().or(z.literal('')),
+  state: z.string({ required_error: "Please select your state." }),
+  city: z.string().min(2, "Please enter your city."),
 });
 
 type ProfileFormData = z.infer<typeof profileSchema>;
@@ -60,11 +62,14 @@ export default function EditProfilePage() {
       exercise: '',
       drinking: '',
       smoking: '',
+      state: '',
+      city: ''
     },
   });
   
   React.useEffect(() => {
     if (currentUser) {
+      const [city, state] = currentUser.location?.split(', ') || ['', ''];
       reset({
         name: currentUser.name || '',
         job: currentUser.job || '',
@@ -76,14 +81,22 @@ export default function EditProfilePage() {
         exercise: currentUser.exercise || '',
         drinking: currentUser.drinking || '',
         smoking: currentUser.smoking || '',
+        state: state || '',
+        city: city || ''
       });
     }
   }, [currentUser, reset]);
 
   const onSubmit = async (data: ProfileFormData) => {
     if (!userDocRef) return;
+
+    const { city, state, ...restOfData } = data;
+    const profileData = {
+      ...restOfData,
+      location: `${city}, ${state}`
+    };
     
-    setDoc(userDocRef, data, { merge: true })
+    setDoc(userDocRef, profileData, { merge: true })
     .then(() => {
       toast({
         title: 'Profile Updated!',
@@ -95,7 +108,7 @@ export default function EditProfilePage() {
       const permissionError = new FirestorePermissionError({
           path: userDocRef.path,
           operation: 'update',
-          requestResourceData: data
+          requestResourceData: profileData
       });
       errorEmitter.emit('permission-error', permissionError);
     });
@@ -146,6 +159,31 @@ export default function EditProfilePage() {
                 render={({ field }) => <Input id="name" {...field} />}
               />
               {errors.name && <p className="text-sm text-destructive mt-1">{errors.name.message}</p>}
+            </div>
+             <div>
+                <Label htmlFor="state">State</Label>
+                <Controller
+                    name="state"
+                    control={control}
+                    render={({ field }) => (
+                        <Select onValueChange={field.onChange} value={field.value}>
+                            <SelectTrigger>
+                                <SelectValue placeholder="Select your state" />
+                            </SelectTrigger>
+                            <SelectContent>
+                                {nigerianStates.map(state => (
+                                    <SelectItem key={state} value={state}>{state}</SelectItem>
+                                ))}
+                            </SelectContent>
+                        </Select>
+                    )}
+                />
+                {errors.state && <p className="text-sm text-destructive mt-1">{errors.state.message}</p>}
+            </div>
+             <div>
+                <Label htmlFor="city">City</Label>
+                <Controller name="city" control={control} render={({ field }) => <Input id="city" {...field} />} />
+                {errors.city && <p className="text-sm text-destructive mt-1">{errors.city.message}</p>}
             </div>
             <div>
               <Label htmlFor="job">Job</Label>

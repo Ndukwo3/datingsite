@@ -1,3 +1,4 @@
+
 import { Timestamp } from 'firebase/firestore';
 
 export type User = {
@@ -29,6 +30,8 @@ export type User = {
   gender?: string;
   email?: string;
   createdAt?: Timestamp;
+  city?: string;
+  state?: string;
 };
 
 export type Match = {
