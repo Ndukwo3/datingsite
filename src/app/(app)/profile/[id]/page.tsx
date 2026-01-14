@@ -225,7 +225,7 @@ export default function UserProfilePage() {
         <div className="space-y-2">
             <div className="flex items-center gap-3">
                 <h1 className="font-headline text-4xl font-bold">{user.name}, {user.age}</h1>
-                 {user.isVerified && <BadgeCheck className="h-7 w-7 text-blue-500 fill-blue-100" />}
+                 {user.isVerified && <BadgeCheck className="h-7 w-7 text-yellow-400 fill-yellow-100" />}
             </div>
             <p className="flex items-center gap-2 text-muted-foreground">
                 <MapPin className="h-5 w-5" />
@@ -320,3 +320,4 @@ export default function UserProfilePage() {
     </>
   );
 }
+

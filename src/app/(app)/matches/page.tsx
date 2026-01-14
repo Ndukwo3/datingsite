@@ -1,4 +1,5 @@
 
+
 'use client';
 
 import { useMemo } from 'react';
@@ -65,7 +66,7 @@ function MatchCard({ match, currentUserId }: { match: Match, currentUserId: stri
           <div className="absolute inset-x-0 bottom-0 p-3">
               <div className="flex items-center gap-1.5">
               <p className="font-semibold text-primary-foreground">{participant.name}</p>
-              {participant.isVerified && <BadgeCheck className="h-4 w-4 text-blue-400 fill-primary-foreground" />}
+              {participant.isVerified && <BadgeCheck className="h-4 w-4 text-yellow-400 fill-primary-foreground" />}
             </div>
               <p className="text-xs text-primary-foreground/80 mt-1">
                 Matched {formatMatchTime(matchTimestamp)}
@@ -119,3 +120,4 @@ export default function MatchesPage() {
     </div>
   );
 }
+

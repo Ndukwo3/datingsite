@@ -4,7 +4,7 @@
 import { useEffect, useState, useCallback } from "react";
 import { onAuthStateChanged, type User as FirebaseUser } from "firebase/auth";
 import { useAuth, useFirestore, useDoc } from "@/firebase";
-import { doc } from "firebase/firestore";
+import { doc, updateDoc } from "firebase/firestore";
 import type { User } from "@/lib/types";
 import { useProfileCompletion } from "@/hooks/use-profile-completion";
 
@@ -32,6 +32,14 @@ export function useUser() {
   const { data: userData, loading: userDataLoading, refetch } = useDoc<User>(userDocRef);
 
   const { completionPercentage, nextStep } = useProfileCompletion(userData);
+
+  useEffect(() => {
+    // When profile is 100% complete, automatically verify the user
+    if (userDocRef && completionPercentage === 100 && userData && !userData.isVerified) {
+      updateDoc(userDocRef, { isVerified: true });
+    }
+  }, [completionPercentage, userData, userDocRef]);
+
 
   const refreshUserData = useCallback(() => {
     if (refetch) {
