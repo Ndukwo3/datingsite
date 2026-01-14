@@ -9,11 +9,11 @@ import Link from 'next/link';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { Badge } from '@/components/ui/badge';
 import { Switch } from '@/components/ui/switch';
-import { useUser, useFirestore } from '@/firebase';
-import { doc, updateDoc, deleteDoc } from 'firebase/firestore';
+import { useUser, useFirestore, useCollection } from '@/firebase';
+import { doc, updateDoc, deleteDoc, collection } from 'firebase/firestore';
 import { useRouter } from 'next/navigation';
 import { isValidHttpUrl } from '@/lib/is-valid-url';
-import { useEffect, useState, useRef } from 'react';
+import { useEffect, useState, useRef, useMemo } from 'react';
 import { useToast } from '@/hooks/use-toast';
 import { cn } from '@/lib/utils';
 import {
@@ -37,6 +37,7 @@ import {
 } from "@/components/ui/dialog"
 import { getAuth, deleteUser } from 'firebase/auth';
 import { Progress } from '@/components/ui/progress';
+import type { Match, Swipe } from '@/lib/types';
 
 
 export default function ProfilePage() {
@@ -48,13 +49,31 @@ export default function ProfilePage() {
     const [uploading, setUploading] = useState(false);
     const [isVisible, setIsVisible] = useState(true);
 
+    const matchesQuery = useMemo(() => {
+        if (!firestore || !authUser) return null;
+        return collection(firestore, `userMatches/${authUser.uid}/matches`);
+    }, [firestore, authUser]);
+    const { data: matches, loading: matchesLoading } = useCollection<Match>(matchesQuery);
+
+    const swipesQuery = useMemo(() => {
+        if (!firestore || !authUser) return null;
+        return collection(firestore, `swipes/${authUser.uid}/likes`);
+    }, [firestore, authUser]);
+    const { data: swipes, loading: swipesLoading } = useCollection<Swipe>(swipesQuery);
+
+    const superLikesCount = useMemo(() => {
+        if (!swipes) return 0;
+        return swipes.filter(s => s.direction === 'up').length;
+    }, [swipes]);
+
+
     useEffect(() => {
       if (!authLoading && (!authUser || (userData && userData.onboardingComplete === false))) {
           router.push('/onboarding');
       }
     }, [authLoading, authUser, userData, router]);
 
-    if (authLoading || !userData) {
+    if (authLoading || !userData || matchesLoading || swipesLoading) {
         return <div className="flex h-full items-center justify-center"><Loader2 className="h-8 w-8 animate-spin" /></div>;
     }
     
@@ -197,15 +216,15 @@ export default function ProfilePage() {
                             </p>
                              <div className="mt-4 flex justify-center sm:justify-start gap-6 text-center">
                                 <div>
-                                    <p className="text-xl font-bold">47</p>
+                                    <p className="text-xl font-bold">{matches?.length || 0}</p>
                                     <p className="text-xs text-muted-foreground">Matches</p>
                                 </div>
                                 <div>
-                                    <p className="text-xl font-bold">128</p>
+                                    <p className="text-xl font-bold">{swipes?.length || 0}</p>
                                     <p className="text-xs text-muted-foreground">Likes Sent</p>
                                 </div>
                                 <div>
-                                    <p className="text-xl font-bold">12</p>
+                                    <p className="text-xl font-bold">{superLikesCount}</p>
                                     <p className="text-xs text-muted-foreground">Super Likes</p>
                                 </div>
                             </div>
