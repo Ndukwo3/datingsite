@@ -40,6 +40,15 @@ const profileSchema = z.object({
 
 type ProfileFormData = z.infer<typeof profileSchema>;
 
+const toSentenceCase = (str: string) => {
+    if (!str) return '';
+    return str
+        .toLowerCase()
+        .split(' ')
+        .map(word => word.charAt(0).toUpperCase() + word.slice(1))
+        .join(' ');
+};
+
 export default function EditProfilePage() {
   const { toast } = useToast();
   const router = useRouter();
@@ -69,7 +78,7 @@ export default function EditProfilePage() {
   
   React.useEffect(() => {
     if (currentUser) {
-      const [city, state] = currentUser.location?.split(', ') || ['', ''];
+      const [city, state] = currentUser.location?.split(', ') || [currentUser.city || '', currentUser.state || ''];
       reset({
         name: currentUser.name || '',
         job: currentUser.job || '',
@@ -93,7 +102,9 @@ export default function EditProfilePage() {
     const { city, state, ...restOfData } = data;
     const profileData = {
       ...restOfData,
-      location: `${city}, ${state}`
+      location: `${city}, ${state}`,
+      city,
+      state
     };
     
     setDoc(userDocRef, profileData, { merge: true })
@@ -182,7 +193,13 @@ export default function EditProfilePage() {
             </div>
              <div>
                 <Label htmlFor="city">City</Label>
-                <Controller name="city" control={control} render={({ field }) => <Input id="city" {...field} />} />
+                <Controller name="city" control={control} render={({ field }) => (
+                    <Input 
+                        id="city" 
+                        {...field} 
+                        onChange={(e) => field.onChange(toSentenceCase(e.target.value))} 
+                    />
+                )} />
                 {errors.city && <p className="text-sm text-destructive mt-1">{errors.city.message}</p>}
             </div>
             <div>
