@@ -2,50 +2,35 @@
 rules_version = '2';
 service cloud.firestore {
   match /databases/{database}/documents {
+    
     // Users can be read by any authenticated user, but only written to by the owner.
     match /users/{userId} {
       allow read: if request.auth != null;
       allow write: if request.auth != null && request.auth.uid == userId;
     }
 
-    match /conversations/{conversationId} {
-      // Allow a user to check for a match on a specific conversation document.
-      allow get: if request.auth != null;
-      // Allow a user to query for their own conversations.
-      allow list: if request.auth != null && request.query.where.get('participants').get('array-contains') == request.auth.uid;
-      // Allow a participant to create, update, or delete a conversation document.
-      allow write: if request.auth != null && resource.data.participants.hasAny([request.auth.uid]);
-
-      match /messages/{messageId} {
-        // Participants can read messages.
-        allow read: if request.auth != null && get(/databases/$(database)/documents/conversations/$(conversationId)).data.participants.hasAny([request.auth.uid]);
-        // Participants can create messages.
-        allow create: if request.auth != null && request.resource.data.senderId == request.auth.uid && get(/databases/$(database)/documents/conversations/$(conversationId)).data.participants.hasAny([request.auth.uid]);
-      }
+    // A user can read their own conversations subcollection.
+    match /userConversations/{userId}/{document=**} {
+      allow read, write: if request.auth != null && request.auth.uid == userId;
     }
 
-    match /swipes/{swipeId} {
-      // A user can create a swipe if they are the one swiping.
-      allow create: if request.auth != null && request.resource.data.swiperId == request.auth.uid;
-      // A user can query the swipes collection. The get rule below still protects individual documents.
-      allow list: if request.auth != null;
-      // A user can read a swipe document if they were the one swiped on or the one who swiped.
-      allow get: if request.auth != null && (resource.data.swipedId == request.auth.uid || resource.data.swiperId == request.auth.uid);
+    // A user can read and write to their own matches subcollection.
+    match /userMatches/{userId}/{document=**} {
+        allow read, write: if request.auth != null && request.auth.uid == userId;
     }
     
-    match /posts/{postId} {
-      // Any authenticated user can read a post.
-      allow read: if request.auth != null;
-      // Only the author can create or update their own post.
-      allow create: if request.auth != null && request.resource.data.authorId == request.auth.uid;
-      allow update: if request.auth != null && resource.data.authorId == request.auth.uid;
-      
-      match /comments/{commentId} {
-         // Any authenticated user can read comments.
-         allow read: if request.auth != null;
-         // Only the author can create their own comment.
-         allow create: if request.auth != null && request.resource.data.authorId == request.auth.uid;
-      }
+    // A user can read their own feed document.
+    match /userFeed/{userId} {
+      allow read: if request.auth != null && request.auth.uid == userId;
+      // Write access should be handled by Cloud Functions
+      allow write: if false; 
+    }
+
+    // A user can only write to their own swipes path.
+    match /swipes/{userId}/{document=**} {
+        allow write: if request.auth != null && request.auth.uid == userId;
+        // Reading swipes should generally not be allowed on the client for privacy.
+        allow read: if false;
     }
   }
 }

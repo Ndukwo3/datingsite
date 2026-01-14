@@ -7,7 +7,7 @@ import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { formatDistanceToNow } from 'date-fns';
 import { useCollection, useFirestore, useUser, useDoc } from '@/firebase';
-import { collection, query, where, doc } from 'firebase/firestore';
+import { collection, query, orderBy, doc } from 'firebase/firestore';
 import type { Conversation, User } from '@/lib/types';
 import { Loader2 } from 'lucide-react';
 import { isValidHttpUrl } from '@/lib/is-valid-url';
@@ -88,21 +88,12 @@ export default function ChatListPage() {
   const conversationsQuery = useMemo(() => {
     if (!firestore || !user) return null;
     return query(
-      collection(firestore, 'conversations'),
-      where('participants', 'array-contains', user.uid)
+      collection(firestore, `userConversations/${user.uid}/conversations`),
+      orderBy('lastMessage.timestamp', 'desc')
     );
   }, [firestore, user]);
 
   const { data: conversations, loading } = useCollection<Conversation>(conversationsQuery);
-  
-  const sortedConversations = useMemo(() => {
-    if (!conversations) return [];
-    return [...conversations].sort((a, b) => {
-        const timeA = a.lastMessage?.timestamp?.seconds || a.createdAt?.seconds || 0;
-        const timeB = b.lastMessage?.timestamp?.seconds || b.createdAt?.seconds || 0;
-        return timeB - timeA;
-    });
-  }, [conversations]);
 
   if (loading) {
     return <div className="flex h-full items-center justify-center"><Loader2 className="h-8 w-8 animate-spin" /></div>;
@@ -116,7 +107,7 @@ export default function ChatListPage() {
         </CardHeader>
         <CardContent>
           <div className="space-y-2">
-            {sortedConversations && user && sortedConversations.map((convo) => (
+            {conversations && user && conversations.map((convo) => (
               <ConversationItem key={convo.id} conversation={convo} currentUserId={user.uid} />
             ))}
              {conversations?.length === 0 && (

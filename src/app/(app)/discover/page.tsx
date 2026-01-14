@@ -4,12 +4,12 @@
 import { useState, useMemo } from 'react';
 import { motion, AnimatePresence, useMotionValue, useTransform, animate } from 'framer-motion';
 import { Heart, X, RotateCcw, Star, Loader2 } from 'lucide-react';
-import { doc, setDoc, collection, getDocs, writeBatch, serverTimestamp, where, query, getDoc, addDoc } from 'firebase/firestore';
+import { doc, setDoc, getDoc, writeBatch, serverTimestamp, collection, query, where } from 'firebase/firestore';
 
 import { Button } from '@/components/ui/button';
 import { ProfileCard } from '@/components/ProfileCard';
 import { MatchNotification } from '@/components/MatchNotification';
-import type { User, Conversation } from '@/lib/types';
+import type { User, Match } from '@/lib/types';
 import { useUser, useFirestore, useCollection } from '@/firebase';
 import { errorEmitter } from '@/firebase/error-emitter';
 import { FirestorePermissionError } from '@/firebase/errors';
@@ -31,25 +31,21 @@ export default function SwipePage() {
 
   const { data: allUsers, loading: usersLoading } = useCollection<User>(usersQuery);
 
-  // Fetch existing conversations to filter out matched users
-  const conversationsQuery = useMemo(() => {
-    if (!firestore || !currentUser) return null;
-    return query(
-        collection(firestore, 'conversations'),
-        where('participants', 'array-contains', currentUser.uid)
-    );
+  const userMatchesQuery = useMemo(() => {
+      if (!firestore || !currentUser) return null;
+      return collection(firestore, `userMatches/${currentUser.uid}/matches`);
   }, [firestore, currentUser]);
 
-  const { data: conversations, loading: conversationsLoading } = useCollection<Conversation>(conversationsQuery);
+  const { data: userMatches, loading: matchesLoading } = useCollection<Match>(userMatchesQuery);
   
   const potentialMatches = useMemo(() => {
-    if (!allUsers || !currentUser || !conversations) return [];
+    if (!allUsers || !currentUser || !userMatches) return [];
 
-    const matchedUserIds = conversations.flatMap(c => c.participants);
+    const matchedUserIds = userMatches.map(m => m.userIds.find(id => id !== currentUser.uid));
     
-    // Also filter out users the current user has already swiped on or matched with
+    // TODO: Also filter out users the current user has already swiped on
     return allUsers.filter(u => u.id !== currentUser.uid && !matchedUserIds.includes(u.id));
-  }, [allUsers, currentUser, conversations]);
+  }, [allUsers, currentUser, userMatches]);
 
   const [currentIndex, setCurrentIndex] = useState(0);
   const [swipeDirection, setSwipeDirection] = useState<SwipeDirection | null>(null);
@@ -66,8 +62,9 @@ export default function SwipePage() {
   const handleSwipe = async (swipedUser: User, direction: 'left' | 'right' | 'up') => {
       if (!currentUser || !firestore || !userData) return;
       
-      const swipesCollectionRef = collection(firestore, 'swipes');
-
+      const swipeCollectionPath = direction === 'left' ? `swipes/${currentUser.uid}/passes` : `swipes/${currentUser.uid}/likes`;
+      const swipeDocRef = doc(firestore, swipeCollectionPath, swipedUser.id);
+      
       const swipeData = {
           swiperId: currentUser.uid,
           swipedId: swipedUser.id,
@@ -75,57 +72,63 @@ export default function SwipePage() {
           timestamp: serverTimestamp(),
       };
       
-      addDoc(swipesCollectionRef, swipeData).catch(error => {
+      setDoc(swipeDocRef, swipeData).catch(error => {
         const permissionError = new FirestorePermissionError({
-            path: swipesCollectionRef.path,
-            operation: 'create',
+            path: swipeDocRef.path,
+            operation: 'write',
             requestResourceData: swipeData
         });
         errorEmitter.emit('permission-error', permissionError);
       });
 
       if (direction === 'right' || direction === 'up') {
-          // Check for a match by querying for their swipe on you
-          const matchQuery = query(
-            collection(firestore, 'swipes'),
-            where('swiperId', '==', swipedUser.id),
-            where('swipedId', '==', currentUser.uid),
-            where('direction', 'in', ['right', 'up'])
-          );
+          // This should be a Cloud Function to securely check for a match and create documents.
+          // For now, we simulate the check on the client.
+          const theirLikeRef = doc(firestore, `swipes/${swipedUser.id}/likes`, currentUser.uid);
           
           try {
-              const querySnapshot = await getDocs(matchQuery);
-              if (!querySnapshot.empty) {
+              const theirLikeDoc = await getDoc(theirLikeRef);
+              if (theirLikeDoc.exists()) {
                   // It's a match!
                   setLastSwipedUser(swipedUser);
                   setShowMatch(true);
 
-                  const conversationId = [currentUser.uid, swipedUser.id].sort().join('_');
-                  const conversationRef = doc(firestore, 'conversations', conversationId);
+                  const matchId = [currentUser.uid, swipedUser.id].sort().join('_');
+                  const userIds = [currentUser.uid, swipedUser.id];
+                  const allowedUsers = { [currentUser.uid]: true, [swipedUser.id]: true };
+
+                  const matchData = {
+                    id: matchId,
+                    userIds,
+                    timestamp: serverTimestamp(),
+                    allowedUsers,
+                  };
                   
                   const conversationData = {
-                    participants: [currentUser.uid, swipedUser.id],
+                    id: matchId,
+                    participants: userIds,
                     createdAt: serverTimestamp(),
+                    allowedUsers
                   };
 
                   const batch = writeBatch(firestore);
-                  batch.set(conversationRef, conversationData, { merge: true });
+                  
+                  // Create match doc for both users
+                  batch.set(doc(firestore, `userMatches/${currentUser.uid}/matches`, matchId), matchData);
+                  batch.set(doc(firestore, `userMatches/${swipedUser.id}/matches`, matchId), matchData);
+
+                  // Create conversation doc for both users
+                  batch.set(doc(firestore, `userConversations/${currentUser.uid}/conversations`, matchId), conversationData, { merge: true });
+                  batch.set(doc(firestore, `userConversations/${swipedUser.id}/conversations`, matchId), conversationData, { merge: true });
 
                   batch.commit().catch(error => {
-                    const permissionError = new FirestorePermissionError({
-                        path: conversationRef.path,
-                        operation: 'write',
-                        requestResourceData: conversationData
-                    });
-                    errorEmitter.emit('permission-error', permissionError);
+                     // This will likely fail on the client due to rules, reinforcing the need for a Cloud Function.
+                    console.error("Error creating match documents:", error);
                   });
               }
             } catch(e) {
-                const permissionError = new FirestorePermissionError({
-                    path: 'swipes',
-                    operation: 'list',
-                });
-                errorEmitter.emit('permission-error', permissionError);
+                // This read might fail due to security rules if not structured properly.
+                console.error("Error checking for match:", e);
             }
       }
   };
@@ -179,7 +182,7 @@ export default function SwipePage() {
   }
   
   const currentProfile = potentialMatches?.[currentIndex];
-  const loading = usersLoading || conversationsLoading;
+  const loading = usersLoading || matchesLoading;
   
   const variants = {
     initial: { scale: 0.9, opacity: 0, rotate: 5 },

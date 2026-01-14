@@ -9,16 +9,16 @@ import { BadgeCheck, MessageSquare, Sparkles, Loader2, User as UserIcon } from '
 import { cn, formatMatchTime } from '@/lib/utils';
 import { Badge } from '@/components/ui/badge';
 import { useCollection, useFirestore, useUser, useDoc } from '@/firebase';
-import { collection, query, where, doc } from 'firebase/firestore';
-import type { Conversation, User } from '@/lib/types';
+import { collection, query, orderBy, doc } from 'firebase/firestore';
+import type { Match, User } from '@/lib/types';
 import { isValidHttpUrl } from '@/lib/is-valid-url';
 
 
-function MatchCard({ conversation, currentUserId }: { conversation: Conversation, currentUserId: string }) {
+function MatchCard({ match, currentUserId }: { match: Match, currentUserId: string }) {
   const firestore = useFirestore();
   const twentyFourHoursAgo = new Date(Date.now() - 24 * 60 * 60 * 1000);
   
-  const participantId = conversation.participants.find(p => p !== currentUserId);
+  const participantId = match.userIds.find(p => p !== currentUserId);
 
   const participantRef = useMemo(() => {
     if (!firestore || !participantId) return null;
@@ -36,11 +36,11 @@ function MatchCard({ conversation, currentUserId }: { conversation: Conversation
   }
 
   const userImage = participant.photos?.[0];
-  const matchTimestamp = conversation.createdAt ? new Date(conversation.createdAt.seconds * 1000) : new Date();
+  const matchTimestamp = match.timestamp ? new Date(match.timestamp.seconds * 1000) : new Date();
   const isNewMatch = matchTimestamp > twentyFourHoursAgo;
 
   return (
-    <Link href={`/profile/${participant.id}`} key={conversation.id} className="group">
+    <Link href={`/profile/${participant.id}`} key={match.id} className="group">
       <Card className="overflow-hidden transition-all duration-300 hover:scale-105 hover:shadow-lg border-transparent hover:border-primary">
         <CardContent className="relative aspect-square p-0">
           {isValidHttpUrl(userImage) ? (
@@ -88,12 +88,12 @@ export default function MatchesPage() {
     const matchesQuery = useMemo(() => {
         if (!firestore || !currentUser) return null;
         return query(
-            collection(firestore, 'conversations'),
-            where('participants', 'array-contains', currentUser.uid)
+            collection(firestore, `userMatches/${currentUser.uid}/matches`),
+            orderBy('timestamp', 'desc')
         );
     }, [firestore, currentUser]);
 
-    const { data: matches, loading } = useCollection<Conversation>(matchesQuery);
+    const { data: matches, loading } = useCollection<Match>(matchesQuery);
 
     if (loading) {
       return <div className="flex h-full items-center justify-center"><Loader2 className="h-8 w-8 animate-spin" /></div>;
@@ -110,7 +110,7 @@ export default function MatchesPage() {
 
       <div className="grid grid-cols-2 gap-4 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 xl:grid-cols-6">
         {matches && currentUser && matches.map((match) => (
-          <MatchCard key={match.id} conversation={match} currentUserId={currentUser.uid} />
+          <MatchCard key={match.id} match={match} currentUserId={currentUser.uid} />
         ))}
         {matches?.length === 0 && (
           <p className="col-span-full text-center text-muted-foreground p-8">No matches yet. Keep swiping!</p>

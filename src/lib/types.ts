@@ -34,9 +34,9 @@ export type User = {
 
 export type Match = {
   id: string;
-  userId: string;
-  matchedUserId: string;
+  userIds: string[];
   timestamp: Timestamp;
+  allowedUsers: Record<string, boolean>;
 };
 
 export type Message = {
@@ -51,6 +51,7 @@ export type Conversation = {
   participants: string[];
   lastMessage: Message;
   createdAt: Timestamp;
+  allowedUsers: Record<string, boolean>;
 };
 
 export type Post = {
@@ -70,4 +71,11 @@ export type Comment = {
     postId: string;
     createdAt: Timestamp;
     author?: Partial<User>;
+};
+
+export type Swipe = {
+    swiperId: string;
+    swipedId: string;
+    direction: 'left' | 'right' | 'up';
+    timestamp: Timestamp;
 };

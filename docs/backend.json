@@ -45,9 +45,10 @@
         "id": { "type": "string", "description": "The unique identifier for the conversation." },
         "participants": { "type": "array", "items": { "type": "string" }, "description": "A list of user IDs participating in the conversation." },
         "createdAt": { "type": "string", "format": "date-time", "description": "The timestamp when the conversation was created." },
-        "lastMessage": { "$ref": "#/entities/Message" }
+        "lastMessage": { "$ref": "#/entities/Message" },
+        "allowedUsers": { "type": "object", "description": "Map of user UIDs who are allowed to read this document." }
       },
-      "required": ["id", "participants", "createdAt"]
+      "required": ["id", "participants", "createdAt", "allowedUsers"]
     },
     "Message": {
       "title": "Message",
@@ -74,32 +75,29 @@
       },
       "required": ["swiperId", "swipedId", "direction", "timestamp"]
     },
-    "Post": {
-      "title": "Post",
-      "description": "A blog post created by a user.",
-      "type": "object",
-      "properties": {
-        "id": { "type": "string" },
-        "title": { "type": "string" },
-        "content": { "type": "string" },
-        "authorId": { "type": "string" },
-        "createdAt": { "type": "string", "format": "date-time" },
-        "likes": { "type": "number" }
-      },
-      "required": ["id", "title", "content", "authorId", "createdAt"]
+    "Match": {
+        "title": "Match",
+        "description": "Represents a mutual match between two users.",
+        "type": "object",
+        "properties": {
+            "id": { "type": "string" },
+            "userIds": { "type": "array", "items": { "type": "string" } },
+            "timestamp": { "type": "string", "format": "date-time" },
+            "allowedUsers": { "type": "object", "description": "Map of user UIDs who are allowed to read this document." }
+        },
+        "required": ["id", "userIds", "timestamp", "allowedUsers"]
     },
-    "Comment": {
-      "title": "Comment",
-      "description": "A comment on a blog post.",
-      "type": "object",
-      "properties": {
-        "id": { "type": "string" },
-        "text": { "type": "string" },
-        "authorId": { "type": "string" },
-        "postId": { "type": "string" },
-        "createdAt": { "type": "string", "format": "date-time" }
-      },
-      "required": ["id", "text", "authorId", "postId", "createdAt"]
+    "UserFeed": {
+        "title": "UserFeed",
+        "description": "A user's personalized feed of potential matches.",
+        "type": "object",
+        "properties": {
+            "id": { "type": "string" },
+            "potentialMatches": { "type": "array", "items": { "$ref": "#/entities/User" } },
+            "lastUpdated": { "type": "string", "format": "date-time" },
+            "allowedUsers": { "type": "object", "description": "Map of user UIDs who are allowed to read this document." }
+        },
+        "required": ["id", "allowedUsers"]
     }
   },
   "auth": {
@@ -110,25 +108,29 @@
       "schema": { "$ref": "#/entities/User" },
       "description": "Stores individual user profiles."
     },
-    "/conversations/{conversationId}": {
-      "schema": { "$ref": "#/entities/Conversation" },
-      "description": "Stores chat conversations between users."
+    "/userConversations/{userId}/conversations/{conversationId}": {
+        "schema": { "$ref": "#/entities/Conversation" },
+        "description": "Stores a user's conversation."
     },
-    "/conversations/{conversationId}/messages/{messageId}": {
-      "schema": { "$ref": "#/entities/Message" },
-      "description": "Stores messages within a specific conversation."
+    "/userConversations/{userId}/conversations/{conversationId}/messages/{messageId}": {
+        "schema": { "$ref": "#/entities/Message" },
+        "description": "Stores messages within a specific conversation."
     },
-    "/swipes/{swipeId}": {
-      "schema": { "$ref": "#/entities/Swipe" },
-      "description": "Stores individual swipe actions."
+    "/userMatches/{userId}/matches/{matchId}": {
+        "schema": { "$ref": "#/entities/Match" },
+        "description": "Stores a user's matches."
     },
-    "/posts/{postId}": {
-      "schema": { "$ref": "#/entities/Post" },
-      "description": "Stores blog posts."
+    "/userFeed/{userId}": {
+        "schema": { "$ref": "#/entities/UserFeed" },
+        "description": "Stores a user's feed."
     },
-    "/posts/{postId}/comments/{commentId}": {
-      "schema": { "$ref": "#/entities/Comment" },
-      "description": "Stores comments for a specific blog post."
+    "/swipes/{userId}/likes/{likedUserId}": {
+        "schema": { "$ref": "#/entities/Swipe"},
+        "description": "Stores likes sent by a user."
+    },
+    "/swipes/{userId}/passes/{passedUserId}": {
+        "schema": { "$ref": "#/entities/Swipe"},
+        "description": "Stores passes (dislikes) by a user."
     }
   }
 }

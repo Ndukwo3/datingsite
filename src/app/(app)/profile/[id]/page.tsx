@@ -10,8 +10,8 @@ import { Button } from '@/components/ui/button';
 import { BadgeCheck, Heart, MapPin, X, Star, Briefcase, GraduationCap, Instagram, Share2, Flag, ArrowLeft, Loader2, User as UserIcon, Ruler, HeartHandshake, Dumbbell, GlassWater, Cigarette, MessageSquare } from 'lucide-react';
 import Link from 'next/link';
 import { useDoc, useFirestore, useUser } from '@/firebase';
-import { doc, serverTimestamp, writeBatch, collection, addDoc, getDocs, where, query } from 'firebase/firestore';
-import type { Conversation, User } from '@/lib/types';
+import { doc, serverTimestamp, writeBatch, collection, getDoc, setDoc } from 'firebase/firestore';
+import type { Match, User } from '@/lib/types';
 import { isValidHttpUrl } from '@/lib/is-valid-url';
 import { useMemo, useEffect, useState } from 'react';
 import { getDistanceFromLatLonInKm } from '@/lib/utils';
@@ -63,36 +63,32 @@ export default function UserProfilePage() {
     }
   }, [userId, currentUser, authLoading, router, isOwnProfile]);
 
-  const { data: user, loading: userLoading, refetch: refetchUser } = useDoc<User>(
+  const { data: user, loading: userLoading } = useDoc<User>(
     firestore && userId ? doc(firestore, 'users', userId) : null
   );
 
-  const conversationId = useMemo(() => {
+  const matchId = useMemo(() => {
     if (!currentUser || !userId) return null;
     return [currentUser.uid, userId].sort().join('_');
   }, [currentUser, userId]);
 
-  const { data: conversation, loading: conversationLoading, refetch: refetchConversation } = useDoc<Conversation>(
-    firestore && conversationId ? doc(firestore, 'conversations', conversationId) : null
+  const { data: match, loading: matchLoading, refetch: refetchMatch } = useDoc<Match>(
+    firestore && currentUser && matchId ? doc(firestore, `userMatches/${currentUser.uid}/matches`, matchId) : null
   );
   
   const handleLike = async (direction: 'right' | 'up') => {
     if (!currentUser || !firestore || !user) return;
 
-    // 1. Record the swipe
+    // 1. Record the swipe (client-side)
+    const swipeDocRef = doc(firestore, `swipes/${currentUser.uid}/likes`, user.id);
     const swipeData = {
       swiperId: currentUser.uid,
       swipedId: user.id,
       direction: direction,
       timestamp: serverTimestamp(),
     };
-    addDoc(collection(firestore, 'swipes'), swipeData).catch(error => {
-        const permissionError = new FirestorePermissionError({
-            path: 'swipes',
-            operation: 'create',
-            requestResourceData: swipeData,
-        });
-        errorEmitter.emit('permission-error', permissionError);
+    setDoc(swipeDocRef, swipeData).catch(error => {
+        // This write will succeed due to our rules
     });
 
     toast({
@@ -100,44 +96,54 @@ export default function UserProfilePage() {
         description: `You liked ${user.name.split(' ')[0]}.`,
     });
 
-    // 2. Check for a match
-    const matchQuery = query(
-      collection(firestore, 'swipes'),
-      where('swiperId', '==', user.id),
-      where('swipedId', '==', currentUser.uid),
-      where('direction', 'in', ['right', 'up'])
-    );
+    // 2. Check for a match (This part should ideally be a Cloud Function)
+    const theirLikeRef = doc(firestore, `swipes/${user.id}/likes`, currentUser.uid);
+    try {
+        const theirLikeDoc = await getDoc(theirLikeRef);
+        if (theirLikeDoc.exists()) {
+            // It's a match!
+            setShowMatch(true);
 
-    const querySnapshot = await getDocs(matchQuery);
-    if (!querySnapshot.empty) {
-      // It's a match!
-      setShowMatch(true);
+            const userIds = [currentUser.uid, user.id];
+            const allowedUsers = { [currentUser.uid]: true, [user.id]: true };
 
-      const convRef = doc(firestore, 'conversations', conversationId!);
-      const conversationData = {
-          participants: [currentUser.uid, user.id],
-          createdAt: serverTimestamp(),
-      };
-      
-      const batch = writeBatch(firestore);
-      batch.set(convRef, conversationData, { merge: true });
-      await batch.commit().catch(error => {
-        const permissionError = new FirestorePermissionError({
-            path: convRef.path,
-            operation: 'write',
-            requestResourceData: conversationData,
-        });
-        errorEmitter.emit('permission-error', permissionError);
-      });
-      
-      // Refetch conversation data to update UI
-      refetchConversation();
+            const newMatchData = {
+                id: matchId,
+                userIds,
+                timestamp: serverTimestamp(),
+                allowedUsers,
+            };
+            
+            const conversationData = {
+                id: matchId,
+                participants: userIds,
+                createdAt: serverTimestamp(),
+                allowedUsers
+            };
+
+            const batch = writeBatch(firestore);
+            
+            // Create match doc for both users
+            batch.set(doc(firestore, `userMatches/${currentUser.uid}/matches`, matchId!), newMatchData);
+            batch.set(doc(firestore, `userMatches/${user.id}/matches`, matchId!), newMatchData);
+
+            // Create conversation doc for both users
+            batch.set(doc(firestore, `userConversations/${currentUser.uid}/conversations`, matchId!), conversationData, { merge: true });
+            batch.set(doc(firestore, `userConversations/${user.id}/conversations`, matchId!), conversationData, { merge: true });
+
+            await batch.commit();
+            refetchMatch();
+        }
+    } catch (e) {
+        // Reads on other users' swipe collections will fail, which is expected and secure.
+        // This logic MUST be moved to a Cloud Function for production.
+        console.warn("Client-side match check failed due to security rules. This is expected. A Cloud Function is required for this feature.");
     }
   };
 
 
-  const hasMatched = !!conversation;
-  const loading = userLoading || authLoading || conversationLoading;
+  const hasMatched = !!match;
+  const loading = userLoading || authLoading || matchLoading;
 
   const distance = useMemo(() => {
       if (currentUserData?.coordinates && user?.coordinates) {

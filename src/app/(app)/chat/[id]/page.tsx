@@ -1,7 +1,7 @@
 
 'use client';
 
-import { notFound, useParams, useRouter } from 'next/navigation';
+import { notFound, useParams } from 'next/navigation';
 import { ChatInterface } from './ChatInterface';
 import { useDoc, useFirestore, useUser } from '@/firebase';
 import { doc } from 'firebase/firestore';
@@ -17,7 +17,6 @@ export default function ChatPage() {
   
   const isOwnProfile = currentUser?.uid === participantId;
   
-  // A user should not be able to chat with themselves.
   if (isOwnProfile) {
     notFound();
   }
@@ -32,12 +31,11 @@ export default function ChatPage() {
   );
   
   const { data: conversation, loading: conversationLoading } = useDoc<Conversation>(
-    firestore && conversationId ? doc(firestore, 'conversations', conversationId) : null
+    firestore && currentUser && conversationId ? doc(firestore, `userConversations/${currentUser.uid}/conversations`, conversationId) : null
   );
 
   const loading = participantLoading || conversationLoading;
   
-  // A new match is determined by the absence of a conversation document.
   const isNewMatch = !loading && !conversation;
 
   if (loading || !conversationId) {
