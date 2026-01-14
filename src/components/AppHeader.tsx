@@ -285,10 +285,10 @@ export function AppHeader() {
 
                     {currentUser && allNotifications.map(item => {
                         if ('participants' in item) { // It's a Conversation (match)
-                            return <MatchNotificationItem key={item.id} conversation={item} currentUserId={currentUser.uid} />
+                            return <MatchNotificationItem key={`match-${item.id}`} conversation={item} currentUserId={currentUser.uid} />
                         }
                         if ('swiperId' in item) { // It's a Swipe (like)
-                            return <LikeNotificationItem key={item.id} swipe={item} />
+                            return <LikeNotificationItem key={`like-${item.id}`} swipe={item} />
                         }
                         return null;
                     })}
