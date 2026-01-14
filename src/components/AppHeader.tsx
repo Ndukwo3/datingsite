@@ -20,7 +20,7 @@ import { Avatar, AvatarFallback, AvatarImage } from "./ui/avatar";
 import Link from "next/link";
 import { cn } from "@/lib/utils";
 import { useCollection, useFirestore, useUser, useDoc } from "@/firebase";
-import { collection, query, where, doc, orderBy } from "firebase/firestore";
+import { collection, query, where, doc, orderBy, collectionGroup } from "firebase/firestore";
 import type { Conversation, User, Swipe } from "@/lib/types";
 import { formatDistanceToNow } from "date-fns";
 
@@ -156,11 +156,12 @@ export function AppHeader() {
 
   const { data: conversations, loading: conversationsLoading } = useCollection<Conversation>(conversationsQuery);
 
-  // Query for incoming likes
+  // Query for incoming likes using a collection group query
   const likesQuery = useMemo(() => {
     if (!firestore || !currentUser) return null;
     return query(
-        collection(firestore, 'swipes', currentUser.uid, 'likes'),
+        collectionGroup(firestore, 'likes'),
+        where('swipedId', '==', currentUser.uid),
         orderBy('timestamp', 'desc')
     );
   }, [firestore, currentUser]);
