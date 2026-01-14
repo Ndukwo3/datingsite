@@ -11,6 +11,7 @@ import {
   SidebarMenuButton,
   SidebarFooter,
 } from "@/components/ui/sidebar";
+import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
 import { Logo } from "@/components/Logo";
 import { Flame, MessageSquareText, Users, CircleUser, Crown, LogOut, Settings, Rss, Newspaper } from "lucide-react";
 import { ThemeToggle } from "./ThemeToggle";
@@ -24,7 +25,7 @@ const menuItems = [
   { href: "/discover", label: "Swipe", icon: Flame },
   { href: "/matches", label: "Matches", icon: Users },
   { href: "/chat", label: "Chat", icon: MessageSquareText },
-  { href: "/blog", label: "Blog", icon: Newspaper },
+  { href: "/blog", label: "Blog", icon: Newspaper, isComingSoon: true },
   { href: "/profile", label: "Profile", icon: CircleUser },
 ];
 
@@ -69,21 +70,47 @@ export function AppSidebarContent() {
       </SidebarHeader>
       <SidebarContent className="p-2">
         <SidebarMenu>
-          {menuItems.map((item) => (
-            <SidebarMenuItem key={item.label}>
-              <SidebarMenuButton
-                asChild
-                isActive={isActive(item.href)}
-                tooltip={{children: item.label}}
-                onClick={handleLinkClick}
-              >
-                <Link href={item.href}>
-                  <item.icon className="h-5 w-5" />
-                  <span>{item.label}</span>
-                </Link>
-              </SidebarMenuButton>
-            </SidebarMenuItem>
-          ))}
+          {menuItems.map((item) => {
+            if (item.isComingSoon) {
+              return (
+                <SidebarMenuItem key={item.label}>
+                   <Dialog>
+                    <DialogTrigger asChild>
+                      <SidebarMenuButton
+                        tooltip={{children: item.label}}
+                      >
+                         <item.icon className="h-5 w-5" />
+                        <span>{item.label}</span>
+                      </SidebarMenuButton>
+                    </DialogTrigger>
+                     <DialogContent className="sm:max-w-md text-center">
+                        <DialogHeader>
+                        <DialogTitle className="font-headline text-2xl">Coming Soon!</DialogTitle>
+                        <DialogDescription>
+                            We're building an exciting new space for community stories and articles. Stay tuned!
+                        </DialogDescription>
+                        </DialogHeader>
+                    </DialogContent>
+                  </Dialog>
+                </SidebarMenuItem>
+              );
+            }
+            return (
+              <SidebarMenuItem key={item.label}>
+                <SidebarMenuButton
+                  asChild
+                  isActive={isActive(item.href)}
+                  tooltip={{children: item.label}}
+                  onClick={handleLinkClick}
+                >
+                  <Link href={item.href}>
+                    <item.icon className="h-5 w-5" />
+                    <span>{item.label}</span>
+                  </Link>
+                </SidebarMenuButton>
+              </SidebarMenuItem>
+            )
+          })}
            <SidebarMenuItem>
               <SidebarMenuButton
                 asChild
