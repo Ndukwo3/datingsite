@@ -4,7 +4,7 @@
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button, buttonVariants } from '@/components/ui/button';
 import Image from 'next/image';
-import { Briefcase, ChevronRight, Crown, Edit, Eye, GraduationCap, HelpCircle, KeyRound, Loader2, MapPin, Bell, ShieldCheck, Trash2, Upload, User as UserIcon, X, Star, Ruler, HeartHandshake, Dumbbell, GlassWater, Cigarette } from 'lucide-react';
+import { Briefcase, ChevronRight, Crown, Edit, Eye, GraduationCap, HelpCircle, KeyRound, Loader2, MapPin, Bell, ShieldCheck, Trash2, Upload, User as UserIcon, X, Star, Ruler, HeartHandshake, Dumbbell, GlassWater, Cigarette, BadgeCheck } from 'lucide-react';
 import Link from 'next/link';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { Badge } from '@/components/ui/badge';
@@ -209,7 +209,10 @@ export default function ProfilePage() {
                         </Avatar>
                         <div className="flex-1 text-center sm:text-left">
                             <div className="flex items-center justify-center sm:justify-start gap-2">
-                                <h2 className="text-2xl font-bold">{currentUser.name}, {currentUser.age}</h2>
+                                <h2 className="text-2xl font-bold flex items-center gap-2">
+                                    {currentUser.name}, {currentUser.age}
+                                    {currentUser.isVerified && <BadgeCheck className="h-6 w-6 text-yellow-400 fill-yellow-100" />}
+                                </h2>
                             </div>
                             <p className="mt-1 flex items-center justify-center sm:justify-start gap-1.5 text-muted-foreground">
                                 <MapPin className="h-4 w-4" /> {currentUser.location}
