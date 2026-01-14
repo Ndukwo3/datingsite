@@ -191,7 +191,6 @@ export default function ProfilePage() {
                         <div className="flex-1 text-center sm:text-left">
                             <div className="flex items-center justify-center sm:justify-start gap-2">
                                 <h2 className="text-2xl font-bold">{currentUser.name}, {currentUser.age}</h2>
-                                <Badge variant="outline" className="border-green-500 text-green-500">Free Plan</Badge>
                             </div>
                             <p className="mt-1 flex items-center justify-center sm:justify-start gap-1.5 text-muted-foreground">
                                 <MapPin className="h-4 w-4" /> {currentUser.location}
@@ -523,4 +522,5 @@ export default function ProfilePage() {
   );
 }
 
+    
     
