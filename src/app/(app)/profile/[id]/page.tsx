@@ -229,7 +229,7 @@ export default function UserProfilePage() {
             </div>
             <p className="flex items-center gap-2 text-muted-foreground">
                 <MapPin className="h-5 w-5" />
-                {user.location} {distance !== null && ` - ${distance}km away`}
+                {user.location?.split(',')[0]} {distance !== null && ` - ${distance}km away`}
             </p>
         </div>
 

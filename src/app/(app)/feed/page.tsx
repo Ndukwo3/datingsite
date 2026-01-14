@@ -67,6 +67,7 @@ export default function FeedPage() {
         {shuffledUsers.map((user) => {
           const userImage = user.photos?.[0];
           const isOnline = user.lastSeen === 'online';
+          const city = user.location?.split(',')[0] || '';
           
           return (
             <Link href={`/profile/${user.id}`} key={user.id}>
@@ -87,7 +88,7 @@ export default function FeedPage() {
                   <div className="absolute inset-x-0 bottom-0 bg-gradient-to-t from-black/80 to-transparent p-3 text-primary-foreground">
                     <p className="font-semibold">{user.name}, {user.age}</p>
                      <p className="mt-0.5 flex items-center gap-1 text-xs text-primary-foreground/80">
-                      <MapPin className="h-3 w-3" /> {user.location.split(',')[0]}
+                      <MapPin className="h-3 w-3" /> {city}
                     </p>
                     <div className="mt-1.5 flex items-center gap-1.5 text-xs">
                         <div className={cn("h-2 w-2 rounded-full", isOnline ? "bg-green-400" : "bg-gray-400")} />
