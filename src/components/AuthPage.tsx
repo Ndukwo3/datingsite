@@ -491,7 +491,3 @@ const ForgotPasswordForm = ({ onSubmit, isLoading, onBackToLogin }: { onSubmit: 
         </form>
     );
 };
-
-    
-
-    

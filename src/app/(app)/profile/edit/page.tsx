@@ -98,11 +98,6 @@ export default function EditProfilePage() {
           requestResourceData: data
       });
       errorEmitter.emit('permission-error', permissionError);
-      toast({
-        title: 'Update Failed',
-        description: 'Could not save your changes. Please try again.',
-        variant: 'destructive',
-      });
     });
   };
 
@@ -307,6 +302,3 @@ export default function EditProfilePage() {
     </div>
   );
 }
-
-
-    

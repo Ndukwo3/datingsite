@@ -231,7 +231,7 @@ export default function ProfilePage() {
             <CardContent>
               <div className="grid grid-cols-2 gap-4 md:grid-cols-4">
                 {currentUser.photos.map((photoUrl, index) => (
-                    <div key={index} className="group relative aspect-square">
+                    <div key={photoUrl} className="group relative aspect-square">
                         {isValidHttpUrl(photoUrl) ? (
                             <Image
                                 src={photoUrl}

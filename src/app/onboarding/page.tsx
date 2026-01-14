@@ -42,6 +42,7 @@ export default function OnboardingPage() {
           description: 'Please check your connection and try again.',
           variant: 'destructive',
         });
+      }).finally(() => {
         setIsSkipping(false);
       });
   };
