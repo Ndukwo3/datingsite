@@ -10,8 +10,8 @@ import { Button } from '@/components/ui/button';
 import { BadgeCheck, Heart, MapPin, X, Star, Briefcase, GraduationCap, Instagram, Share2, Flag, ArrowLeft, Loader2, User as UserIcon, Ruler, HeartHandshake, Dumbbell, GlassWater, Cigarette, MessageSquare } from 'lucide-react';
 import Link from 'next/link';
 import { useDoc, useFirestore, useUser } from '@/firebase';
-import { doc, serverTimestamp, writeBatch, collection, getDoc, setDoc } from 'firebase/firestore';
-import type { Match, User } from '@/lib/types';
+import { doc, serverTimestamp, writeBatch, collection, getDoc, setDoc, arrayUnion } from 'firebase/firestore';
+import type { Match, User, NotificationItem } from '@/lib/types';
 import { isValidHttpUrl } from '@/lib/is-valid-url';
 import { useMemo, useEffect, useState } from 'react';
 import { getDistanceFromLatLonInKm } from '@/lib/utils';
@@ -76,6 +76,30 @@ export default function UserProfilePage() {
     firestore && currentUser && matchId ? doc(firestore, `userMatches/${currentUser.uid}/matches`, matchId) : null
   );
   
+    const createLikeNotification = async (likedUser: User, superLike: boolean = false) => {
+        if (!currentUser || !firestore) return;
+        
+        const notifRef = doc(firestore, "userNotifications", likedUser.id);
+        const newNotification: NotificationItem = {
+        id: `like_${Date.now()}`,
+        type: 'like',
+        fromUserId: currentUser.uid,
+        createdAt: Date.now(),
+        read: false,
+        isSuperLike: superLike,
+        };
+        
+        try {
+        await setDoc(notifRef, {
+            items: arrayUnion(newNotification),
+            updatedAt: Date.now()
+        }, { merge: true });
+        } catch (error) {
+            console.error("Error creating notification:", error);
+        }
+    };
+
+
   const handleLike = async (direction: 'right' | 'up') => {
     if (!currentUser || !firestore || !user) return;
 
@@ -96,7 +120,10 @@ export default function UserProfilePage() {
         description: `You liked ${user.name.split(' ')[0]}.`,
     });
 
-    // 2. Check for a match (This part should ideally be a Cloud Function)
+    // 2. Create notification for the liked user
+    createLikeNotification(user, direction === 'up');
+
+    // 3. Check for a match (This part should ideally be a Cloud Function)
     const theirLikeRef = doc(firestore, `swipes/${user.id}/likes`, currentUser.uid);
     try {
         const theirLikeDoc = await getDoc(theirLikeRef);

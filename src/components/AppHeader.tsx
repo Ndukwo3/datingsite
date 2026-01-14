@@ -1,7 +1,7 @@
 
 "use client";
 
-import { useMemo, useState, useEffect } from "react";
+import { useMemo, useState, useEffect, useCallback } from "react";
 import { SidebarTrigger } from "@/components/ui/sidebar";
 import { UserNav } from "@/components/UserNav";
 import { Button } from "./ui/button";
@@ -20,29 +20,16 @@ import { Avatar, AvatarFallback, AvatarImage } from "./ui/avatar";
 import Link from "next/link";
 import { cn } from "@/lib/utils";
 import { useCollection, useFirestore, useUser, useDoc } from "@/firebase";
-import { collection, query, where, doc, orderBy, collectionGroup } from "firebase/firestore";
-import type { Conversation, User, Swipe } from "@/lib/types";
+import { collection, query, where, doc, orderBy, updateDoc } from "firebase/firestore";
+import type { Conversation, User, Notification, NotificationItem } from "@/lib/types";
 import { formatDistanceToNow } from "date-fns";
 
-type NotificationType = 'welcome' | 'match' | 'message' | 'like';
+type CombinedNotification = (NotificationItem & { fromUser?: User });
 
-const welcomeNotification = {
-    id: 'welcome',
-    type: 'welcome' as NotificationType,
-    user: { name: 'LinkUp9ja' },
-    message: 'Welcome to LinkUp9ja! Check out our community rules.',
-    time: 'Just now',
-    href: '/welcome',
-    timestamp: new Date(),
-}
+function NotificationItem({ notification }: { notification: CombinedNotification }) {
+    const { fromUser } = notification;
 
-function LikeNotificationItem({ swipe }: { swipe: Swipe }) {
-    const firestore = useFirestore();
-    const { data: liker, loading } = useDoc<User>(
-        firestore && swipe.swiperId ? doc(firestore, 'users', swipe.swiperId) : null
-    );
-
-    if (loading || !liker) {
+    if (!fromUser) {
         return (
              <DropdownMenuItem asChild className="p-2 cursor-pointer">
                 <div className="flex items-start gap-3 w-full">
@@ -58,77 +45,42 @@ function LikeNotificationItem({ swipe }: { swipe: Swipe }) {
         );
     }
     
-    const time = swipe.timestamp ? formatDistanceToNow(swipe.timestamp.toDate(), { addSuffix: true }) : 'a while ago';
-    const isSuperLike = swipe.direction === 'up';
+    const time = formatDistanceToNow(new Date(notification.createdAt), { addSuffix: true });
+    
+    let icon, message, link;
 
-    return (
-        <DropdownMenuItem asChild className="p-2 cursor-pointer">
-            <Link href={`/profile/${liker.id}`}>
-                <div className="flex items-start gap-3">
-                    <div className="relative">
-                        <Avatar className="h-9 w-9">
-                            {liker.photos?.[0] ? <AvatarImage src={liker.photos[0]} alt={liker.name} /> : <AvatarFallback><Sparkles className="h-5 w-5 text-primary"/></AvatarFallback>}
-                        </Avatar>
-                        <div className="absolute -bottom-1 -right-1 p-0.5 bg-background rounded-full">
-                            {isSuperLike ? <Star className="h-4 w-4 text-blue-500 fill-blue-500" /> : <Heart className="h-4 w-4 text-primary fill-primary" />}
-                        </div>
-                    </div>
-                    <div className="flex-1">
-                        <p className="text-sm">
-                            <span className="font-semibold">{liker.name}</span> {isSuperLike ? 'super liked you!' : 'liked you!'}
-                        </p>
-                        <p className="text-xs text-muted-foreground">{time}</p>
-                    </div>
-                </div>
-            </Link>
-        </DropdownMenuItem>
-    );
-}
-
-
-function MatchNotificationItem({ conversation, currentUserId }: { conversation: Conversation, currentUserId: string }) {
-    const firestore = useFirestore();
-    const participantId = conversation.participants.find(p => p !== currentUserId);
-
-    const { data: participant, loading } = useDoc<User>(
-        firestore && participantId ? doc(firestore, 'users', participantId) : null
-    );
-
-    if (loading || !participant) {
-        return (
-             <DropdownMenuItem asChild className="p-2 cursor-pointer">
-                <div className="flex items-start gap-3 w-full">
-                     <div className="relative">
-                        <Avatar className="h-9 w-9 bg-muted animate-pulse" />
-                    </div>
-                    <div className="flex-1 space-y-1">
-                        <div className="h-4 w-3/4 rounded bg-muted animate-pulse" />
-                        <div className="h-3 w-1/2 rounded bg-muted animate-pulse" />
-                    </div>
-                </div>
-            </DropdownMenuItem>
-        );
+    switch(notification.type) {
+        case 'like':
+            icon = notification.isSuperLike ? <Star className="h-4 w-4 text-blue-500 fill-blue-500" /> : <Heart className="h-4 w-4 text-primary fill-primary" />;
+            message = <p className="text-sm"><span className="font-semibold">{fromUser.name}</span> {notification.isSuperLike ? 'super liked you!' : 'liked you!'}</p>;
+            link = `/profile/${fromUser.id}`;
+            break;
+        case 'match':
+             icon = <Heart className="h-4 w-4 text-primary fill-primary" />;
+             message = <p className="text-sm">You matched with <span className="font-semibold">{fromUser.name}</span>!</p>;
+             link = `/chat/${fromUser.id}`;
+            break;
+        default:
+             icon = <Sparkles className="h-4 w-4 text-yellow-500 fill-yellow-500" />;
+             message = <p className="text-sm font-semibold">Welcome to LinkUp9ja!</p>;
+             link = '/welcome';
     }
-    
-    const timestamp = conversation.createdAt;
-    const time = timestamp ? formatDistanceToNow(timestamp.toDate(), { addSuffix: true }) : 'a while ago';
-    
+
+
     return (
-        <DropdownMenuItem asChild className="p-2 cursor-pointer">
-            <Link href={`/chat/${participant.id}`}>
-                <div className="flex items-start gap-3">
+        <DropdownMenuItem asChild className={cn("p-2 cursor-pointer", !notification.read && "bg-primary/5")}>
+            <Link href={link}>
+                <div className="flex items-start gap-3 w-full">
                     <div className="relative">
                         <Avatar className="h-9 w-9">
-                            {participant.photos?.[0] ? <AvatarImage src={participant.photos[0]} alt={participant.name} /> : <AvatarFallback><Sparkles className="h-5 w-5 text-primary"/></AvatarFallback>}
+                            {fromUser.photos?.[0] ? <AvatarImage src={fromUser.photos[0]} alt={fromUser.name} /> : <AvatarFallback><Sparkles className="h-5 w-5 text-primary"/></AvatarFallback>}
                         </Avatar>
                         <div className="absolute -bottom-1 -right-1 p-0.5 bg-background rounded-full">
-                            <Heart className="h-4 w-4 text-primary fill-primary" />
+                            {icon}
                         </div>
                     </div>
                     <div className="flex-1">
-                        <p className="text-sm">
-                            You matched with <span className="font-semibold">{participant.name}</span>!
-                        </p>
+                        {message}
                         <p className="text-xs text-muted-foreground">{time}</p>
                     </div>
                 </div>
@@ -136,16 +88,13 @@ function MatchNotificationItem({ conversation, currentUserId }: { conversation: 
         </DropdownMenuItem>
     );
 }
-
 
 export function AppHeader() {
-  const { user: currentUser, userData } = useUser();
+  const { user: currentUser } = useUser();
   const firestore = useFirestore();
 
-  const [hasUnreadNotifications, setHasUnreadNotifications] = useState(false);
   const [hasUnreadMessages, setHasUnreadMessages] = useState(false);
-
-  // Query for conversations to find new matches
+  
   const conversationsQuery = useMemo(() => {
     if (!firestore || !currentUser) return null;
     return query(
@@ -154,52 +103,48 @@ export function AppHeader() {
     );
   }, [firestore, currentUser]);
 
-  const { data: conversations, loading: conversationsLoading } = useCollection<Conversation>(conversationsQuery);
-
-  // Query for incoming likes using a collection group query
-  const likesQuery = useMemo(() => {
-    if (!firestore || !currentUser) return null;
-    return query(
-        collectionGroup(firestore, 'likes'),
-        where('swipedId', '==', currentUser.uid),
-        orderBy('timestamp', 'desc')
-    );
+  const { data: conversations } = useCollection<Conversation>(conversationsQuery);
+  
+  const notificationsRef = useMemo(() => {
+      if (!firestore || !currentUser) return null;
+      return doc(firestore, 'userNotifications', currentUser.uid);
   }, [firestore, currentUser]);
 
-  const { data: incomingLikes, loading: likesLoading } = useCollection<Swipe>(likesQuery);
+  const { data: notificationsData, loading: notificationsLoading } = useDoc<Notification>(notificationsRef);
 
-  const allNotifications = useMemo(() => {
-    const notifications: (Conversation | Swipe)[] = [];
+  const fromUserIds = useMemo(() => {
+      if (!notificationsData?.items) return [];
+      return [...new Set(notificationsData.items.map(item => item.fromUserId))];
+  }, [notificationsData]);
 
-    // Add match notifications (new conversations without messages)
-    if (conversations) {
-        const matchNotifications = conversations.filter(c => !c.lastMessage);
-        notifications.push(...matchNotifications);
-    }
+  const fromUsersQuery = useMemo(() => {
+    if (!firestore || fromUserIds.length === 0) return null;
+    return query(collection(firestore, 'users'), where('id', 'in', fromUserIds));
+  }, [firestore, fromUserIds]);
+
+  const { data: fromUsers, loading: fromUsersLoading } = useCollection<User>(fromUsersQuery);
+  
+  const fromUsersMap = useMemo(() => {
+    if (!fromUsers) return new Map();
+    return new Map(fromUsers.map(user => [user.id, user]));
+  }, [fromUsers]);
+
+  const combinedNotifications = useMemo(() => {
+    if (!notificationsData?.items) return [];
     
-    // Add "like" notifications
-    if (incomingLikes) {
-        notifications.push(...incomingLikes);
-    }
+    return notificationsData.items
+        .map(item => ({
+            ...item,
+            fromUser: fromUsersMap.get(item.fromUserId)
+        }))
+        .sort((a, b) => b.createdAt - a.createdAt);
 
-    // Sort all notifications by timestamp
-    return notifications.sort((a, b) => {
-        const timeA = (a as any).timestamp?.toDate() || (a as any).createdAt?.toDate() || 0;
-        const timeB = (b as any).timestamp?.toDate() || (b as any).createdAt?.toDate() || 0;
-        return timeB - timeA;
-    });
+  }, [notificationsData, fromUsersMap]);
+  
+  const hasUnreadNotifications = useMemo(() => 
+    notificationsData?.items?.some(item => !item.read) || false
+  , [notificationsData]);
 
-  }, [conversations, incomingLikes]);
-
-
-  const showWelcomeNotification = useMemo(() => {
-    if (!userData || !userData.onboardingComplete || !userData.createdAt) return false;
-    
-    const createdAt = userData.createdAt.toDate();
-    const fiveMinutesAgo = new Date(Date.now() - 5 * 60 * 1000);
-    return createdAt > fiveMinutesAgo;
-
-  }, [userData]);
 
   useEffect(() => {
     if (!conversations || !currentUser) {
@@ -211,20 +156,17 @@ export function AppHeader() {
         );
         setHasUnreadMessages(newUnreadMessages);
     }
-
-    const hasNewLikesOrMatches = allNotifications.length > 0;
-    setHasUnreadNotifications(hasNewLikesOrMatches || showWelcomeNotification);
-
-  }, [conversations, currentUser, showWelcomeNotification, allNotifications]);
+  }, [conversations, currentUser]);
 
 
-  const handleNotificationOpenChange = (open: boolean) => {
-    if (open && hasUnreadNotifications) {
-      setHasUnreadNotifications(false);
+  const handleNotificationOpenChange = async (open: boolean) => {
+    if (open && hasUnreadNotifications && notificationsRef && notificationsData) {
+       const updatedItems = notificationsData.items.map(n => ({ ...n, read: true }));
+       await updateDoc(notificationsRef, { items: updatedItems });
     }
   }
 
-  const loading = conversationsLoading || likesLoading;
+  const loading = notificationsLoading || fromUsersLoading;
 
 
   return (
@@ -259,41 +201,14 @@ export function AppHeader() {
             <DropdownMenuContent className="w-80" align="end">
                 <DropdownMenuLabel>Notifications</DropdownMenuLabel>
                 <DropdownMenuSeparator />
-                <div className="flex flex-col gap-1">
-                    {showWelcomeNotification && (
-                         <DropdownMenuItem asChild className="p-2 cursor-pointer">
-                            <Link href={welcomeNotification.href}>
-                                <div className="flex items-start gap-3">
-                                    <div className="relative">
-                                        <Avatar className="h-9 w-9">
-                                            <AvatarFallback><Sparkles className="h-5 w-5 text-primary"/></AvatarFallback>
-                                        </Avatar>
-                                        <div className="absolute -bottom-1 -right-1 p-0.5 bg-background rounded-full">
-                                            <Sparkles className="h-4 w-4 text-yellow-500 fill-yellow-500" />
-                                        </div>
-                                    </div>
-                                    <div className="flex-1">
-                                        <p className="text-sm font-semibold">{welcomeNotification.message}</p>
-                                        <p className="text-xs text-muted-foreground">{welcomeNotification.time}</p>
-                                    </div>
-                                </div>
-                            </Link>
-                        </DropdownMenuItem>
-                    )}
-
+                <div className="flex flex-col gap-1 max-h-96 overflow-y-auto">
                     {loading && <div className="flex justify-center p-4"><Loader2 className="h-5 w-5 animate-spin"/></div>}
 
-                    {currentUser && allNotifications.map(item => {
-                        if ('participants' in item) { // It's a Conversation (match)
-                            return <MatchNotificationItem key={`match-${item.id}`} conversation={item} currentUserId={currentUser.uid} />
-                        }
-                        if ('swiperId' in item) { // It's a Swipe (like)
-                            return <LikeNotificationItem key={`like-${item.id}`} swipe={item} />
-                        }
-                        return null;
-                    })}
+                    {!loading && combinedNotifications.map(item => (
+                       <NotificationItem key={item.id} notification={item} />
+                    ))}
 
-                    {!loading && !showWelcomeNotification && allNotifications.length === 0 && (
+                    {!loading && combinedNotifications.length === 0 && (
                         <p className="p-4 text-sm text-center text-muted-foreground">No new notifications.</p>
                     )}
                 </div>

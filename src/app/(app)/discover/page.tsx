@@ -4,12 +4,12 @@
 import { useState, useMemo } from 'react';
 import { motion, AnimatePresence, useMotionValue, useTransform, animate } from 'framer-motion';
 import { Heart, X, RotateCcw, Star, Loader2 } from 'lucide-react';
-import { doc, setDoc, getDoc, writeBatch, serverTimestamp, collection, query, where } from 'firebase/firestore';
+import { doc, setDoc, getDoc, writeBatch, serverTimestamp, collection, query, where, arrayUnion } from 'firebase/firestore';
 
 import { Button } from '@/components/ui/button';
 import { ProfileCard } from '@/components/ProfileCard';
 import { MatchNotification } from '@/components/MatchNotification';
-import type { User, Match } from '@/lib/types';
+import type { User, Match, NotificationItem } from '@/lib/types';
 import { useUser, useFirestore, useCollection } from '@/firebase';
 import { errorEmitter } from '@/firebase/error-emitter';
 import { FirestorePermissionError } from '@/firebase/errors';
@@ -58,6 +58,30 @@ export default function SwipePage() {
   const opacityX = useTransform(x, [-100, -20, 0], [1, 0, 0]);
   const opacityHeart = useTransform(x, [0, 20, 100], [0, 0, 1]);
   const opacityStar = useTransform(y, [-100, -20, 0], [1, 0, 0]);
+  
+  const createLikeNotification = async (likedUser: User, superLike: boolean = false) => {
+    if (!currentUser || !firestore) return;
+    
+    const notifRef = doc(firestore, "userNotifications", likedUser.id);
+    const newNotification: NotificationItem = {
+      id: `like_${Date.now()}`,
+      type: 'like',
+      fromUserId: currentUser.uid,
+      createdAt: Date.now(),
+      read: false,
+      isSuperLike: superLike,
+    };
+    
+    try {
+       await setDoc(notifRef, {
+        items: arrayUnion(newNotification),
+        updatedAt: Date.now()
+       }, { merge: true });
+    } catch (error) {
+        console.error("Error creating notification:", error);
+    }
+  };
+
 
   const handleSwipe = async (swipedUser: User, direction: 'left' | 'right' | 'up') => {
       if (!currentUser || !firestore || !userData) return;
@@ -82,6 +106,9 @@ export default function SwipePage() {
       });
 
       if (direction === 'right' || direction === 'up') {
+          // Create a notification for the user who was liked
+          createLikeNotification(swipedUser, direction === 'up');
+
           // This should be a Cloud Function to securely check for a match and create documents.
           // For now, we simulate the check on the client.
           const theirLikeRef = doc(firestore, `swipes/${swipedUser.id}/likes`, currentUser.uid);

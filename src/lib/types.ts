@@ -1,4 +1,3 @@
-
 import { Timestamp } from 'firebase/firestore';
 
 export type User = {
@@ -79,4 +78,19 @@ export type Swipe = {
     swipedId: string;
     direction: 'left' | 'right' | 'up';
     timestamp: Timestamp;
+};
+
+export type NotificationItem = {
+  id: string;
+  type: 'like' | 'match' | 'welcome';
+  fromUserId: string;
+  createdAt: number; // Using JS Date.now() timestamp
+  read: boolean;
+  isSuperLike?: boolean;
+};
+
+export type Notification = {
+  items: NotificationItem[];
+  updatedAt: number;
+  unreadCount: number;
 };

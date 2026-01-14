@@ -98,6 +98,33 @@
             "allowedUsers": { "type": "object", "description": "Map of user UIDs who are allowed to read this document." }
         },
         "required": ["id", "allowedUsers"]
+    },
+    "Notification": {
+      "title": "Notification",
+      "description": "A container for a user's notifications.",
+      "type": "object",
+      "properties": {
+        "items": { 
+          "type": "array",
+          "items": { "$ref": "#/entities/NotificationItem" }
+        },
+        "updatedAt": { "type": "number", "description": "Timestamp of the last update." },
+        "unreadCount": { "type": "number", "description": "Count of unread notifications." }
+      }
+    },
+    "NotificationItem": {
+      "title": "Notification Item",
+      "description": "A single notification item.",
+      "type": "object",
+      "properties": {
+        "id": { "type": "string" },
+        "type": { "type": "string", "enum": ["like", "match", "welcome"] },
+        "fromUserId": { "type": "string" },
+        "createdAt": { "type": "number" },
+        "read": { "type": "boolean" },
+        "isSuperLike": { "type": "boolean" }
+      },
+      "required": ["id", "type", "fromUserId", "createdAt", "read"]
     }
   },
   "auth": {
@@ -131,6 +158,10 @@
     "/swipes/{userId}/passes/{passedUserId}": {
         "schema": { "$ref": "#/entities/Swipe"},
         "description": "Stores passes (dislikes) by a user."
+    },
+    "/userNotifications/{userId}": {
+      "schema": { "$ref": "#/entities/Notification" },
+      "description": "Stores notifications for a specific user."
     }
   }
 }
