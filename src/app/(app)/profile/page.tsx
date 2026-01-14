@@ -201,18 +201,24 @@ export default function ProfilePage() {
              <Card className="overflow-hidden">
                 <CardContent className="p-6">
                     <div className="flex flex-col items-center gap-6 sm:flex-row">
-                        <Avatar className="h-24 w-24 border-4 border-primary">
-                            {isValidHttpUrl(userImage) ? (
-                               <AvatarImage src={userImage} alt={currentUser.name} />
-                            ) : (
-                                <AvatarFallback>{currentUser.name.charAt(0)}</AvatarFallback>
+                        <div className="relative">
+                            <Avatar className="h-24 w-24 border-4 border-primary">
+                                {isValidHttpUrl(userImage) ? (
+                                   <AvatarImage src={userImage} alt={currentUser.name} />
+                                ) : (
+                                    <AvatarFallback>{currentUser.name.charAt(0)}</AvatarFallback>
+                                )}
+                            </Avatar>
+                             {currentUser.isVerified && (
+                                <div className="absolute -bottom-2 -right-2 bg-background p-1 rounded-full">
+                                    <BadgeCheck className="h-7 w-7 text-yellow-400 fill-yellow-100" />
+                                </div>
                             )}
-                        </Avatar>
+                        </div>
                         <div className="flex-1 text-center sm:text-left">
                             <div className="flex items-center justify-center sm:justify-start gap-2">
                                 <h2 className="text-2xl font-bold flex items-center gap-2">
                                     {currentUser.name}, {currentUser.age}
-                                    {currentUser.isVerified && <BadgeCheck className="h-6 w-6 text-yellow-400 fill-yellow-100" />}
                                 </h2>
                             </div>
                             <p className="mt-1 flex items-center justify-center sm:justify-start gap-1.5 text-muted-foreground">
