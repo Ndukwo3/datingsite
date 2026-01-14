@@ -40,8 +40,9 @@ function ConversationItem({ conversation, currentUserId }: { conversation: Conve
 
   const userImage = participant.photos?.[0];
   const firstName = participant.name.split(' ')[0];
-  const lastMessage = conversation.lastMessage || { text: 'No messages yet', timestamp: conversation.createdAt };
-  const isUnread = lastMessage.senderId !== currentUserId;
+  const lastMessage = conversation.lastMessage;
+  const isUnread = lastMessage && lastMessage.senderId !== currentUserId;
+  const displayTimestamp = lastMessage?.timestamp || conversation.createdAt;
 
 
   return (
@@ -62,15 +63,20 @@ function ConversationItem({ conversation, currentUserId }: { conversation: Conve
           <div className="flex items-baseline justify-between">
             <p className="font-semibold">{firstName}</p>
             <p className="text-xs text-muted-foreground">
-              {lastMessage.timestamp ? formatDistanceToNow(new Date(lastMessage.timestamp.seconds * 1000), { addSuffix: true }) : ''}
+              {displayTimestamp ? formatDistanceToNow(new Date(displayTimestamp.seconds * 1000), { addSuffix: true }) : ''}
             </p>
           </div>
-          <div className="flex items-center gap-2">
+          <div className="flex items-center justify-between">
              <p className={cn(
                 "mt-1 truncate text-sm",
                 isUnread ? "font-bold text-foreground" : "text-muted-foreground"
             )}>
-                {lastMessage.senderId === currentUserId && 'You: '}{lastMessage.text}
+                {lastMessage ? (
+                    <>
+                        {lastMessage.senderId === currentUserId && 'You: '}
+                        {lastMessage.text}
+                    </>
+                ) : 'You matched. Say hi!'}
              </p>
             {isUnread && <div className="h-2 w-2 shrink-0 rounded-full bg-primary" />}
           </div>
@@ -89,7 +95,7 @@ export default function ChatListPage() {
     if (!firestore || !user) return null;
     return query(
       collection(firestore, `userConversations/${user.uid}/conversations`),
-      orderBy('lastMessage.timestamp', 'desc')
+      orderBy('createdAt', 'desc')
     );
   }, [firestore, user]);
 

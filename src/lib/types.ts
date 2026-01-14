@@ -49,7 +49,7 @@ export type Message = {
 export type Conversation = {
   id: string;
   participants: string[];
-  lastMessage: Message;
+  lastMessage?: Message;
   createdAt: Timestamp;
   allowedUsers: Record<string, boolean>;
 };
