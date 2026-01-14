@@ -36,10 +36,11 @@ import {
   DialogTrigger,
 } from "@/components/ui/dialog"
 import { getAuth, deleteUser } from 'firebase/auth';
+import { Progress } from '@/components/ui/progress';
 
 
 export default function ProfilePage() {
-    const { user: authUser, loading: authLoading, userData, refreshUserData } = useUser();
+    const { user: authUser, loading: authLoading, userData, refreshUserData, completionPercentage, nextStep } = useUser();
     const router = useRouter();
     const { toast } = useToast();
     const firestore = useFirestore();
@@ -366,10 +367,32 @@ export default function ProfilePage() {
 
         {/* Right Column */}
         <div className="col-span-1 space-y-8">
-            {/* Profile Status Card */}
+            {/* Profile Completion Card */}
+            {completionPercentage < 100 && (
+                <Card>
+                    <CardHeader>
+                        <CardTitle>Profile Completion</CardTitle>
+                        <CardDescription>{completionPercentage}% Complete</CardDescription>
+                    </CardHeader>
+                    <CardContent className="space-y-4">
+                        <Progress value={completionPercentage} />
+                        <div>
+                            <p className="font-semibold text-sm">{nextStep?.title}</p>
+                            <p className="text-sm text-muted-foreground">{nextStep?.description}</p>
+                        </div>
+                        <Button asChild className="w-full">
+                            <Link href="/profile/edit">
+                                <Edit className="mr-2 h-4 w-4" /> {nextStep?.buttonText}
+                            </Link>
+                        </Button>
+                    </CardContent>
+                </Card>
+            )}
+
+            {/* Profile Visibility Card */}
             <Card>
                 <CardHeader>
-                    <CardTitle>Profile Status</CardTitle>
+                    <CardTitle>Profile Visibility</CardTitle>
                 </CardHeader>
                 <CardContent>
                     <div className="flex items-center justify-between">
@@ -499,3 +522,5 @@ export default function ProfilePage() {
     </div>
   );
 }
+
+    

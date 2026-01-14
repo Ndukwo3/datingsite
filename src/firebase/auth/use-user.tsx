@@ -6,6 +6,7 @@ import { onAuthStateChanged, type User as FirebaseUser } from "firebase/auth";
 import { useAuth, useFirestore, useDoc } from "@/firebase";
 import { doc } from "firebase/firestore";
 import type { User } from "@/lib/types";
+import { useProfileCompletion } from "@/hooks/use-profile-completion";
 
 export function useUser() {
   const auth = useAuth();
@@ -30,6 +31,8 @@ export function useUser() {
   const userDocRef = user ? doc(firestore, "users", user.uid) : null;
   const { data: userData, loading: userDataLoading, refetch } = useDoc<User>(userDocRef);
 
+  const { completionPercentage, nextStep } = useProfileCompletion(userData);
+
   const refreshUserData = useCallback(() => {
     if (refetch) {
       refetch();
@@ -40,6 +43,10 @@ export function useUser() {
     user,
     userData,
     loading: loading || userDataLoading,
-    refreshUserData
+    refreshUserData,
+    completionPercentage,
+    nextStep
   };
 }
+
+    
