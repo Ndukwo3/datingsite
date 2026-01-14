@@ -74,6 +74,7 @@ export type Comment = {
 };
 
 export type Swipe = {
+    id: string;
     swiperId: string;
     swipedId: string;
     direction: 'left' | 'right' | 'up';

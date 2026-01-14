@@ -5,7 +5,7 @@ import { useMemo, useState, useEffect } from "react";
 import { SidebarTrigger } from "@/components/ui/sidebar";
 import { UserNav } from "@/components/UserNav";
 import { Button } from "./ui/button";
-import { Bell, Heart, MessageSquareText, Sparkles, Loader2 } from "lucide-react";
+import { Bell, Heart, MessageSquareText, Sparkles, Loader2, Star } from "lucide-react";
 import { ThemeToggle } from "./ThemeToggle";
 import { Logo } from "./Logo";
 import {
@@ -20,49 +20,79 @@ import { Avatar, AvatarFallback, AvatarImage } from "./ui/avatar";
 import Link from "next/link";
 import { cn } from "@/lib/utils";
 import { useCollection, useFirestore, useUser, useDoc } from "@/firebase";
-import { collection, query, where, doc } from "firebase/firestore";
-import type { Conversation, User } from "@/lib/types";
+import { collection, query, where, doc, orderBy } from "firebase/firestore";
+import type { Conversation, User, Swipe } from "@/lib/types";
 import { formatDistanceToNow } from "date-fns";
 
-type NotificationType = 'welcome' | 'match' | 'message';
+type NotificationType = 'welcome' | 'match' | 'message' | 'like';
 
-type Notification = {
-    id: string;
-    type: NotificationType;
-    user: Partial<User>;
-    message?: string;
-    time: string;
-    href: string;
-};
-
-const welcomeNotification: Notification = {
+const welcomeNotification = {
     id: 'welcome',
-    type: 'welcome',
+    type: 'welcome' as NotificationType,
     user: { name: 'LinkUp9ja' },
     message: 'Welcome to LinkUp9ja! Check out our community rules.',
     time: 'Just now',
     href: '/welcome',
+    timestamp: new Date(),
 }
 
-function NotificationItem({ conversation, currentUserId }: { conversation: Conversation, currentUserId: string }) {
+function LikeNotificationItem({ swipe }: { swipe: Swipe }) {
+    const firestore = useFirestore();
+    const { data: liker, loading } = useDoc<User>(
+        firestore && swipe.swiperId ? doc(firestore, 'users', swipe.swiperId) : null
+    );
+
+    if (loading || !liker) {
+        return (
+             <DropdownMenuItem asChild className="p-2 cursor-pointer">
+                <div className="flex items-start gap-3 w-full">
+                     <div className="relative">
+                        <Avatar className="h-9 w-9 bg-muted animate-pulse" />
+                    </div>
+                    <div className="flex-1 space-y-1">
+                        <div className="h-4 w-3/4 rounded bg-muted animate-pulse" />
+                        <div className="h-3 w-1/2 rounded bg-muted animate-pulse" />
+                    </div>
+                </div>
+            </DropdownMenuItem>
+        );
+    }
+    
+    const time = swipe.timestamp ? formatDistanceToNow(swipe.timestamp.toDate(), { addSuffix: true }) : 'a while ago';
+    const isSuperLike = swipe.direction === 'up';
+
+    return (
+        <DropdownMenuItem asChild className="p-2 cursor-pointer">
+            <Link href={`/profile/${liker.id}`}>
+                <div className="flex items-start gap-3">
+                    <div className="relative">
+                        <Avatar className="h-9 w-9">
+                            {liker.photos?.[0] ? <AvatarImage src={liker.photos[0]} alt={liker.name} /> : <AvatarFallback><Sparkles className="h-5 w-5 text-primary"/></AvatarFallback>}
+                        </Avatar>
+                        <div className="absolute -bottom-1 -right-1 p-0.5 bg-background rounded-full">
+                            {isSuperLike ? <Star className="h-4 w-4 text-blue-500 fill-blue-500" /> : <Heart className="h-4 w-4 text-primary fill-primary" />}
+                        </div>
+                    </div>
+                    <div className="flex-1">
+                        <p className="text-sm">
+                            <span className="font-semibold">{liker.name}</span> {isSuperLike ? 'super liked you!' : 'liked you!'}
+                        </p>
+                        <p className="text-xs text-muted-foreground">{time}</p>
+                    </div>
+                </div>
+            </Link>
+        </DropdownMenuItem>
+    );
+}
+
+
+function MatchNotificationItem({ conversation, currentUserId }: { conversation: Conversation, currentUserId: string }) {
     const firestore = useFirestore();
     const participantId = conversation.participants.find(p => p !== currentUserId);
 
     const { data: participant, loading } = useDoc<User>(
         firestore && participantId ? doc(firestore, 'users', participantId) : null
     );
-
-    const isNewMessage = conversation.lastMessage && conversation.lastMessage.senderId === participantId;
-    if (isNewMessage) {
-        return null;
-    }
-
-    const isNewMatch = conversation.createdAt && (new Date().getTime() - conversation.createdAt.toDate().getTime()) < 5 * 60 * 1000;
-    const hasMessages = !!conversation.lastMessage;
-
-    if (!isNewMatch || hasMessages) {
-        return null;
-    }
 
     if (loading || !participant) {
         return (
@@ -80,9 +110,8 @@ function NotificationItem({ conversation, currentUserId }: { conversation: Conve
         );
     }
     
-    const notificationType: NotificationType = 'match';
     const timestamp = conversation.createdAt;
-    const time = timestamp ? formatDistanceToNow(new Date(timestamp.seconds * 1000), { addSuffix: true }) : 'a while ago';
+    const time = timestamp ? formatDistanceToNow(timestamp.toDate(), { addSuffix: true }) : 'a while ago';
     
     return (
         <DropdownMenuItem asChild className="p-2 cursor-pointer">
@@ -116,32 +145,56 @@ export function AppHeader() {
   const [hasUnreadNotifications, setHasUnreadNotifications] = useState(false);
   const [hasUnreadMessages, setHasUnreadMessages] = useState(false);
 
+  // Query for conversations to find new matches
   const conversationsQuery = useMemo(() => {
     if (!firestore || !currentUser) return null;
     return query(
-      collection(firestore, 'conversations'),
+      collection(firestore, `userConversations/${currentUser.uid}/conversations`),
       where('participants', 'array-contains', currentUser.uid)
     );
   }, [firestore, currentUser]);
 
-  const { data: conversations, loading } = useCollection<Conversation>(conversationsQuery);
-  
-  const sortedConversations = useMemo(() => {
-    if (!conversations) return [];
-    return [...conversations].sort((a, b) => {
-        const timeA = a.lastMessage?.timestamp?.seconds || a.createdAt?.seconds || 0;
-        const timeB = b.lastMessage?.timestamp?.seconds || b.createdAt?.seconds || 0;
+  const { data: conversations, loading: conversationsLoading } = useCollection<Conversation>(conversationsQuery);
+
+  // Query for incoming likes
+  const likesQuery = useMemo(() => {
+    if (!firestore || !currentUser) return null;
+    return query(
+        collection(firestore, 'swipes', currentUser.uid, 'likes'),
+        orderBy('timestamp', 'desc')
+    );
+  }, [firestore, currentUser]);
+
+  const { data: incomingLikes, loading: likesLoading } = useCollection<Swipe>(likesQuery);
+
+  const allNotifications = useMemo(() => {
+    const notifications: (Conversation | Swipe)[] = [];
+
+    // Add match notifications (new conversations without messages)
+    if (conversations) {
+        const matchNotifications = conversations.filter(c => !c.lastMessage);
+        notifications.push(...matchNotifications);
+    }
+    
+    // Add "like" notifications
+    if (incomingLikes) {
+        notifications.push(...incomingLikes);
+    }
+
+    // Sort all notifications by timestamp
+    return notifications.sort((a, b) => {
+        const timeA = (a as any).timestamp?.toDate() || (a as any).createdAt?.toDate() || 0;
+        const timeB = (b as any).timestamp?.toDate() || (b as any).createdAt?.toDate() || 0;
         return timeB - timeA;
     });
-  }, [conversations]);
-  
+
+  }, [conversations, incomingLikes]);
+
+
   const showWelcomeNotification = useMemo(() => {
-    if (!userData || !userData.onboardingComplete) return false;
+    if (!userData || !userData.onboardingComplete || !userData.createdAt) return false;
     
-    // @ts-ignore
-    const createdAt = userData.createdAt?.toDate();
-    if (!createdAt) return false;
-    
+    const createdAt = userData.createdAt.toDate();
     const fiveMinutesAgo = new Date(Date.now() - 5 * 60 * 1000);
     return createdAt > fiveMinutesAgo;
 
@@ -150,28 +203,27 @@ export function AppHeader() {
   useEffect(() => {
     if (!conversations || !currentUser) {
         setHasUnreadMessages(false);
-        setHasUnreadNotifications(false);
-        return;
-    };
+    } else {
+        const newUnreadMessages = conversations.some(convo => 
+            convo.lastMessage && 
+            convo.lastMessage.senderId !== currentUser.uid
+        );
+        setHasUnreadMessages(newUnreadMessages);
+    }
 
-    const newUnreadMessages = conversations.some(convo => convo.lastMessage?.senderId !== currentUser.uid);
-    setHasUnreadMessages(newUnreadMessages);
+    const hasNewLikesOrMatches = allNotifications.length > 0;
+    setHasUnreadNotifications(hasNewLikesOrMatches || showWelcomeNotification);
 
-    const newUnreadNotifications = conversations.some(convo => {
-        const isNewMatch = convo.createdAt && (new Date().getTime() - convo.createdAt.toDate().getTime()) < 5 * 60 * 1000;
-        return isNewMatch && !convo.lastMessage;
-    }) || showWelcomeNotification;
-    setHasUnreadNotifications(newUnreadNotifications);
-
-  }, [conversations, currentUser, showWelcomeNotification]);
+  }, [conversations, currentUser, showWelcomeNotification, allNotifications]);
 
 
   const handleNotificationOpenChange = (open: boolean) => {
     if (open && hasUnreadNotifications) {
-      // When the menu is opened, mark notifications as read
       setHasUnreadNotifications(false);
     }
   }
+
+  const loading = conversationsLoading || likesLoading;
 
 
   return (
@@ -230,11 +282,17 @@ export function AppHeader() {
 
                     {loading && <div className="flex justify-center p-4"><Loader2 className="h-5 w-5 animate-spin"/></div>}
 
-                    {sortedConversations && currentUser && sortedConversations.map(convo => (
-                       <NotificationItem key={convo.id} conversation={convo} currentUserId={currentUser.uid} />
-                    ))}
+                    {currentUser && allNotifications.map(item => {
+                        if ('participants' in item) { // It's a Conversation (match)
+                            return <MatchNotificationItem key={item.id} conversation={item} currentUserId={currentUser.uid} />
+                        }
+                        if ('swiperId' in item) { // It's a Swipe (like)
+                            return <LikeNotificationItem key={item.id} swipe={item} />
+                        }
+                        return null;
+                    })}
 
-                    {!loading && !hasUnreadNotifications && !sortedConversations?.some(c => !c.lastMessage || c.lastMessage.senderId === currentUser?.uid) && (
+                    {!loading && !showWelcomeNotification && allNotifications.length === 0 && (
                         <p className="p-4 text-sm text-center text-muted-foreground">No new notifications.</p>
                     )}
                 </div>
