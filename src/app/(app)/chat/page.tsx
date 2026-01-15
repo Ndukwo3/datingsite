@@ -1,13 +1,13 @@
 
 'use client';
 
-import { useMemo } from 'react';
+import { useMemo, useEffect } from 'react';
 import Link from 'next/link';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { formatDistanceToNow } from 'date-fns';
 import { useCollection, useFirestore, useUser, useDoc } from '@/firebase';
-import { collection, query, orderBy, doc } from 'firebase/firestore';
+import { collection, query, orderBy, doc, setDoc } from 'firebase/firestore';
 import type { Conversation, User } from '@/lib/types';
 import { Loader2 } from 'lucide-react';
 import { isValidHttpUrl } from '@/lib/is-valid-url';
@@ -23,6 +23,31 @@ function ConversationItem({ conversation, currentUserId }: { conversation: Conve
   }, [firestore, participantId]);
   
   const { data: participant, loading } = useDoc<User>(participantRef);
+
+  const isUnread = useMemo(() => {
+    if (!conversation.lastMessage || !currentUserId) return false;
+    // Message is unread if it's not from the current user and its timestamp is after the user's lastRead time.
+    return (
+      conversation.lastMessage.senderId !== currentUserId &&
+      new Date(conversation.lastMessage.timestamp.seconds * 1000).getTime() >
+        (conversation.lastRead?.[currentUserId] || 0)
+    );
+  }, [conversation, currentUserId]);
+
+
+  useEffect(() => {
+    // When the component mounts, if there are unread messages, update the lastRead timestamp for the current user.
+    if (isUnread && firestore && conversation.id && currentUserId) {
+        const convRef = doc(firestore, `userConversations/${currentUserId}/conversations`, conversation.id);
+        setDoc(convRef, {
+            lastRead: {
+                [currentUserId]: Date.now()
+            }
+        }, { merge: true });
+    }
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [isUnread, firestore, conversation.id, currentUserId]);
+
 
   if (loading || !participant) {
     return (
@@ -41,7 +66,6 @@ function ConversationItem({ conversation, currentUserId }: { conversation: Conve
   const userImage = participant.photos?.[0];
   const firstName = participant.name.split(' ')[0];
   const lastMessage = conversation.lastMessage;
-  const isUnread = lastMessage && lastMessage.senderId !== currentUserId;
   const displayTimestamp = lastMessage?.timestamp || conversation.createdAt;
 
 
@@ -95,7 +119,7 @@ export default function ChatListPage() {
     if (!firestore || !user) return null;
     return query(
       collection(firestore, `userConversations/${user.uid}/conversations`),
-      orderBy('createdAt', 'desc')
+      orderBy('lastMessage.timestamp', 'desc')
     );
   }, [firestore, user]);
 
@@ -125,3 +149,5 @@ export default function ChatListPage() {
     </div>
   );
 }
+
+    

@@ -26,44 +26,39 @@ import { formatDistanceToNow } from "date-fns";
 
 type CombinedNotification = (NotificationItem & { fromUser?: User });
 
-function NotificationItem({ notification }: { notification: CombinedNotification }) {
+function NotificationItem({ notification, currentUser }: { notification: CombinedNotification, currentUser: User | null }) {
     const { fromUser } = notification;
-
-    if (!fromUser) {
-        return (
-             <DropdownMenuItem asChild className="p-2 cursor-pointer">
-                <div className="flex items-start gap-3 w-full">
-                     <div className="relative">
-                        <Avatar className="h-9 w-9 bg-muted animate-pulse" />
-                    </div>
-                    <div className="flex-1 space-y-1">
-                        <div className="h-4 w-3/4 rounded bg-muted animate-pulse" />
-                        <div className="h-3 w-1/2 rounded bg-muted animate-pulse" />
-                    </div>
-                </div>
-            </DropdownMenuItem>
-        );
-    }
     
     const time = formatDistanceToNow(new Date(notification.createdAt), { addSuffix: true });
     
-    let icon, message, link;
+    let icon, message, link, avatar, avatarFallback;
 
     switch(notification.type) {
         case 'like':
+            if (!fromUser) return null; // Likes must have a fromUser
             icon = notification.isSuperLike ? <Star className="h-4 w-4 text-blue-500 fill-blue-500" /> : <Heart className="h-4 w-4 text-primary fill-primary" />;
             message = <p className="text-sm"><span className="font-semibold">{fromUser.name}</span> {notification.isSuperLike ? 'super liked you!' : 'liked you!'}</p>;
             link = `/profile/${fromUser.id}`;
+            avatar = fromUser.photos?.[0];
+            avatarFallback = fromUser.name?.charAt(0);
             break;
         case 'match':
+             if (!fromUser) return null; // Matches must have a fromUser
              icon = <Heart className="h-4 w-4 text-primary fill-primary" />;
              message = <p className="text-sm">You matched with <span className="font-semibold">{fromUser.name}</span>!</p>;
              link = `/chat/${fromUser.id}`;
+             avatar = fromUser.photos?.[0];
+             avatarFallback = fromUser.name?.charAt(0);
             break;
-        default:
+        case 'welcome':
              icon = <Sparkles className="h-4 w-4 text-yellow-500 fill-yellow-500" />;
              message = <p className="text-sm font-semibold">Welcome to LinkUp9ja!</p>;
              link = '/welcome';
+             avatar = null; // No user avatar for welcome message
+             avatarFallback = <Sparkles className="h-5 w-5 text-primary"/>;
+             break;
+        default:
+            return null; // Should not happen
     }
 
 
@@ -73,7 +68,7 @@ function NotificationItem({ notification }: { notification: CombinedNotification
                 <div className="flex items-start gap-3 w-full">
                     <div className="relative">
                         <Avatar className="h-9 w-9">
-                            {fromUser.photos?.[0] ? <AvatarImage src={fromUser.photos[0]} alt={fromUser.name} /> : <AvatarFallback><Sparkles className="h-5 w-5 text-primary"/></AvatarFallback>}
+                            {avatar ? <AvatarImage src={avatar} /> : <AvatarFallback>{avatarFallback}</AvatarFallback>}
                         </Avatar>
                         <div className="absolute -bottom-1 -right-1 p-0.5 bg-background rounded-full">
                             {icon}
@@ -114,8 +109,9 @@ export function AppHeader() {
 
   const fromUserIds = useMemo(() => {
       if (!notificationsData?.items) return [];
-      return [...new Set(notificationsData.items.map(item => item.fromUserId))];
-  }, [notificationsData]);
+      // Filter out system messages that might not have a fromUserId or have self as fromUserId for welcome
+      return [...new Set(notificationsData.items.map(item => item.fromUserId).filter(id => id && id !== currentUser?.uid))];
+  }, [notificationsData, currentUser]);
 
   const fromUsersQuery = useMemo(() => {
     if (!firestore || fromUserIds.length === 0) return null;
@@ -133,11 +129,16 @@ export function AppHeader() {
     if (!notificationsData?.items) return [];
     
     return notificationsData.items
-        .map(item => ({
-            ...item,
-            fromUser: fromUsersMap.get(item.fromUserId)
-        }))
-        .sort((a, b) => b.createdAt - a.createdAt);
+        .map(item => {
+            if (item.type === 'welcome') {
+                return item; // Welcome notification has no 'fromUser'
+            }
+            return {
+                ...item,
+                fromUser: fromUsersMap.get(item.fromUserId)
+            }
+        })
+        .sort((a, b) => b.createdAt - a.createdAt) as CombinedNotification[];
 
   }, [notificationsData, fromUsersMap]);
   
@@ -152,7 +153,9 @@ export function AppHeader() {
     } else {
         const newUnreadMessages = conversations.some(convo => 
             convo.lastMessage && 
-            convo.lastMessage.senderId !== currentUser.uid
+            convo.lastMessage.senderId !== currentUser.uid &&
+            // A simple unread logic, assuming no explicit 'read' field on lastMessage
+            new Date(convo.lastMessage.timestamp.seconds * 1000) > (convo.lastRead?.[currentUser.uid] || 0)
         );
         setHasUnreadMessages(newUnreadMessages);
     }
@@ -205,7 +208,7 @@ export function AppHeader() {
                     {loading && <div className="flex justify-center p-4"><Loader2 className="h-5 w-5 animate-spin"/></div>}
 
                     {!loading && combinedNotifications.map(item => (
-                       <NotificationItem key={item.id} notification={item} />
+                       <NotificationItem key={item.id} notification={item} currentUser={currentUser as User} />
                     ))}
 
                     {!loading && combinedNotifications.length === 0 && (
@@ -220,3 +223,5 @@ export function AppHeader() {
     </header>
   );
 }
+
+    

@@ -54,6 +54,7 @@ export type Conversation = {
   lastMessage?: Message;
   createdAt: Timestamp;
   allowedUsers: Record<string, boolean>;
+  lastRead?: { [key: string]: number };
 };
 
 export type Post = {
@@ -97,3 +98,5 @@ export type Notification = {
   updatedAt: number;
   unreadCount: number;
 };
+
+    

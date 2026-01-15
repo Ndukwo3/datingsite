@@ -16,7 +16,9 @@ import { ThemeToggle } from "./ThemeToggle";
 import { useToast } from "@/hooks/use-toast";
 import { useFirebaseApp } from "@/firebase";
 import { getAuth, createUserWithEmailAndPassword, signInWithEmailAndPassword, updateProfile, sendPasswordResetEmail, setPersistence, browserSessionPersistence, browserLocalPersistence } from "firebase/auth";
-import { getFirestore, doc, setDoc, getDoc, serverTimestamp } from "firebase/firestore";
+import { getFirestore, doc, setDoc, getDoc, serverTimestamp, writeBatch } from "firebase/firestore";
+import type { NotificationItem } from "@/lib/types";
+
 
 type AuthStep = "login" | "signup" | "forgot-password";
 type UserData = {
@@ -66,8 +68,10 @@ export function AuthPage({ defaultTab }: { defaultTab: "login" | "signup" }) {
 
             await updateProfile(user, { displayName: data.name });
 
+            const batch = writeBatch(firestore);
+
             const userDocRef = doc(firestore, "users", user.uid);
-            await setDoc(userDocRef, {
+            batch.set(userDocRef, {
                 id: user.uid,
                 name: data.name,
                 email: data.email,
@@ -84,6 +88,22 @@ export function AuthPage({ defaultTab }: { defaultTab: "login" | "signup" }) {
                 lastSeen: 'online',
                 onboardingComplete: false,
             });
+
+            // Create welcome notification
+            const notificationRef = doc(firestore, "userNotifications", user.uid);
+            const welcomeNotification: NotificationItem = {
+              id: `welcome_${Date.now()}`,
+              type: 'welcome',
+              fromUserId: user.uid, // Or a system ID
+              createdAt: Date.now(),
+              read: false,
+            };
+            batch.set(notificationRef, {
+                items: [welcomeNotification],
+                updatedAt: Date.now()
+            });
+
+            await batch.commit();
             
             handleAuthSuccess('/onboarding');
         } catch (error: any) {
@@ -491,3 +511,5 @@ const ForgotPasswordForm = ({ onSubmit, isLoading, onBackToLogin }: { onSubmit: 
         </form>
     );
 };
+
+    
