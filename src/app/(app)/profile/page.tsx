@@ -258,6 +258,32 @@ export default function ProfilePage() {
                 </CardContent>
             </Card>
 
+            {/* Profile Completion Card */}
+            {completionPercentage < 100 && nextStep && (
+                <Card>
+                    <CardHeader>
+                        <CardTitle>Complete Your Profile!</CardTitle>
+                        <CardDescription>You're almost there! Complete your profile to get the verified badge and unlock more matches.</CardDescription>
+                    </CardHeader>
+                    <CardContent className="space-y-4">
+                         <div>
+                            <div className="flex justify-between items-center mb-1">
+                                <p className="text-sm font-medium">Profile Completion</p>
+                                <p className="text-sm font-bold text-primary">{completionPercentage}%</p>
+                            </div>
+                            <Progress value={completionPercentage} className="h-2" />
+                        </div>
+                        <div className='p-4 bg-muted/50 rounded-lg'>
+                            <p className='font-semibold text-sm'>Next Step: {nextStep.title}</p>
+                            <p className='text-sm text-muted-foreground mt-1'>{nextStep.description}</p>
+                            <Button asChild size="sm" className="mt-3">
+                                <Link href="/profile/edit">{nextStep.buttonText}</Link>
+                            </Button>
+                        </div>
+                    </CardContent>
+                </Card>
+            )}
+
           {/* My Photos Card */}
           <Card>
             <CardHeader className="flex-row items-center justify-between">

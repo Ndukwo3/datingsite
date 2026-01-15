@@ -4,7 +4,7 @@
 import { useMemo } from 'react';
 import type { User } from '@/lib/types';
 
-const completionSteps = [
+export const completionSteps = [
     { key: 'photos', check: (user: User) => user.photos && user.photos.length >= 3, weight: 20, title: "Add more photos", description: "Profiles with at least 3 photos get more attention.", buttonText: "Add Photos" },
     { key: 'bio', check: (user: User) => user.bio && user.bio.length >= 50, weight: 20, title: "Write a bio", description: "Tell us about yourself! A good bio is at least 50 characters long.", buttonText: "Write Bio" },
     { key: 'interests', check: (user: User) => user.interests && user.interests.length >= 3, weight: 15, title: "Add interests", description: "Select at least 3 interests to help us find better matches.", buttonText: "Add Interests" },
