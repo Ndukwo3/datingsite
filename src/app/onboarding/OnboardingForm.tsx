@@ -7,7 +7,7 @@ import { zodResolver } from '@hookform/resolvers/zod';
 import * as z from 'zod';
 import { motion, AnimatePresence } from 'framer-motion';
 import { Loader2, Sparkles, Upload, Camera, ArrowLeft, Info, ChevronDown, Check, Star, X, PartyPopper, MapPin } from 'lucide-react';
-import { cn } from "@/lib/utils";
+import { cn, compressImage } from "@/lib/utils";
 import { useRouter } from 'next/navigation';
 import { useUser, useFirestore } from '@/firebase';
 import { doc, setDoc, serverTimestamp } from 'firebase/firestore';
@@ -125,15 +125,6 @@ const toTitleCase = (str: string) => {
         .map(word => word.charAt(0).toUpperCase() + word.slice(1))
         .join(' ');
 };
-
-const fileToDataUri = (file: File): Promise<string> => {
-  return new Promise((resolve, reject) => {
-      const reader = new FileReader();
-      reader.onload = () => resolve(reader.result as string);
-      reader.onerror = reject;
-      reader.readAsDataURL(file);
-  });
-}
 
 export function OnboardingForm() {
   const [currentStep, setCurrentStep] = useState(0);
@@ -294,9 +285,8 @@ export function OnboardingForm() {
       tempPhotos[index] = placeholderUrl;
       setValue('photos', tempPhotos, { shouldValidate: true });
 
-
         try {
-            const dataUri = await fileToDataUri(file);
+            const dataUri = await compressImage(file);
             
             const updatedPhotos = getValues('photos');
             updatedPhotos[index] = dataUri;

@@ -15,7 +15,7 @@ import { useRouter } from 'next/navigation';
 import { isValidHttpUrl } from '@/lib/is-valid-url';
 import { useEffect, useState, useRef, useMemo } from 'react';
 import { useToast } from '@/hooks/use-toast';
-import { cn } from '@/lib/utils';
+import { cn, compressImage } from '@/lib/utils';
 import {
   AlertDialog,
   AlertDialogAction,
@@ -81,15 +81,6 @@ export default function ProfilePage() {
     const currentUser = userData;
     const userImage = currentUser.photos?.[0];
 
-    const fileToDataUri = (file: File): Promise<string> => {
-        return new Promise((resolve, reject) => {
-            const reader = new FileReader();
-            reader.onload = () => resolve(reader.result as string);
-            reader.onerror = reject;
-            reader.readAsDataURL(file);
-        });
-    }
-
     const handlePhotoUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
         if (!e.target.files || !firestore || !authUser || !userData) return;
     
@@ -100,21 +91,21 @@ export default function ProfilePage() {
         }
     
         setUploading(true);
-        const newPhotoBase64s: string[] = [];
+        const newPhotoDataUris: string[] = [];
     
         try {
             for (const file of files) {
-                const photoDataUri = await fileToDataUri(file);
-                newPhotoBase64s.push(photoDataUri);
+                const photoDataUri = await compressImage(file);
+                newPhotoDataUris.push(photoDataUri);
             }
     
-            if (newPhotoBase64s.length > 0) {
+            if (newPhotoDataUris.length > 0) {
                 const userDocRef = doc(firestore, 'users', authUser.uid);
                 await updateDoc(userDocRef, {
-                    photos: [...userData.photos, ...newPhotoBase64s]
+                    photos: [...userData.photos, ...newPhotoDataUris]
                 });
                 await refreshUserData();
-                toast({ title: `${newPhotoBase64s.length} photo(s) uploaded successfully!` });
+                toast({ title: `${newPhotoDataUris.length} photo(s) uploaded successfully!` });
             }
     
         } catch (error: any) {
