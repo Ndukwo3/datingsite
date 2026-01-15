@@ -216,7 +216,7 @@ export default function ProfilePage() {
                             </Avatar>
                              {currentUser.isVerified && (
                                 <div className="absolute -bottom-2 -right-2 bg-background p-1 rounded-full">
-                                    <BadgeCheck className="h-7 w-7 text-blue-500 fill-blue-100" />
+                                    <BadgeCheck className="h-7 w-7 text-yellow-400 fill-yellow-100" />
                                 </div>
                             )}
                         </div>
@@ -231,7 +231,7 @@ export default function ProfilePage() {
                                 <p className="text-muted-foreground">{currentUser.location}</p>
                             </div>
                             {currentUser.isVerified ? (
-                                <div className="mt-2 text-sm font-semibold flex items-center justify-center sm:justify-start gap-1.5 text-blue-500">
+                                <div className="mt-2 text-sm font-semibold flex items-center justify-center sm:justify-start gap-1.5 text-yellow-500">
                                     <BadgeCheck className="h-4 w-4" /> You are now verified!
                                 </div>
                             ) : (
