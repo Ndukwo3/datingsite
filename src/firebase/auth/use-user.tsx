@@ -34,9 +34,15 @@ export function useUser() {
   const { completionPercentage, nextStep } = useProfileCompletion(userData);
 
   useEffect(() => {
-    // When profile is 100% complete, automatically verify the user
-    if (userDocRef && completionPercentage === 100 && userData && !userData.isVerified) {
-      updateDoc(userDocRef, { isVerified: true });
+    if (userDocRef && userData) {
+      // If profile is 100% complete and user is not yet verified, verify them.
+      if (completionPercentage === 100 && !userData.isVerified) {
+        updateDoc(userDocRef, { isVerified: true });
+      }
+      // If profile is less than 100% and user is currently verified, un-verify them.
+      else if (completionPercentage < 100 && userData.isVerified) {
+        updateDoc(userDocRef, { isVerified: false });
+      }
     }
   }, [completionPercentage, userData, userDocRef]);
 
