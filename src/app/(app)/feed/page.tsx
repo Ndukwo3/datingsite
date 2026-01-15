@@ -7,7 +7,7 @@ import Link from 'next/link';
 import { Card, CardContent } from '@/components/ui/card';
 import { formatActivity } from '@/lib/utils';
 import { cn } from '@/lib/utils';
-import { Loader2, MapPin, User as UserIcon } from 'lucide-react';
+import { Loader2, MapPin, User as UserIcon, BadgeCheck } from 'lucide-react';
 import type { User } from '@/lib/types';
 import { useCollection, useFirestore, useUser } from '@/firebase';
 import { collection, query, where } from 'firebase/firestore';
@@ -86,7 +86,10 @@ export default function FeedPage() {
                     </div>
                   )}
                   <div className="absolute inset-x-0 bottom-0 bg-gradient-to-t from-black/80 to-transparent p-3 text-primary-foreground">
-                    <p className="font-semibold">{user.name}, {user.age}</p>
+                    <div className="flex items-center gap-1.5">
+                        <p className="font-semibold">{user.name}, {user.age}</p>
+                        {user.isVerified && <BadgeCheck className="h-4 w-4 text-yellow-400 fill-primary-foreground" />}
+                    </div>
                      <p className="mt-0.5 flex items-center gap-1 text-xs text-primary-foreground/80">
                       <MapPin className="h-3 w-3" /> {city}
                     </p>
