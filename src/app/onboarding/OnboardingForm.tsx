@@ -288,6 +288,16 @@ export function OnboardingForm() {
         try {
             const dataUri = await compressImage(file);
             
+            // Check for duplicates
+            if (getValues('photos').includes(dataUri)) {
+                toast({ title: "Duplicate Photo", description: "This photo has already been uploaded. Please choose a different one.", variant: "destructive" });
+                const originalPhotos = getValues('photos').filter(p => p !== placeholderUrl);
+                setValue('photos', originalPhotos, { shouldValidate: true });
+                setUploadingIndex(null);
+                if (fileInputRef.current) fileInputRef.current.value = "";
+                return;
+            }
+
             const updatedPhotos = getValues('photos');
             updatedPhotos[index] = dataUri;
             setValue('photos', [...updatedPhotos], { shouldValidate: true });
@@ -823,5 +833,3 @@ export function OnboardingForm() {
     </FormProvider>
   );
 }
-
-    

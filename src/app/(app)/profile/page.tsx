@@ -92,11 +92,17 @@ export default function ProfilePage() {
     
         setUploading(true);
         const newPhotoDataUris: string[] = [];
+        let duplicateCount = 0;
     
         try {
             for (const file of files) {
                 const photoDataUri = await compressImage(file);
-                newPhotoDataUris.push(photoDataUri);
+                
+                if (userData.photos.includes(photoDataUri)) {
+                    duplicateCount++;
+                } else {
+                    newPhotoDataUris.push(photoDataUri);
+                }
             }
     
             if (newPhotoDataUris.length > 0) {
@@ -106,6 +112,14 @@ export default function ProfilePage() {
                 });
                 await refreshUserData();
                 toast({ title: `${newPhotoDataUris.length} photo(s) uploaded successfully!` });
+            }
+
+            if (duplicateCount > 0) {
+                toast({
+                    title: "Duplicate photos found",
+                    description: `${duplicateCount} photo(s) were already in your gallery and were not uploaded again.`,
+                    variant: "default"
+                });
             }
     
         } catch (error: any) {
@@ -202,7 +216,7 @@ export default function ProfilePage() {
                             </Avatar>
                              {currentUser.isVerified && (
                                 <div className="absolute -bottom-2 -right-2 bg-background p-1 rounded-full">
-                                    <BadgeCheck className="h-7 w-7 text-yellow-400 fill-yellow-100" />
+                                    <BadgeCheck className="h-7 w-7 text-blue-500 fill-blue-100" />
                                 </div>
                             )}
                         </div>
@@ -217,7 +231,7 @@ export default function ProfilePage() {
                                 <p className="text-muted-foreground">{currentUser.location}</p>
                             </div>
                             {currentUser.isVerified ? (
-                                <div className="mt-2 text-sm font-semibold flex items-center justify-center sm:justify-start gap-1.5 text-yellow-500">
+                                <div className="mt-2 text-sm font-semibold flex items-center justify-center sm:justify-start gap-1.5 text-blue-500">
                                     <BadgeCheck className="h-4 w-4" /> You are now verified!
                                 </div>
                             ) : (
