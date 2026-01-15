@@ -221,9 +221,19 @@ export default function ProfilePage() {
                                     {currentUser.name}, {currentUser.age}
                                 </h2>
                             </div>
-                            <p className="mt-1 flex items-center justify-center sm:justify-start gap-1.5 text-muted-foreground">
-                                <MapPin className="h-4 w-4" /> {currentUser.location}
-                            </p>
+                             <div className="mt-1 flex items-center justify-center sm:justify-start gap-1.5">
+                                <MapPin className="h-4 w-4 text-muted-foreground" />
+                                <p className="text-muted-foreground">{currentUser.location}</p>
+                            </div>
+                            {currentUser.isVerified ? (
+                                <div className="mt-2 text-sm font-semibold flex items-center justify-center sm:justify-start gap-1.5 text-yellow-500">
+                                    <BadgeCheck className="h-4 w-4" /> You are now verified!
+                                </div>
+                            ) : (
+                                <Link href="/profile/edit" className="mt-2 text-sm font-semibold flex items-center justify-center sm:justify-start gap-1.5 text-primary hover:underline">
+                                    Complete your profile to get verified
+                                </Link>
+                            )}
                              <div className="mt-4 flex justify-center sm:justify-start gap-6 text-center">
                                 <div>
                                     <p className="text-xl font-bold">{matches?.length || 0}</p>
@@ -395,28 +405,6 @@ export default function ProfilePage() {
 
         {/* Right Column */}
         <div className="col-span-1 space-y-8">
-            {/* Profile Completion Card */}
-            {completionPercentage < 100 && (
-                <Card>
-                    <CardHeader>
-                        <CardTitle>Profile Completion</CardTitle>
-                        <CardDescription>{completionPercentage}% Complete</CardDescription>
-                    </CardHeader>
-                    <CardContent className="space-y-4">
-                        <Progress value={completionPercentage} />
-                        <div>
-                            <p className="font-semibold text-sm">{nextStep?.title}</p>
-                            <p className="text-sm text-muted-foreground">{nextStep?.description}</p>
-                        </div>
-                        <Button asChild className="w-full">
-                            <Link href="/profile/edit">
-                                <Edit className="mr-2 h-4 w-4" /> {nextStep?.buttonText}
-                            </Link>
-                        </Button>
-                    </CardContent>
-                </Card>
-            )}
-
             {/* Profile Visibility Card */}
             <Card>
                 <CardHeader>
@@ -550,5 +538,3 @@ export default function ProfilePage() {
     </div>
   );
 }
-
-    
