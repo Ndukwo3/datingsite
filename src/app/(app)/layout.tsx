@@ -20,6 +20,14 @@ export default function AppLayout({ children }: { children: ReactNode }) {
         if (!loading && !user) {
             router.replace('/login');
         }
+        
+        // Ask for notification permission once the user is logged in
+        if (!loading && user) {
+            if ("Notification" in window && Notification.permission === "default") {
+                Notification.requestPermission();
+            }
+        }
+
     }, [user, loading, router]);
 
     // Show a loading spinner while the auth state is being determined.
