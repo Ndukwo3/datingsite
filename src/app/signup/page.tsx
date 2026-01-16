@@ -1,23 +1,11 @@
-"use client";
-
-import { useSearchParams } from "next/navigation";
+import { AuthPage } from "@/components/AuthPage";
 import { Suspense } from "react";
-
-function SignupContent() {
-  const searchParams = useSearchParams();
-  const redirect = searchParams.get("redirect");
-
-  return (
-    <div>
-      Signup Page
-    </div>
-  );
-}
+import { SplashScreen } from "@/components/SplashScreen";
 
 export default function SignupPage() {
   return (
-    <Suspense fallback={<p>Loading signup...</p>}>
-      <SignupContent />
+    <Suspense fallback={<SplashScreen />}>
+      <AuthPage defaultTab="signup" />
     </Suspense>
   );
 }
