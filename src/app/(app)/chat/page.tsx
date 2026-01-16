@@ -25,7 +25,7 @@ function ConversationItem({ conversation, currentUserId }: { conversation: Conve
   const { data: participant, loading } = useDoc<User>(participantRef);
 
   const isUnread = useMemo(() => {
-    if (!conversation.lastMessage || !currentUserId) return false;
+    if (!conversation.lastMessage || !conversation.lastMessage.timestamp || !currentUserId) return false;
     // Message is unread if it's not from the current user and its timestamp is after the user's lastRead time.
     return (
       conversation.lastMessage.senderId !== currentUserId &&
@@ -119,7 +119,7 @@ export default function ChatListPage() {
     if (!firestore || !user) return null;
     return query(
       collection(firestore, `userConversations/${user.uid}/conversations`),
-      orderBy('lastMessage.timestamp', 'desc')
+      orderBy('createdAt', 'desc')
     );
   }, [firestore, user]);
 
