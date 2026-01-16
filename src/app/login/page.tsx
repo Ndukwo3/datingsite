@@ -1,8 +1,14 @@
+"use client";
 
-import { AuthPage } from "@/components/AuthPage";
+import { useSearchParams } from "next/navigation";
 
 export default function LoginPage() {
-  return <AuthPage defaultTab="login" />;
-}
+  const searchParams = useSearchParams();
+  const redirect = searchParams.get("redirect");
 
-    
+  return (
+    <div>
+      Login Page
+    </div>
+  );
+}
