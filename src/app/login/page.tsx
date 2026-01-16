@@ -1,8 +1,9 @@
 "use client";
 
 import { useSearchParams } from "next/navigation";
+import { Suspense } from "react";
 
-export default function LoginPage() {
+function LoginContent() {
   const searchParams = useSearchParams();
   const redirect = searchParams.get("redirect");
 
@@ -10,5 +11,13 @@ export default function LoginPage() {
     <div>
       Login Page
     </div>
+  );
+}
+
+export default function LoginPage() {
+  return (
+    <Suspense fallback={<p>Loading login...</p>}>
+      <LoginContent />
+    </Suspense>
   );
 }
