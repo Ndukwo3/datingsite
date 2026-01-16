@@ -1,8 +1,23 @@
+"use client";
 
-import { AuthPage } from "@/components/AuthPage";
+import { useSearchParams } from "next/navigation";
+import { Suspense } from "react";
 
-export default function SignupPage() {
-  return <AuthPage defaultTab="signup" />;
+function SignupContent() {
+  const searchParams = useSearchParams();
+  const redirect = searchParams.get("redirect");
+
+  return (
+    <div>
+      Signup Page
+    </div>
+  );
 }
 
-    
+export default function SignupPage() {
+  return (
+    <Suspense fallback={<p>Loading signup...</p>}>
+      <SignupContent />
+    </Suspense>
+  );
+}
